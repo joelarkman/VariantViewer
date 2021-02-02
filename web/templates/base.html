@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Page Title -->
+    <title>VariantViewer - {{ page_title }}</title>
+
+    <!-- Dependencies -->
+    <link rel="stylesheet" type="text/css" href="{% static 'dependencies/fomantic/css/fomantic.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/se/dt-1.10.22/datatables.min.css">
+
+    <script src="{% static 'dependencies/jquery/js/jquery.min.js' %}"></script>
+    <script src="https://cdn.datatables.net/v/se/dt-1.10.22/datatables.min.js"></script>
+    <script src="{% static 'dependencies/fomantic/js/fomantic.min.js' %}"></script>
+
+    <!-- Project Files -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block stylesheet %} {% endblock %}
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="main-sidebar" class="ui sidenav left fixed inverted vertical menu">
+
+        <div class="sidenav-inner-wrap">
+
+            <div class="sidenav-inner-scroll">
+
+                <!-- Logo and app title -->
+                <div class="item site_name"
+                    style="display: flex;flex-direction: column;align-items: center;justify-content: center;background-color: #1f1f1f;height: 2.1cm;">
+
+                    <i class="big dna icon" style="margin: 0;color:#005EB8"></i>
+
+                    <div class="text-title" style="margin: 0;margin-top: 5px;">
+                        <span style="font-weight: bold;font-size: large;">WMRGL</span>
+                        <span style="font-weight: lighter;font-size: large;;color:#9aa4ac">DELVE</span>
+                    </div>
+
+                </div>
+
+                <!-- Sidebar items -->
+                <a href='{% url "index" %}' class="item">
+                    <i class="home icon"></i>
+                    <span class="text-title">
+                        Home
+                    </span>
+                </a>
+                <a href='{% url "search" %}' class='item'>
+                    <i class="search icon"></i>
+                    <span class="text-title">
+                        Patient search
+                    </span>
+                </a>
+                <a href='{% url "sample" %}' class="item">
+                    <i class="info circle icon"></i>
+                    <span class="text-title">
+                        About
+                    </span>
+                </a>
+
+                <!-- Hidden item to add line -->
+                <div class="item"> </div>
+
+            </div>
+        </div>
+
+        <!-- Bottom items of sidebar -->
+        <div class="force-bottom">
+
+            <!-- Hidden item to add line -->
+            <div class="item"> </div>
+
+            <div id="sidebar-accordion" class="ui accordion item inverted">
+                <div class="title">
+                    <i class="dropdown icon"></i>
+                    <i class="user icon"></i>
+                    <span class="text-title">
+                        JHDL
+                    </span>
+                </div>
+                <div class="content">
+                    <a class="item">
+                        <i class="cog icon"></i>
+                        <span class="text-title">
+                            Account Settings
+                        </span>
+                    </a>
+                    <a class="item">
+                        <i class="sign out alternate icon"></i>
+                        <span class="text-title">
+                            Logout
+                        </span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sidebar resize button -->
+            <a id="resize-sidebar" class="item compact-menu">
+                <i class="angle double left icon"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Wrapper to ensure all content is pushed by sidebar -->
+    <div class="content-wrap">
+
+        {% block content %} {% endblock %}
+
+    </div>
+
+</body>
+
+<script src="{% static 'js/base.js'%}"></script>
+
+{% block javascript %} {% endblock %}
+
+</html>

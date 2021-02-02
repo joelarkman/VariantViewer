@@ -1,0 +1,227 @@
+{% load static %}
+
+<!-- Load dependencies -->
+<script src="{% static 'dependencies/jquery-file-upload/js/vendor/jquery.ui.widget.js' %}"></script>
+<script src="{% static 'dependencies/jquery-file-upload/js/jquery.iframe-transport.js' %}"></script>
+<script src="{% static 'dependencies/jquery-file-upload/js/jquery.fileupload.js' %}"></script>
+
+<!-- Load static files -->
+<script src="{% static 'js/variant-details.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/variant-details.css' %}">
+
+<!-- Variant-details header -->
+<div class="variant-details-header">
+
+    <button class="circular ui icon button menu-toggle-closed">
+        <i class="icon bars"></i>
+    </button>
+
+
+    <a class="ui right corner label tabCloser">
+        <i class="close icon"></i>
+    </a>
+
+    <div class="title container">
+
+        <div>
+            <h2 class="ui header">
+                Variant 98429
+                <div class="sub header">(Last updated by JHDL just now)</div>
+            </h2>
+        </div>
+
+        <div class="ui secondary menu details-tabs">
+            <a class="item active" data-tab="details">
+                Variant Details
+            </a>
+            <a class="item " data-tab="databases">
+                Databases
+            </a>
+            <a class="item" data-tab="evidence">
+                Evidence
+            </a>
+        </div>
+
+    </div>
+
+    <div class="dropdown container">
+
+        <span class="dropdown title">Classification</span>
+
+        <div class="ui small selection dropdown classification">
+            <input type="hidden" name="gender">
+            <i class="dropdown icon"></i>
+            <div class="default text">Small</div>
+            <div class="menu">
+                <div class="item" data-value="1">Male</div>
+                <div class="item" data-value="0">Female</div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="dropdown container">
+
+        <span class="dropdown title">Include in Report</span>
+
+        <div class="ui small selection dropdown report inclusion">
+            <input type="hidden" name="gender">
+            <i class="dropdown icon"></i>
+            <div class="default text">No</div>
+            <div class="menu">
+                <div class="item" data-value="1">Yes</div>
+                <div class="item" data-value="0">No</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Details Tab -->
+<div class="ui tab" data-tab="details">
+    <div class="ui stackable stretched compact grid" style="margin: -7px;">
+
+        <div class="sixteen wide column">
+
+            <div class="ui top attached segment" style="margin-top:4px">
+                <h4>Summary</h4>
+            </div>
+
+            <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+                <div class="ui centered cards">
+                    <div class="teal card">
+                        <div class="content">
+                            <div class="center aligned header">Chromosome</div>
+                            <div class="center aligned description">Chr 9</div>
+                        </div>
+                    </div>
+
+                    <div class="teal card">
+                        <div class="content">
+                            <div class="center aligned header">Position</div>
+                            <div class="center aligned description">95491490</div>
+                        </div>
+                    </div>
+
+                    <div class="teal card">
+                        <div class="content">
+                            <div class="center aligned header">Alleles</div>
+                            <div class="center aligned description">G>T</div>
+                        </div>
+                    </div>
+
+                    <div class="teal card">
+                        <div class="content">
+                            <div class="center aligned header">Variation Type</div>
+                            <div class="center aligned description">Exonic SNV</div>
+                        </div>
+                    </div>
+
+                    <div class="teal card">
+                        <div class="content">
+                            <div class="center aligned header">Gene(s) | Transcript</div>
+                            <div class="center aligned description">ABRA (NM_012654.3 )</div>
+                        </div>
+                    </div>
+
+                    <div class="teal card">
+                        <div class="content">
+                            <div class="center aligned header">Worst Consequence</div>
+                            <div class="center aligned description">Missense</div>
+                        </div>
+                    </div>
+
+                    <div class="teal card">
+                        <div class="content">
+                            <div class="center aligned header">ClinVar Clin Sig</div>
+                            <div class="center aligned description">Likely Pathogenic</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<!-- Databases tab -->
+<div class="ui tab" data-tab="databases">
+
+    <div class="ui top attached segment" style="margin-top: 14px;">
+        <h4>Databases</h4>
+    </div>
+
+    <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+
+        <!-- placeholder -->
+
+    </div>
+</div>
+
+
+<!-- Evidence tab -->
+<div class="ui tab" data-tab="evidence">
+
+    <div class="ui top attached segment">
+        <h4>Evidence</h4>
+    </div>
+
+    <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+
+        <div id="target" class="ui fluid card js-upload-photos">
+            <span style="user-select: none;color: #7C7B7C; font-size: 15px;">
+                PASTE, DROP OR BROWSE FOR EVIDENCE TO UPLOAD
+            </span>
+        </div>
+
+        <div id="upload-form" class="ui segment" style="margin:0px;">
+            <div style="display: flex;align-items: stretch; margin-bottom: 15px;height: 224px;">
+                <form id="fileupload" class="ui form" action="{% url 'save_evidence' %}" method="POST"
+                    enctype="multipart/form-data" csrf_token="{{ csrf_token }}"
+                    style="flex: 1;display: flex;flex-direction: column;">
+                    <input id="file-dialog" type="file" name="document" style="display: none;">
+
+                    <div class="field">
+                        <label>File Name</label>
+                        <input id="id_filename" type="text" placeholder="File Name">
+                    </div>
+
+                    <div class="field">
+                        <label>Description</label>
+                        <textarea id="id_description" rows="6" maxlength="1000" type="text" name="description"
+                            style="resize: none;"></textarea>
+                    </div>
+
+                </form>
+
+                <div id="pending-container" class="ui segment"
+                    style="margin: 0;display: flex;align-items: center;justify-content: center;text-align: center;background-color: #e9e9e9;flex: 0 0 30%;margin-left: 15px;flex-direction: column;">
+                </div>
+
+            </div>
+
+            <button type="button" class="ui small primary button js-submit-photos">
+                Submit
+            </button>
+
+            <button type="button" class="ui small button js-cancel-submit">
+                Cancel
+            </button>
+
+        </div>
+
+        <div id="evidence-container">
+            {% if documents %}
+            {% include 'includes/evidence.html' %}
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Lightbox dimmer populated with images/pdfs via js. -->
+<div id="lightbox" class="ui page dimmer">
+</div>

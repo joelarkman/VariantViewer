@@ -1,0 +1,72 @@
+<div class="ui three link cards" style="margin-top:3px">
+
+    {% for doc in documents %}
+
+    {% if doc.extension == '.pdf' %}
+
+    <div class="card PdfCard" data-file="{{ doc.document.url }}">
+        <div class="image"
+            style="flex: 1;display: flex;align-items: center;justify-content: center;min-height: 150px;max-height: 150px;">
+            <i class="huge file pdf outline icon"></i>
+        </div>
+
+        {% else %}
+
+        <div class="card PhotoCard" data-file="{{ doc.document.url }}">
+
+            <div class="image"
+                style="flex: 1;display: flex;align-items: center;justify-content: center;min-height: 150px;max-height: 150px;">
+                <img src="{{ doc.document.url }}"
+                    style="height: auto;width: auto;max-width:100%;max-height:150px;border-radius: 15px;padding: 10px;">
+            </div>
+
+            {% endif %}
+
+            <div class="content">
+                <div class="header">
+                    <h4>{{ doc.filename }}</h4>
+                </div>
+                <div class="meta">
+                    Click to view
+                </div>
+                <div class="description">
+                    {{ doc.description }}
+                </div>
+            </div>
+            <div class="extra content" style="flex-shrink: 0;">
+                <span class="right floated">
+                    {{doc.uploaded_at}}
+                </span>
+                <span>
+                    <i class="user icon"></i>
+                    JHLN
+                </span>
+            </div>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    <script>
+        // Code to view existing files in lightbox
+        $('.PhotoCard').click(function () {
+            var image = $(this).attr('data-file');
+
+
+            $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <img class="lightbox-img" src="' + image + '"/>');
+
+            $('#lightbox')
+                .dimmer("show")
+        })
+
+        // Code to view existing files in lightbox
+        $('.PdfCard').click(function () {
+            var pdf = $(this).attr('data-file');
+
+            $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <object class="lightbox-pdf" data="' + pdf + '" type="application/pdf"><iframe src="https://docs.google.com/viewer?url=' + pdf + '&embedded=true"></iframe></object>');
+
+            $('#lightbox')
+                .dimmer("show")
+        })
+    </script>

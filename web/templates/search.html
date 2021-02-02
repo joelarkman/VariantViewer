@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block stylesheet %}{% endblock %}
+
+{% block javascript %}
+<script>
+    $('#search-filters-toggle').on('click', function () {
+        $(this).toggleClass('red')
+
+        if ($(this).hasClass('red')) {
+            $(this).attr("data-tooltip", "Hide Filter");
+        } else {
+            $(this).attr("data-tooltip", "Show Filters");
+        }
+
+        $('#search-filters').slideToggle()
+    })
+</script>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- Page Header -->
+<div id="page-header" class="ui inverted vertical masthead left aligned segment">
+    <img id="page-header-background" src="{% static 'header-background.jpeg' %}">
+
+    <div id='page-header-title'>
+
+        <div id="page-header-title-leftstack">
+            <h1 id="page-header-title-text">Patient Search</h1>
+            <div class="ui large breadcrumb">
+                <a class="ui compact tiny grey basic inverted button">Home</a>
+                <i class="right chevron icon divider"></i>
+                <a class="ui compact tiny grey basic inverted button">Rare disease</a>
+                <i class="right chevron icon divider"></i>
+                <a class="ui compact tiny grey basic inverted disabled button">Search</a>
+            </div>
+
+        </div>
+
+        <!-- <div id="page-header-title-right-buttons" class="ui three item menu">
+            <a class="active item main-tabs-link active" data-tab='variants-tab'>Variants</a>
+            <a class="item main-tabs-link" data-tab="qc">QC Metrics</a>
+            <a class="item main-tabs-link" data-tab="coverage">Coverage</a>
+        </div> -->
+
+    </div>
+</div>
+
+<!-- Tab Utility Bar -->
+<div id="tab-utility-bar" class="ui attached segment">
+
+    <span class="title">SEARCH</span>
+
+    <div class="item-divider"></div>
+
+    <div class="ui small icon input" style="width:100%;">
+        <input type="text" placeholder="Search...">
+        <i class="circular search link icon"></i>
+    </div>
+
+    <div class="item-divider" style="margin-left: 15px;"></div>
+
+    <div id="search-filters-toggle" class="ui small icon button" data-tooltip='Show Filters'
+        data-position="bottom right">
+        <i class="filter icon"></i>
+    </div>
+
+</div>
+
+
+<div style="padding: 15px;overflow-y: auto;">
+
+
+    <div id="search-filters" class="ui message hidden" style="height: 6cm;">
+
+        <h3>Filters</h3>
+
+    </div>
+
+    <div class="ui grid">
+
+        <div class="sixteen wide column">
+
+            <a class="ui fluid raised card">
+
+                <div class="content">
+                    <div class="header">Family ID: 43870387054</div>
+                    <div class="meta">
+                        <span class="category">Trio Analysis</span>
+                    </div>
+                    <div class="description">
+
+                        Overview details about this analysis...
+
+                    </div>
+                </div>
+                <div class="extra content" style="background-color:#ebebeb">
+                    <div class="ui fluid styled accordion">
+                        <div class="title">
+                            <i class="dropdown icon"></i>
+                            Family Info
+                        </div>
+                        <div class="content">
+                            <table class="ui celled table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Age</th>
+                                        <th>Job</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td data-label="Name">James</td>
+                                        <td data-label="Age">24</td>
+                                        <td data-label="Job">Engineer</td>
+                                    </tr>
+                                    <tr>
+                                        <td data-label="Name">Jill</td>
+                                        <td data-label="Age">26</td>
+                                        <td data-label="Job">Engineer</td>
+                                    </tr>
+                                    <tr>
+                                        <td data-label="Name">Elyse</td>
+                                        <td data-label="Age">24</td>
+                                        <td data-label="Job">Designer</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+
+        <div class="sixteen wide column">
+
+            <a class="ui fluid raised card">
+                <div class="content">
+                    <div class="header">Family ID: 8368765</div>
+                    <div class="meta">
+                        <span class="category">Trio Analysis</span>
+                    </div>
+                    <div class="description">
+
+                        Overview details about this analysis...
+
+                    </div>
+                </div>
+                <div class="extra content">
+                    <div class="ui fluid styled accordion">
+                        <div class="title">
+                            <i class="dropdown icon"></i>
+                            Family Info
+                        </div>
+                        <div class="content">
+                            <p>Info about proband,mum and dad</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+
+
+        <div class="sixteen wide column">
+
+            <a class="ui fluid raised card">
+                <div class="content">
+                    <div class="header">Family ID: 8368765</div>
+                    <div class="meta">
+                        <span class="category">Trio Analysis</span>
+                    </div>
+                    <div class="description">
+
+                        Overview details about this analysis...
+
+                    </div>
+                </div>
+                <div class="extra content">
+                    <div class="ui fluid styled accordion">
+                        <div class="title">
+                            <i class="dropdown icon"></i>
+                            Family Info
+                        </div>
+                        <div class="content">
+                            <p>Info about proband,mum and dad</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+
+    <div class="ui right floated pagination menu" style="margin-top: 20px;">
+        <a class="active item">
+            1
+        </a>
+        <div class="disabled item">
+            ...
+        </div>
+        <a class="item">
+            10
+        </a>
+        <a class="item">
+            11
+        </a>
+        <a class="item">
+            12
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

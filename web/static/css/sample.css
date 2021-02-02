@@ -1,0 +1,198 @@
+/* ============
+   VARIANTS TAB 
+   ============ */
+
+#filter_button {
+    min-width: 225px;
+}
+
+#mod_button {
+    margin-top: 8px;
+}
+
+#variants-main-panel {
+    flex: 2;
+    display: flex;
+    overflow: hidden;
+    margin: 0px;
+    min-height: 250px;
+}
+
+#browser-expand-collapse {
+    margin-right: 10px;
+}
+
+#variant-menu {
+    flex: 0 0 300px;
+    min-height: 100%;
+    border-radius: 0%;
+    border-top: none;
+}
+
+#variant-menu-topper {
+    display: flex;
+    margin: 15px;
+    }
+
+.gene .title {
+    margin-left: 10px; 
+    margin-top: 10px;
+    margin-bottom: 6px;
+}
+
+
+.gene .item.mini-tabs-link {
+    min-height: 55px;
+    display: flex !important;
+    align-items: stretch;
+    padding: 0 !important;
+}    
+
+.gene .item.mini-tabs-link .variant-title{
+    display: flex;
+    border:0.5px solid #E8E9E9;
+    border-top: none;
+    border-left: none;
+    border-bottom: none;
+    flex:1;
+    padding: 3px;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    text-align: center;
+}
+
+.gene .item.mini-tabs-link .variant-attribute-container{
+    display: flex;
+    border: none;
+    flex: 0 0 120px;
+    padding: 3px;
+    align-items: stretch;
+    padding: 6px;
+}
+
+.gene .item.mini-tabs-link .variant-attribute{
+    display: flex;
+    flex-direction: column;
+    border: 0.5px solid #c5c5c5;
+    border-radius: 5px;
+    padding: 5px;
+    align-items: center;
+    justify-content: center;
+    background-color: #E8E9E9;
+    flex-grow: 1;
+}
+
+#variant-content-container {
+    /* display: flex; */
+    background-color: #F8F8F8;
+    padding: 0px;
+    /* flex: 1; */
+    min-height: 100%;
+    border-top: none;
+}
+
+/* Overflow for variant menu */
+.mini_tabs {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+    
+.mini-tabs-content-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.browser-collapsed {
+    margin: 0px;
+    max-height: 400px;
+    min-height: 250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+    
+.browser-expanded {
+    margin: 0px;
+    display: flex;
+    flex: 2;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: white;
+}
+
+/* ===============
+   VARIANT DETAILS
+   =============== */
+
+.variant-details-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-flow: row wrap;
+    row-gap: 5px;
+    background-color: #d7d9f3;
+    margin: -7px;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.circular.ui.icon.button.menu-toggle-closed {
+    margin: 0;
+    margin-top: -3px;
+    margin-left: -2px;
+    margin-right: 15px;
+    align-self: flex-start;
+}
+
+.ui.right.corner.label.tabCloser {
+    margin-right: 8px;
+    margin-top: 8px;
+    border-radius: 20px !important
+}
+
+.variant-details-header .title.container {
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid #9d9eb1;
+    margin-right: 20px;
+}
+
+.ui.secondary.menu.details-tabs {
+    margin-top: 5px;
+    margin-bottom: 0px;
+    margin-right: 15px;
+}
+
+.variant-details-header .dropdown.container {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    align-items: center;
+    border-radius: 10px;
+    align-self: stretch;
+    justify-content: center;
+    padding: 10px;
+    margin-right: 15px;
+}
+
+.variant-details-header .dropdown.container .dropdown.title{
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* ==========
+   OTHER TABS 
+   ========== */
+
+/* #qc {
+    flex: 2;
+    display: flex;
+    overflow: hidden;
+    margin: 15px;
+} */
+
+table.dataTable.no-footer {
+    border-bottom: 0 !important;
+    border-top: none;
+}
