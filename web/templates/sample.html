@@ -7,12 +7,9 @@
 {% endblock %}
 
 {% block javascript %}
-<script
-    src="//s3.amazonaws.com/jbrowse.org/jb2_releases/jbrowse-linear-view/jbrowse-linear-view@v0.0.1-beta.0/umd/jbrowse-linear-view.js"></script>
-
+<script src="{% static 'dependencies/jbrowse/jbrowse-linear-genome-view.js' %}"></script>
 
 <script src="{% static 'js/sample.js' %}"></script>
-<script type="module" src="{% static 'js/jbrowse-params.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -143,8 +140,8 @@
                     </a>
                 </div>
 
-                <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' %}"
-                    data-igv="chr10:66,898,865-66,898,885" style="border-bottom:0.5px solid #E8E9E9;">
+                <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' %}" data-chr="3"
+                    data-location="121973128" style="border-bottom:0.5px solid #E8E9E9;">
 
                     <div class="variant-title">
                         c.20876G>T / p.W6889L
@@ -276,7 +273,9 @@
     <div class="browser-collapsed hidden" id="browser">
         <div class="ui attached segment" style="padding: 5px;border: none;">
             <!-- <div id="igv-div"></div> -->
-            <div id="jbrowse_linear_view"></div>
+            <div id="jbrowse_linear_view" data-sample='testing' data-vcf='{{ vcf }}' data-tbi='{{ tbi }}'
+                data-bam='{{ bam }}' data-bai='{{ bai }}' data-media-url='{{ MEDIA_URL }}'>
+            </div>
 
         </div>
     </div>
