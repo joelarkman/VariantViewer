@@ -1,3 +1,36 @@
 {% extends 'base.html' %}
 
 {% load static %}
+
+{% block javascript %}
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div id="page-header" class="ui inverted vertical masthead left aligned segment">
+    <img id="page-header-background" src="{% static 'header-background.jpeg' %}">
+
+    <div id='page-header-title'>
+
+        <div id="page-header-title-leftstack">
+            <h1 id="page-header-title-text">Home</h1>
+            <div class="ui large breadcrumb">
+                <a class="ui compact tiny grey disabled basic inverted button">Home</a>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Tab Utility Bar -->
+<div id="tab-utility-bar" class="ui attached segment">
+
+    <span class="title">HOME</span>
+
+    <div class="item-divider"></div>
+
+</div>
+
+{% endblock %}
