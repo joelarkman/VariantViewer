@@ -46,6 +46,13 @@ class SampleView(TemplateView):
         context = super(SampleView, self).get_context_data()
         # base.html includes page_title by default
         context['page_title'] = 'Sample'
+
+        context['vcf'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz'
+        context['tbi'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz.tbi'
+
+        context['bam'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.bwa.drm.realn.sorted.bam'
+        context['bai'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.bwa.drm.realn.sorted.bam.bai'
+
         return context
 
 
@@ -97,3 +104,26 @@ def save_evidence(request):
                                                  request=request)
 
             return JsonResponse(data)
+
+
+# Temporary to explore jbrowse during development
+
+class JbrowseTestingView(TemplateView):
+    """
+    Template View to display index page.
+    """
+
+    template_name = 'jbrowse-testing.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(JbrowseTestingView, self).get_context_data()
+        # base.html includes page_title by default
+        context['page_title'] = 'Jbrowse Testing'
+
+        context['vcf'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz'
+        context['tbi'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz.tbi'
+
+        context['bam'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.bwa.drm.realn.sorted.bam'
+        context['bai'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.bwa.drm.realn.sorted.bam.bai'
+
+        return context

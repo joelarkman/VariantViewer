@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block javascript %}
+<script src="{% static 'dependencies/jbrowse/jbrowse-linear-genome-view.js' %}"></script>
+
+
+
+<script>
+    var sample = $('#jbrowse_linear_view').attr('data-sample');
+    var vcf = $('#jbrowse_linear_view').attr('data-vcf');
+    var tbi = $('#jbrowse_linear_view').attr('data-tbi');
+    var bam = $('#jbrowse_linear_view').attr('data-bam');
+    var bai = $('#jbrowse_linear_view').attr('data-bai');
+    var media = $('#jbrowse_linear_view').attr('data-media-url');
+
+    const genomeView = new JBrowseLinearGenomeView({
+        container: document.getElementById('jbrowse_linear_view'),
+        assembly: {
+            name: 'hg19',
+            sequence: {
+                type: 'ReferenceSequenceTrack',
+                trackId: 'hg19',
+                adapter: {
+                    type: 'BgzipFastaAdapter',
+                    fastaLocation: {
+                        uri:
+                            'https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz',
+                    },
+                    faiLocation: {
+                        uri:
+                            'https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz.fai',
+                    },
+                    gziLocation: {
+                        uri:
+                            'https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz.gzi',
+                    }
+                },
+            },
+            "refNameAliases": {
+                "adapter": {
+                    "type": "RefNameAliasAdapter",
+                    "location": {
+                        "uri": "https://s3.amazonaws.com/jbrowse.org/genomes/hg19/hg19_aliases.txt"
+                    }
+                }
+            }
+        },
+        tracks: [
+            {
+                "type": "AlignmentsTrack",
+                "trackId": "alignment_test",
+                "name": bam,
+                "assemblyNames": ["hg19"],
+                "category": [sample, 'Alignments'],
+                "adapter": {
+                    "type": "BamAdapter",
+                    "bamLocation": {
+                        "uri": media + bam
+                    },
+                    "index": {
+                        "location": {
+                            "uri": media + bai
+                        }
+                    }
+                }
+            },
+            {
+                "type": "VariantTrack",
+                "trackId": "vcf_test",
+                "name": vcf,
+                "assemblyNames": ["hg19"],
+                "category": [sample, 'Variants'],
+                "adapter": {
+                    "type": "VcfTabixAdapter",
+                    "vcfGzLocation": { "uri": media + vcf },
+                    "index": { "location": { "uri": media + tbi } }
+                }
+            }],
+        defaultSession: {
+            name: 'this session',
+            view: {
+                "id": "linearGenomeView",
+                "type": "LinearGenomeView",
+                "offsetPx": 2087472352,
+                "bpPerPx": 0.01,
+                "displayName": 'VariantViewer - ' + sample,
+                "displayedRegions": [],
+                "tracks": [
+                    {
+                        "id": "zoLe_b8_j",
+                        "type": "ReferenceSequenceTrack",
+                        "configuration": "hg19",
+                        "displays": [
+                            {
+                                "id": "g4SyLlEDdI",
+                                "type": "LinearReferenceSequenceDisplay",
+                                "height": 44,
+                                "configuration": "hg19-LinearReferenceSequenceDisplay",
+                                "showForward": true,
+                                "showReverse": true,
+                                "showTranslation": false
+                            }
+                        ]
+                    },
+                    {
+                        "id": "WzpyXHqsw",
+                        "type": "AlignmentsTrack",
+                        "configuration": "alignment_test",
+                        "displays": [
+                            {
+                                "id": "EuLBW2f8ZB",
+                                "type": "LinearAlignmentsDisplay",
+                                "PileupDisplay": {
+                                    "id": "sKwcWEd3N0",
+                                    "type": "LinearPileupDisplay",
+                                    "height": 90,
+                                    "configuration": {
+                                        "type": "LinearPileupDisplay",
+                                        "displayId": "alignment_test-LinearAlignmentsDisplay_pileup_xyz",
+                                        "renderers": {
+                                            "PileupRenderer": {
+                                                "type": "PileupRenderer"
+                                            },
+                                            "SvgFeatureRenderer": {
+                                                "type": "SvgFeatureRenderer"
+                                            }
+                                        }
+                                    },
+                                    "showSoftClipping": false,
+                                    "filterBy": {
+                                        "flagInclude": 0,
+                                        "flagExclude": 1536
+                                    }
+                                },
+                                "SNPCoverageDisplay": {
+                                    "id": "Y_I4865YWS",
+                                    "type": "LinearSNPCoverageDisplay",
+                                    "height": 86,
+                                    "configuration": {
+                                        "type": "LinearSNPCoverageDisplay",
+                                        "displayId": "alignment_test-LinearAlignmentsDisplay_snpcoverage_xyz",
+                                        "renderers": {
+                                            "SNPCoverageRenderer": {
+                                                "type": "SNPCoverageRenderer"
+                                            }
+                                        }
+                                    },
+                                    "selectedRendering": "",
+                                    "resolution": 1,
+                                    "constraints": {},
+                                    "filterBy": {
+                                        "flagInclude": 0,
+                                        "flagExclude": 1536
+                                    }
+                                },
+                                "configuration": "alignment_test-LinearAlignmentsDisplay",
+                                "height": 153,
+                                "showCoverage": true,
+                                "showPileup": true
+                            }
+                        ]
+                    },
+                    {
+                        "id": "WLv6XdMIC",
+                        "type": "VariantTrack",
+                        "configuration": "vcf_test",
+                        "displays": [
+                            {
+                                "id": "t9iR3GMoJo",
+                                "type": "LinearVariantDisplay",
+                                "height": 62,
+                                "configuration": "vcf_test-LinearVariantDisplay"
+                            }
+                        ]
+                    }
+                ],
+                "hideHeader": false,
+                "hideHeaderOverview": false,
+                "trackSelectorType": "hierarchical",
+                "trackLabels": "overlapping",
+                "showCenterLine": true
+            },
+        },
+        location: '1'
+    })
+
+    function myFunction() {
+
+    }
+
+    $('#console-print').click(function () {
+        console.log(JSON.stringify(genomeView.view, undefined, 2));
+    })
+
+    $('.navigate-button').click(function () {
+        var chr = $(this).attr('data-chr');
+        var location = $(this).attr('data-location');
+
+        var left = +location - 5;
+        var right = +location + 4;
+
+        var coords = chr + ":" + left + '..' + right;
+
+        genomeView.view.navToLocString(coords, 'hg19');
+
+    })
+
+    $('.random-button').click(function () {
+
+        // genomeView.view.toggleHeaderOverview();
+
+        // genomeView.view.zoomTo(0.1);
+
+        // genomeView.view.toggleTrack('alignment_test');
+
+        genomeView.view.activateTrackSelector();
+
+        // genomeView.view.showAllRegionsInAssembly()
+
+    })
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<div id="jbrowse_linear_view" data-sample='testing' data-vcf='{{ vcf }}' data-tbi='{{ tbi }}' data-bam='{{ bam }}'
+    data-bai='{{ bai }}' data-media-url='{{ MEDIA_URL }}'>
+</div>
+
+<div class="ui segment" style="margin: 15px;">
+    <button id="console-print" class="ui button">Print view to console</button>
+
+    <button class="ui primary button navigate-button" data-chr="3" data-location="121973128">
+        3:121973128
+    </button>
+
+    <button class="ui secondary button random-button">
+        Random
+    </button>
+</div>
+
+
+
+{% endblock %}
