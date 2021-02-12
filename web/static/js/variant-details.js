@@ -74,8 +74,9 @@ $(function () {
                         // Add the image and a close button to a dimmer and use custom classes to make the image fill the available screen space.
                         $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <object class="lightbox-pdf" data="' + URL.createObjectURL(file) + '" type="application/pdf"><iframe src="https://docs.google.com/viewer?url=' + URL.createObjectURL(file) + '&embedded=true"></iframe></object>');
 
-                        $('#lightbox')
-                            .dimmer('show');
+                        $('#lightbox').dimmer({
+                            closable: true
+                        }).dimmer('show');
 
                     })
 
@@ -91,8 +92,9 @@ $(function () {
                         // Add the image and a close button to a dimmer and use custom classes to make the image fill the available screen space.
                         $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <img class="lightbox-img" src="' + URL.createObjectURL(file) + '"/>');
 
-                        $('#lightbox')
-                            .dimmer('show');
+                        $('#lightbox').dimmer({
+                            closable: true
+                        }).dimmer('show');
 
                     })
                 }
@@ -187,9 +189,9 @@ target.onmousedown = e => {
 
 
 // Close dimmer when you click on its content
-$('#lightbox').click(function () {
-    $('#lightbox')
-        .dimmer('hide');
-})
+// $('#lightbox').click(function () {
+//     $('#lightbox')
+//         .dimmer('hide');
+// })
 
 

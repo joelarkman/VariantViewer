@@ -107,7 +107,7 @@
             </span>
 
             <div id="browser-expand-collapse" class="ui small icon button" data-tooltip='Expand Browser'
-                data-position="bottom right">
+                data-position="bottom right" style="display: none;">
                 <i class="expand alternate icon"></i>
             </div>
 
@@ -221,8 +221,8 @@
 
             <div class="basic_message" style="display: flex;flex-direction: column;flex: 1; min-height: 100%;">
 
-                <button class="circular ui icon button menu-toggle-closed"
-                    style="margin:15px;margin-top: 15px;margin-left: 16px;align-self: flex-start;">
+                <button class="ui circular icon button menu-toggle-closed circular"
+                    style="margin:15px;margin-top: 15px;margin-left: 16px;align-self: flex-start;display: none;">
                     <i class="icon bars"></i>
                 </button>
 
@@ -259,17 +259,56 @@
 
         </div>
 
-        <div id='filter-settings' class="ui inverted medium dimmer">
-            <div class="ui segment"
-                style="display: flex;flex-direction: column;align-items: flex-start;min-width: calc(100% - 30px);min-height: calc(100% - 30px);overflow-y: auto;">
-                <div id="filter-settings-close" class="ui button" style="flex-shrink: 0;margin-left: auto;">close
+        <!-- Filter settings content (this gets loaded into lightbox dimmer when activated) -->
+        <div id='filter-settings' style="display:none">
+
+            <div class="ui segments" style="display: flex;min-width: 60%;max-width: 90%;max-height: 90%;">
+                <div class="ui left aligned clearing segment">
+                    <h3 class="ui header" style="margin:0">Modify Filters</h3>
                 </div>
+                <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
 
-                <div style="height: 5cm;flex-shrink: 0;"></div>
+                    <div class="ui horizontal segments">
+                        <div class="ui segment">
+                            <p></p>
+                        </div>
+                        <div class="ui segment">
+                            <form class="ui form">
+                                <div class="field">
+                                    <label>First Name</label>
+                                    <input type="text" name="first-name" placeholder="First Name">
+                                </div>
+                                <div class="field">
+                                    <label>Last Name</label>
+                                    <input type="text" name="last-name" placeholder="Last Name">
+                                </div>
+                                <div class="field">
+                                    <div class="ui checkbox">
+                                        <input type="checkbox" tabindex="0" class="hidden">
+                                        <label>I agree to the Terms and Conditions</label>
+                                    </div>
+                                </div>
+                                <button class="ui button" type="submit">Submit</button>
+                            </form>
+                        </div>
+                        <div class="ui segment">
+                            <p></p>
+                        </div>
+                    </div>
 
-                <p style="align-self: center;">ddddrb;osruhb;oehb;oebh;orebhi;oerbhreo;bher;obhreildd</p>
-                <p>dddddd</p>
+                </div>
+                <div class="ui secondary left aligned clearing segment">
+                    <div class="ui right floated primary button">Save</div>
+                    <div class="ui right floated button filter-settings-close">Cancel</div>
+
+                </div>
             </div>
+
+        </div>
+
+
+        <!-- Lightbox dimmer populated with images/pdfs or filter settings via js. -->
+        <div id="lightbox" class="ui light dimmer">
         </div>
 
     </div>

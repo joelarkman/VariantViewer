@@ -67,19 +67,27 @@ $("#mod_filter").click(function () {
     $(this).addClass('disabled')
     $(this).addClass("red");
     $('#tab-utility-bar .label').addClass('disabled')
-    $('#filter-settings').dimmer({
+
+    $('#lightbox').dimmer('hide');
+    $('#lightbox').html($("#filter-settings").html());
+
+    // Define actrivity for newly defined close button.
+    $(".filter-settings-close").click(function () {
+        $("#mod_filter").removeClass('disabled')
+        $("#mod_filter").removeClass("red");
+        $('#tab-utility-bar .label').removeClass('disabled')
+        $('#lightbox').dimmer('hide');
+
+        $('.view-in-browser').removeClass('disabled')
+    });
+
+    $('#lightbox').dimmer({
         closable: false
     }).dimmer('show');
+
 });
 
-$("#filter-settings-close").click(function () {
-    $("#mod_filter").removeClass('disabled')
-    $("#mod_filter").removeClass("red");
-    $('#tab-utility-bar .label').removeClass('disabled')
-    $('#filter-settings').dimmer('hide');
 
-    $('.view-in-browser').removeClass('disabled')
-});
 
 // ====================
 // LOAD VARIANT DETAILS 
@@ -126,7 +134,6 @@ $(document).ready(function () {
                     clearTimeout(ajaxLoadTimeout);
                     $("#variant-content-loader").removeClass('active');
 
-                    // Navigate jbrowse to variant coords
                     genomeView.view.navToLocString(coords);
                 }
             });
@@ -148,7 +155,7 @@ $('.menu-toggle-closed').click(function () {
     $('.menu-toggle-closed').hide()
 })
 
-$('.menu-toggle-closed').hide()
+// $('.menu-toggle-closed').hide()
 
 // =========
 // MAIN TABS 
@@ -209,6 +216,7 @@ $('.view-in-browser').click(function () {
     // Trigger resize to force jbrowse to update width.
     window.dispatchEvent(new Event('resize'));
 
+    var loaded = True;
 
     // Reset position of browser to that of active variant. 
     var chr = $('.mini-tabs-link.active').attr('data-chr');
