@@ -2,37 +2,84 @@
 // VARIANT FILTER 
 // ============== 
 
-$('#filter_button')
-    .dropdown({
-        action: 'activate',
-        direction: 'downward',
-        onChange: function (value, text, $selectedItem) {
+// Filters scroll
+$(function () {
 
-            // do stuff when select value (extract filter attribute from selected item)
-
-            var filterVal = $($selectedItem).data('filter')
-        }
+    $('#right-button').click(function () {
+        $('.active-filters-container').animate({
+            scrollLeft: "+=150px"
+        }, "500");
     });
 
+    $('#left-button').click(function () {
+        $('.active-filters-container').animate({
+            scrollLeft: "-=150px"
+        }, "500");
+    });
+
+    // Code to grey out arrows at each extreme
+    jQuery(function ($) {
+        $('.active-filters-container').on('scroll', function () {
+            if (($(this).scrollLeft() + $(this).innerWidth()) >= $(this)[0].scrollWidth - 0.5) { //when fully scrolled right
+                $('#right-button').addClass('disabled');
+                $('#left-button').removeClass('disabled');
+            } else if ($(this).scrollLeft() === 0) { // when fully scrolled left
+                $('#left-button').addClass('disabled');
+                $('#right-button').removeClass('disabled');
+            } else {
+                $('#right-button').removeClass('disabled');
+                $('#left-button').removeClass('disabled');
+            }
+
+            // For troubleshooting!
+            // console.log($('#testing123').scrollLeft() + $('#testing123').innerWidth())
+            // console.log($('#testing123')[0].scrollWidth)
+        })
+    });
+
+    $(window).on('resize', function () {
+        if ($('.active-filters-container')[0].offsetWidth < $('.active-filters-container')[0].scrollWidth) {
+            $('#right-button').removeClass('disabled');
+            $('#left-button').addClass('disabled');
+        } else {
+            $('#left-button').addClass('disabled');
+            $('#right-button').addClass('disabled');
+        }
+    }).resize();
+
+});
+
 $("#mod_filter").click(function () {
-    $('.dropdown').blur();
 
-    $('.dropdown').addClass('disabled')
+    // Reset/Hide browser
+    $('#variants-main-panel').show();
+    $("#browser-expand-collapse").removeClass("primary")
+    $('#browser-expand-collapse .icon').addClass("expand").removeClass("compress")
+    $("#browser-expand-collapse").attr("data-tooltip", "Expand Browser");
+    $('#browser').addClass("browser-collapsed").removeClass("browser-expanded");
+    $('.view-in-browser').attr("data-tooltip", "Show Browser");
+    $('#browser').hide();
+    $('#browser-expand-collapse').hide()
+    $('.view-in-browser').removeClass("red");
+    $('.view-in-browser').addClass('disabled')
 
-    $('#variants-main-panel')
-        .dimmer('show')
-        ;
+
+    $(this).addClass('disabled')
+    $(this).addClass("red");
+    $('#tab-utility-bar .label').addClass('disabled')
+    $('#filter-settings').dimmer({
+        closable: false
+    }).dimmer('show');
 });
 
 $("#filter-settings-close").click(function () {
+    $("#mod_filter").removeClass('disabled')
+    $("#mod_filter").removeClass("red");
+    $('#tab-utility-bar .label').removeClass('disabled')
+    $('#filter-settings').dimmer('hide');
 
-    $('.dropdown').removeClass('disabled')
-
-    $('#variants-main-panel')
-        .dimmer('hide')
-        ;
+    $('.view-in-browser').removeClass('disabled')
 });
-
 
 // ====================
 // LOAD VARIANT DETAILS 

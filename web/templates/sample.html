@@ -56,42 +56,47 @@
 
         <div class="subtitle">FILTERS:</div>
 
-        <div class="ui small floating pointing dropdown labeled icon button" id="filter_button">
-            <i class="filter icon"></i>
-            <span class="text">Filter Variants</span>
-            <div class="menu">
+        <!-- Scrollable filters display -->
+        <a id="left-button" class="ui circular icon label" style="margin-right: 5px;">
+            <i class="arrow alternate left icon"></i>
+        </a>
 
-                <div class="header">
-                    Filter Existing List
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="item" data-filter="all">
-                    <div class="ui grey empty circular label"></div>
-                    All
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="item" data-filter="unclassified">
-                    <div class="ui blue empty circular label"></div>
-                    Unclassified
-                </div>
-
-                <div class="item" data-filter="pathogenic">
-                    <div class="ui red empty circular label"></div>
-                    Pathogenic
-                </div>
-
-
-                <div id="mod_filter" class="ui fluid attached basic button">
-                    Modify Filtering Parameters
-                </div>
-
+        <!-- Make sure content has flex-shrink:0 -->
+        <div class="active-filters-container">
+            <div class="ui label" style="flex-shrink: 0;">
+                Param1
+                <div class="detail">value</div>
+            </div>
+            <div class="ui label" style="flex-shrink: 0;">
+                Param2
+                <div class="detail">455</div>
+            </div>
+            <div class="ui label" style="flex-shrink: 0;">
+                Param3
+                <div class="detail">va564564lue</div>
+            </div>
+            <div class="ui label" style="flex-shrink: 0;">
+                Param1
+                <div class="detail">value</div>
+            </div>
+            <div class="ui label" style="flex-shrink: 0;">
+                Param1
+                <div class="detail">value</div>
+            </div>
+            <div class="ui label" style="flex-shrink: 0;">
+                Param1
+                <div class="detail">value</div>
             </div>
         </div>
 
+        <a id="right-button" class="ui circular icon label" style="margin-left:5px">
+            <i class="arrow alternate right icon"></i>
+        </a>
+
+        <div id="mod_filter" class="ui small icon button" data-tooltip='Modify filters' data-position="bottom right"
+            style="margin-left: 15px;">
+            <i class="filter icon"></i>
+        </div>
 
         <div class="right-float">
 
@@ -254,7 +259,7 @@
 
         </div>
 
-        <div class="ui inverted medium dimmer">
+        <div id='filter-settings' class="ui inverted medium dimmer">
             <div class="ui segment"
                 style="display: flex;flex-direction: column;align-items: flex-start;min-width: calc(100% - 30px);min-height: calc(100% - 30px);overflow-y: auto;">
                 <div id="filter-settings-close" class="ui button" style="flex-shrink: 0;margin-left: auto;">close

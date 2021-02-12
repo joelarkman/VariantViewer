@@ -2,8 +2,17 @@
    VARIANTS TAB 
    ============ */
 
-#filter_button {
-    min-width: 225px;
+.active-filters-container {
+    display: flex;
+    flex-direction: row;
+    overflow-x: scroll;
+    max-width: 35%;
+    height: 47px;
+    align-items: center;
+}
+   
+.active-filters-container::-webkit-scrollbar {
+    display: none;
 }
 
 #mod_button {
