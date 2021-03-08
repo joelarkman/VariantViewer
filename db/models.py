@@ -72,11 +72,13 @@ class Sequence(BaseModel):
     strand = models.CharField(max_length=1)
     start_coord = models.ForeignKey(
         GenomicCoordinate,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        related_name='sequence_starts'
     )
     end_coord = models.ForeignKey(
         GenomicCoordinate,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        related_name='sequence_ends'
     )
     sequence = models.TextField(null=True, blank=True)
 
@@ -194,7 +196,7 @@ class VariantReport(BaseModel):
     )
     # also store essential VCF info
     qual = models.IntegerField()
-    filter_pass = models.NullBooleanField()
+    filter_pass = models.BooleanField(null=True)
 
 
 class VariantReportInfo(BaseModel):
@@ -286,4 +288,4 @@ class SampleTranscriptVariant(BaseModel):
         on_delete=models.PROTECT
     )
     selected = models.BooleanField()
-    effect = models.CharField()
+    effect = models.CharField(max_length=255)
