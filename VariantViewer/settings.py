@@ -81,10 +81,15 @@ WSGI_APPLICATION = 'VariantViewer.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'variant_viewer_test_db',
+        'USER': 'variant_viewer',
+        'PASSWORD': 'variant_viewer_pwd',
+        'HOST': '127.0.0.1',
+        'PORT': '',
     }
 }
+
 
 
 # Password validation
