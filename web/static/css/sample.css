@@ -113,7 +113,7 @@
 .browser-collapsed {
     margin: 0px;
     max-height: 400px;
-    min-height: 250px;
+    /* min-height: 250px; */
     overflow-y: auto;
     overflow-x: hidden;
 }
