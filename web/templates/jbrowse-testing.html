@@ -203,7 +203,8 @@
 
         var coords = chr + ":" + left + '..' + right;
 
-        genomeView.view.navToLocString(coords, 'hg19');
+        const assemblyName = genomeView.state.assemblyManager.assemblies[0].name
+        genomeView.view.navToLocString(coords, assemblyName);
 
     })
 

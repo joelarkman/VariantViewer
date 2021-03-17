@@ -134,7 +134,8 @@ $(document).ready(function () {
                     clearTimeout(ajaxLoadTimeout);
                     $("#variant-content-loader").removeClass('active');
 
-                    genomeView.view.navToLocString(coords);
+                    const assemblyName = genomeView.state.assemblyManager.assemblies[0].name
+                    genomeView.view.navToLocString(coords, assemblyName);
                 }
             });
         }
@@ -216,8 +217,6 @@ $('.view-in-browser').click(function () {
     // Trigger resize to force jbrowse to update width.
     window.dispatchEvent(new Event('resize'));
 
-    var loaded = True;
-
     // Reset position of browser to that of active variant. 
     var chr = $('.mini-tabs-link.active').attr('data-chr');
     var location = $('.mini-tabs-link.active').attr('data-location');
@@ -226,7 +225,8 @@ $('.view-in-browser').click(function () {
     var coords = chr + ":" + left + '..' + right;
 
     // Delay by 1s to ensure browser is loaded first.
-    setTimeout(function () { genomeView.view.navToLocString(coords); }, 1000);
+    const assemblyName = genomeView.state.assemblyManager.assemblies[0].name
+    setTimeout(function () { genomeView.view.navToLocString(coords, assemblyName); }, 1000);
 
 })
 
@@ -505,5 +505,5 @@ const genomeView = new JBrowseLinearGenomeView({
             "showCenterLine": true
         },
     },
-    location: '1'
+    location: ''
 })
