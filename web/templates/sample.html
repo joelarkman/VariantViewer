@@ -54,7 +54,7 @@
 
         <div class="item-divider"></div>
 
-        <div class="subtitle">FILTERS:</div>
+        <div class="subtitle">FILTERS: (6 active)</div>
 
         <!-- Scrollable filters display -->
         <a id="left-button" class="ui circular icon label" style="margin-right: 5px;">
@@ -65,27 +65,27 @@
         <div class="active-filters-container">
             <div class="ui label" style="flex-shrink: 0;">
                 Param1
-                <div class="detail">value</div>
+                <div class="detail">val1</div>
             </div>
             <div class="ui label" style="flex-shrink: 0;">
                 Param2
-                <div class="detail">455</div>
+                <div class="detail">val2</div>
             </div>
             <div class="ui label" style="flex-shrink: 0;">
                 Param3
-                <div class="detail">va564564lue</div>
+                <div class="detail">val3</div>
             </div>
             <div class="ui label" style="flex-shrink: 0;">
-                Param1
-                <div class="detail">value</div>
+                Param4
+                <div class="detail">val4</div>
             </div>
             <div class="ui label" style="flex-shrink: 0;">
-                Param1
-                <div class="detail">value</div>
+                Param5
+                <div class="detail">val5</div>
             </div>
             <div class="ui label" style="flex-shrink: 0;">
-                Param1
-                <div class="detail">value</div>
+                Param6
+                <div class="detail">val6</div>
             </div>
         </div>
 
@@ -128,7 +128,8 @@
         <div class="ui vertical menu mini_tabs" id="variant-menu">
 
             <div id="variant-menu-topper">
-                <button id="menu-toggle-open" class="active circular ui icon button">
+                <button id="menu-toggle-open" class="active circular ui icon button" data-tooltip="Collapse Menu"
+                    data-position="bottom left">
                     <i class="icon bars"></i>
                 </button>
             </div>
@@ -222,7 +223,8 @@
             <div class="basic_message" style="display: flex;flex-direction: column;flex: 1; min-height: 100%;">
 
                 <button class="ui circular icon button menu-toggle-closed circular"
-                    style="margin:15px;margin-top: 15px;margin-left: 16px;align-self: flex-start;display: none;">
+                    style="margin:15px;margin-top: 15px;margin-left: 16px;align-self: flex-start;display: none;"
+                    data-tooltip="Expand Menu" data-position="bottom left">
                     <i class="icon bars"></i>
                 </button>
 
@@ -298,7 +300,7 @@
 
                 </div>
                 <div class="ui secondary left aligned clearing segment">
-                    <div class="ui right floated primary button">Save</div>
+                    <div class="ui right floated primary button" style="margin-left: 10px;">Save</div>
                     <div class="ui right floated button filter-settings-close">Cancel</div>
 
                 </div>
