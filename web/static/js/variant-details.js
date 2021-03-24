@@ -104,6 +104,7 @@ $(function () {
 
             // Once file has been added, checked for filetype and image containers populated... show form and hide upload button.
             $(".js-upload-photos").hide()
+            $('#target-uploading').show()
             $('#upload-form').show()
 
 
@@ -117,6 +118,7 @@ $(function () {
 
                     // Hide upload form and show upload button.
                     $(".js-upload-photos").show()
+                    $('#target-uploading').hide()
                     $('#upload-form').hide()
                 });
 
@@ -131,6 +133,7 @@ $(function () {
 
                 // Hide upload form and show upload button.
                 $(".js-upload-photos").show()
+                $('#target-uploading').hide()
                 $('#upload-form').hide()
             })
         },

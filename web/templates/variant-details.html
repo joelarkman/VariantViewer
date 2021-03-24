@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="{% static 'css/variant-details.css' %}">
 
 <!-- Variant-details header -->
-<div class="variant-details-header">
+<!-- <div class="variant-details-header">
 
     <button class="circular ui icon button menu-toggle-closed" data-tooltip="Expand Menu" data-position="bottom left">
         <i class="icon bars"></i>
@@ -75,88 +75,178 @@
         </div>
     </div>
 
-</div>
+</div> -->
 
-<!-- Details Tab -->
-<div class="ui tab" data-tab="details">
-    <div class="ui stackable stretched compact grid" style="margin: -7px;">
+<div class="topper"
+    style="margin: -15px;margin-bottom: 15px;padding: 15px;padding-bottom: 0px;padding-top: 10px;background-color: #e2e2e2;border-bottom: 2px solid #D5D5D6;">
 
-        <div class="sixteen wide column">
+    <div class="top-row-container" style="display: flex;flex-flow: row wrap;row-gap: 5px;">
 
-            <div class="ui top attached segment" style="margin-top:4px">
-                <h4>Summary</h4>
+        <button class="circular ui icon button menu-toggle-closed" data-tooltip="Expand Menu"
+            data-position="bottom left" style="margin-top: 5px;margin-left: 1px;">
+            <i class="icon bars"></i>
+        </button>
+
+        <div id="variant-title" class="ui segment"
+            style="background-color:#F8F8F8;padding: 0px;display: flex;align-items: center;margin-top: 0;margin-right: auto;margin-bottom: 0px;flex-shrink: 1;">
+
+            <div class="col-container" style="display: flex;flex-direction: column;margin: 5px;margin-left: 10px;">
+                <div class="align title and dropdown" style="display: flex;align-items: center">
+
+                    <h2 class="ui header" style="margin: 0px;">
+                        NOTCH1 c.1966A>G
+                    </h2>
+
+
+                </div>
+
+                <span id="report-status">Update the toggle to include in this variant in the report
+                    for
+                    this sample.</span>
+
+
+                <i>(Variant classification last updated by JHDL just now)</i>
+
             </div>
 
-            <div class="ui bottom attached segment" style="background-color: #eeeeee;">
-                <div class="ui four centered cards">
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Chromosome</div>
-                            <div class="center aligned description">Chr 9</div>
-                        </div>
+            <div id="include-in-report" class="ui toggle checkbox" style="margin-left: 20px;margin-right: 10px;">
+                <input type="checkbox">
+                <label></label>
+            </div>
+        </div>
+
+        <div class="ui segment"
+            style="background-color:#F8F8F8;display: flex;margin: 0px;align-items: stretch;padding: 0px;">
+
+            <div class="ui right floated top pointing dropdown small basic button"
+                style="display: flex;margin: 10px;align-items: center;">
+                <span class="text">Classification</span>
+                <div class="menu">
+                    <div class="header">
+                        Classification
+                    </div>
+                    <div class="divider"></div>
+                    <div class="item" data-filter="unclassified">
+                        <div class="ui blue empty circular label"></div>
+                        Unclassified
                     </div>
 
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Position</div>
-                            <div class="center aligned description">95491490</div>
-                        </div>
+                    <div class="item">
+                        <div class="ui red empty circular label"></div>
+                        Pathogenic
                     </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Alleles</div>
-                            <div class="center aligned description">G>T</div>
-                        </div>
+                    <div class="item">
+                        <div class="ui orange empty circular label"></div>
+                        Likely Pathogenic
                     </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Variation Type</div>
-                            <div class="center aligned description">Exonic SNV</div>
-                        </div>
+                    <div class="item">
+                        <div class="ui yellow empty circular label"></div>
+                        VUS
                     </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Gene(s) | Transcript</div>
-                            <div class="center aligned description">ABRA (NM_012654.3 )</div>
-                        </div>
+                    <div class="item">
+                        <div class="ui olive empty circular label"></div>
+                        Likely Benign
                     </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Worst Consequence</div>
-                            <div class="center aligned description">Missense</div>
-                        </div>
+                    <div class="item">
+                        <div class="ui green empty circular label"></div>
+                        Benign
                     </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">ClinVar Clin Sig</div>
-                            <div class="center aligned description">Likely Pathogenic</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">WMRGL AF</div>
-                            <div class="center aligned description">2/100</div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </div>
 
+    </div>
 
+    <div class="ui secondary pointing menu details-tabs" style="margin-top: 5px;border: none;">
+        <a class="item active" data-tab="details">
+            Variant Details
+        </a>
+        <a class="item " data-tab="databases">
+            Databases
+        </a>
+        <a class="item" data-tab="evidence">
+            Evidence
+        </a>
+    </div>
+
+</div>
+
+
+
+<!-- Details Tab -->
+<div class="ui tab" data-tab="details">
+
+    <div class="ui top attached segment">
+        <h4>Summary</h4>
+    </div>
+
+    <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+        <div class="ui four centered cards">
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Chromosome</div>
+                    <div class="center aligned description">Chr 9</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Position</div>
+                    <div class="center aligned description">95491490</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Alleles</div>
+                    <div class="center aligned description">G>T</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Variation Type</div>
+                    <div class="center aligned description">Exonic SNV</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Gene(s) | Transcript</div>
+                    <div class="center aligned description">ABRA (NM_012654.3 )</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Worst Consequence</div>
+                    <div class="center aligned description">Missense</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">ClinVar Clin Sig</div>
+                    <div class="center aligned description">Likely Pathogenic</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">WMRGL AF</div>
+                    <div class="center aligned description">2/100</div>
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
+
 
 <!-- Databases tab -->
 <div class="ui tab" data-tab="databases">
 
-    <div class="ui top attached segment" style="margin-top: 14px;">
+    <div class="ui top attached segment">
         <h4>Databases</h4>
     </div>
 
@@ -171,19 +261,46 @@
 <!-- Evidence tab -->
 <div class="ui tab" data-tab="evidence">
 
-    <div class="ui top attached segment" style="margin-top: 14px;">
-        <h4>Evidence</h4>
+    <div class="ui top attached segment" style="display: flex;align-items: center;">
+        <h4 style="margin: 0;">Comment</h4>
+        <div class="ui icon button" style="margin-top: -10px;margin-bottom: -10px;margin-left: auto;"
+            data-tooltip="Edit comment" data-position="bottom right">
+            <i class="pen icon"></i>
+        </div>
+    </div>
+
+    <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+        <div class="ui form">
+            <div class="field" style="margin-bottom: 2px;">
+                <textarea rows="8" readonly></textarea>
+            </div>
+            <span style="font-size:smaller;">Last modified by: JHDL 2 days ago</span>
+        </div>
+    </div>
+
+    <div id="target" class="ui top attached segment js-upload-photos" style="display: flex;">
+        <h4 style="margin: 0;">Evidence </h4>
+        <div class="ui right icon label"
+            style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">
+            Paste, Drop or Click here to upload evidence
+            <i class="upload icon"></i>
+        </div>
+    </div>
+
+    <!-- Shown when files are being uploaded to remove button. -->
+    <div id="target-uploading" class="ui top attached segment hidden">
+        <h4>Evidence </h4>
     </div>
 
     <div class=" ui bottom attached segment" style="background-color: #eeeeee;">
 
-        <div id="target" class="ui fluid card js-upload-photos">
+        <!-- <div id="target" class="ui fluid card js-upload-photos">
             <span style="user-select: none;color: #7C7B7C; font-size: 15px;">
                 PASTE, DROP OR BROWSE FOR EVIDENCE TO UPLOAD
             </span>
-        </div>
+        </div> -->
 
-        <div id="upload-form" class="ui segment" style="margin:0px;">
+        <div id="upload-form" class="ui segment" style="margin:0px;margin-bottom: 15px;">
             <div style="display: flex;align-items: stretch; margin-bottom: 15px;height: 224px;">
                 <form id="fileupload" class="ui form" action="{% url 'save_evidence' %}" method="POST"
                     enctype="multipart/form-data" csrf_token="{{ csrf_token }}"

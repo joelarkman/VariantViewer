@@ -1,4 +1,4 @@
-#target {
+/* #target {
     margin: 0px;
     background-color: #f7f7f7;
     height: 50px;
@@ -7,11 +7,11 @@
     justify-content: center;
     font-size: 15px;
     font-weight: lighter;
-}
+} */
 
 #target:hover {
     background-color: #f5f3f3;
-    border: 1.5px dashed rgb(163, 163, 179)
+    border: 1px dashed rgb(163, 163, 179)
 }
 
 #target:active {
