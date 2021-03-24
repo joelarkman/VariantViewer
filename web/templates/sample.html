@@ -21,7 +21,7 @@
     <div id='page-header-title'>
 
         <div id="page-header-title-leftstack">
-            <h1 id="page-header-title-text">NGS Results: Sample No. 273721 </h1>
+            <h1 id="page-header-title-text">NGS Results: {{ sample.sample_id }} </h1>
             <div class="ui large breadcrumb">
                 <a class="ui compact tiny grey basic inverted button">Home</a>
                 <i class="right chevron icon divider"></i>
@@ -31,7 +31,7 @@
                 <i class="right chevron icon divider"></i>
                 <a class="ui compact tiny grey basic inverted button">Joe Bloggs</a>
                 <i class="right chevron icon divider"></i>
-                <div class="ui compact tiny grey basic inverted disabled button">Sample 2</div>
+                <div class="ui compact tiny grey basic inverted disabled button">{{ sample.sample_id }}</div>
             </div>
         </div>
 

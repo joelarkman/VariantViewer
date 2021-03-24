@@ -5,10 +5,13 @@ from . import views
 urlpatterns = [
     path('', views.IndexView.as_view(), name='index'),
 
-    path('search', views.SearchView.as_view(), name='search'),
+    path('search/', views.SearchView.as_view(), name='search'),
 
-    path('sample', views.SampleView.as_view(), name='sample'),
+    path('sample/<slug:slug>', views.SampleView.as_view(), name='sample'),
 
+
+    path('ajax/load_worksheet_details/<int:pk>',
+         views.load_worksheet_details, name='load_worksheet_details'),
     path('ajax/load_variant_details',
          views.load_variant_details, name='load_variant_details'),
     path('ajax/save_evidence',
