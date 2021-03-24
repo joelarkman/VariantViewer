@@ -151,6 +151,14 @@ def set_sample_slug(sender, instance, *args, **kwargs):
         instance.slug = slugify(instance.sample_id)
 
 
+class ExcelReport(PipelineOutputFileModel):
+    """Excel report for a patient, can relate directly to sample."""
+    sample = models.ForeignKey(
+        Sample,
+        on_delete=models.CASCADE
+    )
+
+
 class SamplesheetSample(BaseModel):
     samplesheet = models.ForeignKey(
         Samplesheet,
@@ -199,6 +207,20 @@ class Variant(BaseModel):
     """
     ref = models.CharField(max_length=255)
     alt = models.CharField(max_length=255)
+
+
+class VariantCoordinate(BaseModel):
+    """
+    Linking a particular variant to a particular coordinate in a genome build.
+    """
+    variant = models.ForeignKey(
+        Variant,
+        on_delete=models.CASCADE,
+    )
+    coordinate = models.ForeignKey(
+        GenomicCoordinate,
+        on_delete=models.PROTECT
+    )
 
 
 class SampleVariant(BaseModel):
@@ -322,3 +344,68 @@ class SampleTranscriptVariant(BaseModel):
     )
     selected = models.BooleanField()
     effect = models.CharField(max_length=255)
+
+
+class Exon(BaseModel):
+    """
+    An exon, multiple of which comprise a transcript.
+    """
+    number = models.CharField(max_length=4)
+    transcript = models.ForeignKey(
+        Transcript,
+        on_delete=models.CASCADE,
+    )
+    sequence = models.ForeignKey(
+        Sequence,
+        on_delete=models.PROTECT
+    )
+
+
+class CoverageInfo(BaseModel):
+    """Coverage report for a gene or exon."""
+    cov_10x = models.IntegerField()
+    cov_20x = models.IntegerField()
+    cov_30x = models.IntegerField()
+    cov_40x = models.IntegerField()
+    cov_50x = models.IntegerField()
+    cov_100x = models.IntegerField()
+    cov_min = models.IntegerField()
+    cov_max = models.IntegerField()
+    cov_mean = models.FloatField()
+    cov_region = models.IntegerField()
+    pct_10x = models.IntegerField()
+    pct_20x = models.IntegerField()
+    pct_30x = models.IntegerField()
+    pct_40x = models.IntegerField()
+    pct_50x = models.IntegerField()
+    pct_100x = models.IntegerField()
+
+
+class ExonReport(BaseModel):
+    excel_report = models.ForeignKey(
+        ExcelReport,
+        on_delete=models.CASCADE,
+    )
+    exon = models.ForeignKey(
+        Exon,
+        on_delete=models.CASCADE,
+    )
+    coverage_info = models.ForeignKey(
+        CoverageInfo,
+        on_delete=models.PROTECT
+    )
+
+
+class GeneReport(BaseModel):
+    excel_report = models.ForeignKey(
+        ExcelReport,
+        on_delete=models.CASCADE,
+    )
+    gene = models.ForeignKey(
+        Gene,
+        on_delete=models.CASCADE,
+    )
+    coverage_info = models.ForeignKey(
+        CoverageInfo,
+        on_delete=models.PROTECT
+    )
