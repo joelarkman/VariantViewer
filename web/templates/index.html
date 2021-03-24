@@ -1,9 +1,159 @@
 {% extends 'base.html' %}
 
 {% load static %}
+{% load humanize %}
+
+{% block stylesheet %}
+<style>
+    input[type="search"] {
+        border: 1px solid gray;
+        padding: .2em .4em;
+        border-radius: .2em;
+    }
+
+    input[type="search"].light {
+        background: #fff;
+        color: #222;
+    }
+
+    input[type="search"]::-webkit-search-cancel-button {
+        -webkit-appearance: none;
+        height: 1em;
+        width: 1em;
+        border-radius: 50em;
+        background: url(https://pro.fontawesome.com/releases/v5.10.0/svgs/solid/times-circle.svg) no-repeat 50% 50%;
+        background-size: contain;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    input[type="search"]:focus::-webkit-search-cancel-button {
+        opacity: .3;
+        pointer-events: all;
+    }
+
+
+
+    .js-load-worksheet {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
 
 {% block javascript %}
+<script>
+    $('#search-filters-toggle').on('click', function () {
+        $(this).toggleClass('red')
+
+        if ($(this).hasClass('red')) {
+            $(this).attr("data-tooltip", "Hide Filter");
+        } else {
+            $(this).attr("data-tooltip", "Show Filters");
+        }
+
+        $('#search-filters').slideToggle()
+    })
+
+
+
+    // Pipleine selection
+    function pipeline_set_selected(param) {
+        $('.pipeline-filter-link').removeClass('active');
+        $('.label', '.pipeline-filter-link').removeClass('teal left pointing');
+
+        if (!$('#pipeline-filter').val()) {
+            filter = 'all'
+        } else {
+            filter = $('#pipeline-filter').val()
+        }
+        selected = $(".pipeline-filter-link[data-filter='" + filter + "']")
+        selected.addClass('active')
+        $('.label', selected).addClass('teal left pointing');
+    }
+
+
+    $('.pipeline-filter-link').click(function () {
+
+        var filter = $(this).attr('data-filter');
+        $("#pipeline-filter").val(filter);
+
+        pipeline_set_selected()
+
+        $("#search-form").submit();
+
+    })
+
+    $(document).ready(function () {
+        pipeline_set_selected()
+    })
+
+
+    $('.js-load-worksheet')
+        .dimmer({
+            on: 'hover'
+        })
+        ;
+
+    // Load worksheet details
+    $(function () {
+        $('.js-load-worksheet').click(function () {
+            var btn = $(this);
+            $.ajax({
+                url: btn.attr("data-url"),
+                type: 'get',
+                dataType: 'json',
+                beforeSend: function () {
+                    $('#worksheet-detail')
+                        .dimmer('show')
+                        ;
+                },
+                success: function (data) {
+                    $("#worksheet-detail").html(data.html_form);
+
+                    $('#worksheet-detail .worksheet-detail-close').click(function () {
+                        $('#worksheet-detail')
+                            .dimmer('hide')
+                            ;
+                    })
+                }
+            });
+        })
+
+
+        $("#worksheet-detail").on("submit", ".js-worksheet-detail-form", function () {
+            alert('guohrqg')
+            var form = $(this);
+            $.ajax({
+                url: form.attr("action"),
+                data: form.serialize(),
+                type: form.attr("method"),
+                dataType: 'json',
+                success: function (data) {
+                    if (data.form_is_valid) {
+
+                        $("#active-keys-table tbody").html(data.html_key_list_active);
+
+
+                        $('#worksheet-detail').dimmer("hide");
+                    }
+                    else {
+                        $("#worksheet-detail").html(data.html_form);
+                    }
+                }
+            });
+            return false;
+        });
+
+    });
+
+
+
+
+
+</script>
+
 {% endblock %}
+
 
 {% block content %}
 
@@ -14,9 +164,11 @@
     <div id='page-header-title'>
 
         <div id="page-header-title-leftstack">
-            <h1 id="page-header-title-text">Home</h1>
+            <h1 id="page-header-title-text">Rare Disease</h1>
             <div class="ui large breadcrumb">
-                <a class="ui compact tiny grey disabled basic inverted button">Home</a>
+                <a class="ui compact tiny grey basic inverted button">Home</a>
+                <i class="right chevron icon divider"></i>
+                <a class="ui compact tiny grey disabled basic inverted button">Rare disease</a>
             </div>
 
         </div>
@@ -26,11 +178,225 @@
 
 <!-- Tab Utility Bar -->
 <div id="tab-utility-bar" class="ui attached segment">
-
-    <span class="title">HOME</span>
+    <span class="title">
+        WORKSHEETS
+    </span>
 
     <div class="item-divider"></div>
 
+    <form id="search-form" action="" method="get" class="form-inline" style="width:100%;">
+        <input type="hidden" id="pipeline-filter" name="pipeline" value="{{ request.GET.pipeline }}">
+
+        <div class="ui small icon input" style="width:100%;">
+            <input type="search" name="q" placeholder="Search" value="{{ request.GET.q }}" class="light">
+            <i onclick="$(this).closest('form').submit();" class="circular search link icon"></i>
+        </div>
+    </form>
+
+    <div class="item-divider" style="margin-left: 15px;"></div>
+
+    <div id="search-filters-toggle" class="ui small icon button" data-tooltip='Show Filters'
+        data-position="bottom right">
+        <i class="filter icon"></i>
+    </div>
 </div>
+
+<div style="overflow: hidden;height: 100%;">
+    <div class="ui dimmable" id="overflow-container" style="padding: 15px;overflow-y: scroll;height: 100%;">
+
+        <div class="ui grid">
+
+            <div class="three wide column">
+                {% regroup runs by pipeline_version as pipeline_list %}
+                <div class="ui fluid vertical menu">
+                    <div class="item">
+                        <h4>Pipeline</h4>
+                    </div>
+                    <a class="item pipeline-filter-link teal" data-filter="all">
+                        All
+                        <div class="ui label">{{ runs|length }}</div>
+                    </a>
+                    {% for pipeline in pipeline_list %}
+                    <a class="item pipeline-filter-link teal" data-filter=" {{pipeline.grouper.id}}">
+                        {{pipeline.grouper.pipeline.name}}
+                        <span style="font-style: italic;">(v.{{pipeline.grouper.version}})</span>
+                        <div class="ui label">{{ pipeline.list|length }}</div>
+                    </a>
+                    {% endfor %}
+                </div>
+
+                <div class="ui message" style="text-align:center">
+                    Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+                </div>
+
+            </div>
+
+            <div class="thirteen wide column">
+                <div id="search-filters" class="ui message hidden" style="height: 6cm;">
+                    <h3>Filters</h3>
+                </div>
+                {% if page_obj %}
+                <div class="ui cards">
+
+                    <div class="ui fluid card" style="background-color: #e2e2e2;">
+
+                        <div class="content"
+                            style="display: flex;flex-direction: row;align-items: center;padding-top: 8px;padding-bottom: 8px;">
+
+                            <div class="header"
+                                style="align-self: center;flex: 0.5;margin: 0;padding-right:15px;border-right: 2px solid black;">
+                                Worksheet ID
+                            </div>
+
+                            <div class="ui segment"
+                                style="font-weight: bold;text-align: center;margin: 0;margin-left: 15px;flex: 1;padding-top: 5px;padding-bottom: 5px;">
+                                Completed
+                            </div>
+                            <div class="ui segment"
+                                style="font-weight: bold;text-align: center;align-content: center;margin: 0;margin-left: 15px;flex: 1;padding-top: 5px;padding-bottom: 5px;">
+                                Pipeline
+                            </div>
+
+                            <div class="ui segment"
+                                style="font-weight: bold;text-align: center;margin: 0;margin-left: 15px;flex: 1;padding-top: 5px;padding-bottom: 5px;">
+                                QC Status
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    {% for run in page_obj %}
+
+                    <div class="ui fluid raised  card">
+
+                        <div class="content js-load-worksheet" data-url="{% url 'load_worksheet_details' pk=run.id %}"
+                            style="display: flex;flex-direction: row;align-items: center;">
+
+
+                            <div class="header"
+                                style="align-self: center;flex: 0.5;margin: 0;padding-right:15px;border-right: 2px solid black;">
+                                {{run.worksheet|upper }}
+                            </div>
+
+                            <div class="ui segment" style="text-align: center;margin: 0;margin-left: 15px;flex: 1;">
+                                {{run.completed_at|naturaltime }}
+                            </div>
+                            <div class="ui segment"
+                                style="text-align: center;align-content: center;margin: 0;margin-left: 15px;flex: 1;">
+                                {{ run.pipeline_version.pipeline.name }}
+                            </div>
+
+                            <div class="ui segment" style="text-align: center;margin: 0;margin-left: 15px;flex: 1;">
+                                {{ run.get_qc_status }}
+                            </div>
+
+                            <div class="ui very light dimmer">
+                                <div class="content">
+                                    <div class="ui right corner label">
+                                        <i class="external alternate icon"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="extra content" style="background-color:#ebebeb">
+                            <div class="ui fluid styled accordion">
+                                <div class="title">
+                                    <i class="dropdown icon"></i>
+                                    Samples ({{ run.get_samples|length }})
+                                </div>
+                                <div class="content">
+                                    <table class="ui compact center aligned celled table">
+                                        <colgroup>
+                                            <col span="1" style="width: auto;">
+                                            <col span="1" style="width: auto">
+                                            <col span="1" style="width: 30px">
+                                        </colgroup>
+                                        <thead>
+                                            <tr>
+                                                <th>Sample</th>
+                                                <th>Lab Number</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for sample in run.get_samples %}
+                                            <tr>
+                                                <td data-label="Sample">{{ sample.sample_id }}</td>
+                                                <td data-label="Lab Number">{{ sample.lab_no }}</td>
+                                                <td data-label="">
+                                                    <a href="{% url 'sample' sample.slug %}"
+                                                        class="ui small {% if not run.get_qc_status == 'Pending' %} disabled {% endif %} icon button">
+                                                        <i class="external alternate icon"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+                {% else %}
+
+                <div class="ui message" style="text-align: center;">No matching worksheets</div>
+
+                {%endif%}
+
+            </div>
+
+
+        </div>
+
+        <div class="ui right floated pagination menu" style="margin-top: 20px;">
+            <a {% if page_obj.has_previous %}
+                href="?pipeline={{pipeline}}&q={{searchq}}&page={{ page_obj.previous_page_number }}" {% endif %}
+                class="item {% if not page_obj.has_previous %} disabled{% endif %}">
+                Previous
+            </a>
+
+            {% if page_obj.number|add:'-4' > 1 %}
+            <a href="?pipeline={{pipeline}}&q={{searchq}}&page={{ page_obj.number|add:'-5' }}" class="item">...</a>
+            {% endif %}
+
+            {% for i in page_obj.paginator.page_range %}
+            {% if page_obj.number == i %}
+            <a href='?pipeline={{pipeline}}&q={{searchq}}&page={{ i }}' class="item active">
+                {{ i }}
+            </a>
+            {% elif i > page_obj.number|add:'-5' and i < page_obj.number|add:'5' %} <a
+                href='?pipeline={{pipeline}}&q={{searchq}}&page={{ i }}' class="item">
+                {{ i }}
+                </a>
+                {% endif %}
+                {% endfor %}
+
+
+                {% if page_obj.paginator.num_pages > page_obj.number|add:'4' %}
+                <a href="?pipeline={{pipeline}}&q={{searchq}}&page={{ page_obj.number|add:'5' }}" class="item">...</a>
+                {% endif %}
+
+                <a {% if page_obj.has_next %}
+                    href="?pipeline={{pipeline}}&q={{searchq}}&page={{ page_obj.next_page_number }}" {% endif %}
+                    class="item {% if not page_obj.has_next %} disabled{% endif %}">
+                    Next
+                </a>
+        </div>
+    </div>
+
+    <div id="worksheet-detail" class="ui light dimmer">
+    </div>
+
+</div>
+
+
+
+
 
 {% endblock %}

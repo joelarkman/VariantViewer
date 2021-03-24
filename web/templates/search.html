@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load static %}
+{% load humanize %}
 
 {% block stylesheet %}{% endblock %}
 
@@ -30,7 +31,7 @@
     <div id='page-header-title'>
 
         <div id="page-header-title-leftstack">
-            <h1 id="page-header-title-text">Patient Search</h1>
+            <h1 id="page-header-title-text">Sample Search</h1>
             <div class="ui large breadcrumb">
                 <a class="ui compact tiny grey basic inverted button">Home</a>
                 <i class="right chevron icon divider"></i>
@@ -57,10 +58,16 @@
 
     <div class="item-divider"></div>
 
-    <div class="ui small icon input" style="width:100%;">
-        <input type="text" placeholder="Search...">
-        <i class="circular search link icon"></i>
-    </div>
+    <form action="" method="get" class="form-inline" style="width:100%;">
+
+        <div class="ui small icon input" style="width:100%;">
+            <input type="text" name="q" placeholder="Enter Keyword" value="{{ request.GET.q }}" class="form-control">
+            <i onclick="$(this).closest('form').submit();" class="circular search link icon"></i>
+        </div>
+
+
+    </form>
+
 
     <div class="item-divider" style="margin-left: 15px;"></div>
 
@@ -83,18 +90,34 @@
 
     <div class="ui grid">
 
+        {% if page_obj %}
+        {% for sample in page_obj %}
+
         <div class="sixteen wide column">
 
             <a class="ui fluid raised card">
-
                 <div class="content">
-                    <div class="header">Family ID: 43870387054</div>
+                    <div class="header" style="display: flex;">Sample ID: {{ sample.sample_id|upper }} <span
+                            style="margin-left: auto;">{{ sample.date_created|naturaltime }}</span></div>
+
                     <div class="meta">
-                        <span class="category">Trio Analysis</span>
+                        <span class="category">Lab Number:{{ sample.lab_no }},</span>
+                        <span class="category">{{ sample.samplesheets.all|join:", " }}</span>
+
                     </div>
                     <div class="description">
 
-                        Overview details about this analysis...
+                        Pipeline:
+                        {% for s in sample.samplesheets.all %}
+                        {{ s.run.pipeline_version.pipeline.name }}
+                        (v{{ s.run.pipeline_version.version }})
+                        {% endfor %}
+
+                        Latest worksheet:
+                        {{ sample.samplesheets.last.run.worksheet }}
+                        Completed:
+                        {{ sample.samplesheets.last.run.completed_at|naturaltime }}
+
 
                     </div>
                 </div>
@@ -102,61 +125,7 @@
                     <div class="ui fluid styled accordion">
                         <div class="title">
                             <i class="dropdown icon"></i>
-                            Family Info
-                        </div>
-                        <div class="content">
-                            <table class="ui celled table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Age</th>
-                                        <th>Job</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td data-label="Name">James</td>
-                                        <td data-label="Age">24</td>
-                                        <td data-label="Job">Engineer</td>
-                                    </tr>
-                                    <tr>
-                                        <td data-label="Name">Jill</td>
-                                        <td data-label="Age">26</td>
-                                        <td data-label="Job">Engineer</td>
-                                    </tr>
-                                    <tr>
-                                        <td data-label="Name">Elyse</td>
-                                        <td data-label="Age">24</td>
-                                        <td data-label="Job">Designer</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-        </div>
-
-        <div class="sixteen wide column">
-
-            <a class="ui fluid raised card">
-                <div class="content">
-                    <div class="header">Family ID: 8368765</div>
-                    <div class="meta">
-                        <span class="category">Trio Analysis</span>
-                    </div>
-                    <div class="description">
-
-                        Overview details about this analysis...
-
-                    </div>
-                </div>
-                <div class="extra content">
-                    <div class="ui fluid styled accordion">
-                        <div class="title">
-                            <i class="dropdown icon"></i>
-                            Family Info
+                            Samples
                         </div>
                         <div class="content">
                             <p>Info about proband,mum and dad</p>
@@ -167,54 +136,51 @@
 
         </div>
 
+        {% endfor %}
+
+        {% else %}
 
         <div class="sixteen wide column">
-
-            <a class="ui fluid raised card">
-                <div class="content">
-                    <div class="header">Family ID: 8368765</div>
-                    <div class="meta">
-                        <span class="category">Trio Analysis</span>
-                    </div>
-                    <div class="description">
-
-                        Overview details about this analysis...
-
-                    </div>
-                </div>
-                <div class="extra content">
-                    <div class="ui fluid styled accordion">
-                        <div class="title">
-                            <i class="dropdown icon"></i>
-                            Family Info
-                        </div>
-                        <div class="content">
-                            <p>Info about proband,mum and dad</p>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
+            <div class="ui message" style="text-align: center;">No matching samples</div>
         </div>
+
+
+        {%endif%}
+
     </div>
 
 
     <div class="ui right floated pagination menu" style="margin-top: 20px;">
-        <a class="active item">
-            1
+        <a {% if page_obj.has_previous %} href="?q={{searchq}}&page={{ page_obj.previous_page_number }}" {% endif %}
+            class="item {% if not page_obj.has_previous %} disabled{% endif %}">
+            Previous
         </a>
-        <div class="disabled item">
-            ...
-        </div>
-        <a class="item">
-            10
+
+        {% if page_obj.number|add:'-4' > 1 %}
+        <a href="?q={{searchq}}&page={{ page_obj.number|add:'-5' }}" class="item">...</a>
+        {% endif %}
+
+        {% for i in page_obj.paginator.page_range %}
+        {% if page_obj.number == i %}
+        <a href='?q={{searchq}}&page={{ i }}' class="item active">
+            {{ i }}
         </a>
-        <a class="item">
-            11
-        </a>
-        <a class="item">
-            12
-        </a>
+        {% elif i > page_obj.number|add:'-5' and i < page_obj.number|add:'5' %} <a href='?q={{searchq}}&page={{ i }}'
+            class="item">
+            {{ i }}
+            </a>
+            {% endif %}
+            {% endfor %}
+
+
+            {% if page_obj.paginator.num_pages > page_obj.number|add:'4' %}
+            <a href="?q={{searchq}}&page={{ page_obj.number|add:'5' }}" class="item">...</a>
+            {% endif %}
+
+            <a {% if page_obj.has_next %} href="?q={{searchq}}&page={{ page_obj.next_page_number }}" {% endif %}
+                class="item {% if not page_obj.has_next %} disabled{% endif %}">
+                Next
+            </a>
     </div>
 
 </div>
