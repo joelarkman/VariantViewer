@@ -1,4 +1,7 @@
 from django.db import models
+from django.dispatch import receiver
+from django.db.models.signals import pre_save
+from django.template.defaultfilters import slugify
 
 from db.utils.model_utils import BaseModel
 from db.utils.model_utils import PipelineOutputFileModel
@@ -40,6 +43,26 @@ class Run(BaseModel):
         on_delete=models.PROTECT,
         related_name='pipeline_version'
     )
+
+    # Draft implementation
+    class Status(models.IntegerChoices):
+        PENDING = 0
+        PASS = 1
+        FAIL = 2
+
+    qc_status = models.IntegerField(
+        choices=Status.choices,
+        default=1,
+    )
+
+    def get_samples(self):
+        return Sample.objects.filter(samplesheets__run__id=self.id)
+
+    def get_qc_status(self):
+        try:
+            return self.Status.choices[int(self.qc_status)][1]
+        except:
+            return None
 
     def __str__(self):
         return f"{self.worksheet}"
@@ -96,6 +119,8 @@ class Samplesheet(BaseModel):
 
 
 class Sample(BaseModel):
+    slug = models.SlugField(max_length=50, unique=True)
+
     sample_id = models.CharField(max_length=50)
     lab_no = models.CharField(max_length=50)
     index = models.CharField(max_length=50)
@@ -114,7 +139,16 @@ class Sample(BaseModel):
     )
 
     def __str__(self):
-        return f"{self.samplesheet.run} {self.lab_no}"
+        # return f"{self.samplesheet.run} {self.lab_no}"
+
+        # All samplesheets for this sample shown with comma seperating them.
+        return f"{', '.join([samplesheet.run.worksheet for samplesheet in self.samplesheets.all()])} {self.lab_no}"
+
+
+@receiver(pre_save, sender=Sample)
+def set_sample_slug(sender, instance, *args, **kwargs):
+    if not instance.slug:
+        instance.slug = slugify(instance.sample_id)
 
 
 class SamplesheetSample(BaseModel):
@@ -128,7 +162,6 @@ class SamplesheetSample(BaseModel):
         on_delete=models.PROTECT,
         related_name='sample'
     )
-
 
 
 class SampleBAM(BaseModel):
