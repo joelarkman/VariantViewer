@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'web.apps.WebConfig',
     'db.apps.DbConfig',
+    'accounts.apps.AccountsConfig'
 ]
 
 # Necessary for iframes to load.
@@ -129,3 +130,6 @@ STATIC_DIR = STATIC_ROOT
 STATIC_URL = '/static/'
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
+
+# DB config
+AUTH_USER_MODEL = 'accounts.User'
