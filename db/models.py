@@ -52,7 +52,7 @@ class Run(BaseModel):
 
     qc_status = models.IntegerField(
         choices=Status.choices,
-        default=1,
+        default=0,
     )
 
     # Method to retrieve all samples associated with a run
