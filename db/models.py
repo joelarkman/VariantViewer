@@ -11,6 +11,13 @@ class Pipeline(BaseModel):
         return self.name
 
 
+class Samplesheet(BaseModel):
+    path = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.path}"
+
+
 class PipelineVersion(BaseModel):
     version = models.CharField(max_length=255)
     pipeline = models.ForeignKey(
@@ -32,6 +39,10 @@ class Run(BaseModel):
     worksheet = models.CharField(max_length=255)
     command_line_usage = models.CharField(max_length=255)
     completed_at = models.DateTimeField()
+    samplesheet = models.ForeignKey(
+        Samplesheet,
+        on_delete=models.PROTECT
+    )
     output_dir = models.CharField(max_length=255)
     fastq_dir = models.CharField(max_length=255)
     interop_dir = models.CharField(max_length=255)
@@ -83,23 +94,13 @@ class Sequence(BaseModel):
     sequence = models.TextField(null=True, blank=True)
 
 
-class Samplesheet(BaseModel):
-    path = models.CharField(max_length=255)
-    run = models.ForeignKey(
-        Run,
-        on_delete=models.PROTECT,
-        related_name='run'
-    )
-
-    def __str__(self):
-        return f"SampleSheet: {self.run}"
+class Patient(BaseModel):
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
 
 
 class Sample(BaseModel):
-    sample_id = models.CharField(max_length=50)
     lab_no = models.CharField(max_length=50)
-    index = models.CharField(max_length=50)
-    index2 = models.CharField(max_length=50)
     samplesheets = models.ManyToManyField(
         Samplesheet,
         through="SamplesheetSample"
@@ -136,6 +137,10 @@ class SamplesheetSample(BaseModel):
         on_delete=models.PROTECT,
         related_name='sample'
     )
+    sample_id = models.CharField(max_length=50)
+    index = models.CharField(max_length=50)
+    index2 = models.CharField(max_length=50)
+    gene_key = models.CharField(max_length=50)
 
 
 class SampleBAM(BaseModel):
@@ -218,6 +223,7 @@ class VariantReport(BaseModel):
     # also store essential VCF info
     qual = models.IntegerField()
     filter_pass = models.BooleanField(null=True)
+    depth = models.IntegerField()
 
 
 class VariantReportInfo(BaseModel):
@@ -320,6 +326,20 @@ class Exon(BaseModel):
     transcript = models.ForeignKey(
         Transcript,
         on_delete=models.CASCADE,
+    )
+    sequence = models.ManyToManyField(
+        Sequence,
+        through="ExonSequence"
+    )
+
+
+class ExonSequence(BaseModel):
+    """
+    Through table to enable multiple builds of an exon sequence to be stored
+    """
+    exon = models.ForeignKey(
+        Exon,
+        on_delete=models.CASCADE
     )
     sequence = models.ForeignKey(
         Sequence,
