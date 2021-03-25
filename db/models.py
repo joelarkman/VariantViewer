@@ -44,6 +44,28 @@ class Run(BaseModel):
         related_name='pipeline_version'
     )
 
+    # Choice field for run QC status
+    class Status(models.IntegerChoices):
+        PENDING = 0
+        PASS = 1
+        FAIL = 2
+
+    qc_status = models.IntegerField(
+        choices=Status.choices,
+        default=1,
+    )
+
+    # Method to retrieve all samples associated with a run
+    def get_samples(self):
+        return Sample.objects.filter(samplesheets__run__id=self.id)
+
+    # Method to retrieve readable qc_status value
+    def get_qc_status(self):
+        try:
+            return self.Status.choices[int(self.qc_status)][1]
+        except:
+            return None
+
     def __str__(self):
         return f"{self.worksheet}"
 
