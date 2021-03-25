@@ -70,29 +70,12 @@ class SearchView(ListView):
 
     model = Sample
     template_name = 'search.html'
-    paginate_by = 5
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        q = self.request.GET.get('q')
-        if q:
-            queryset = queryset.filter(
-                Q(sample_id__icontains=q) |
-                Q(lab_no__icontains=q) |
-                Q(samplesheets__run__worksheet__icontains=q)
-            )
-        return queryset.order_by('-date_created')
+    context_object_name = 'samples'
 
     def get_context_data(self, **kwargs):
         context = super(SearchView, self).get_context_data()
         # base.html includes page_title by default
         context['page_title'] = 'Search'
-
-        q = self.request.GET.get('q')
-        if q:
-            q = q.replace(" ", "+")
-            context['searchq'] = q
-
         return context
 
 

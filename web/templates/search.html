@@ -3,21 +3,59 @@
 {% load static %}
 {% load humanize %}
 
-{% block stylesheet %}{% endblock %}
+{% block stylesheet %}
+<style>
+    table.dataTable.no-footer {
+        border-bottom: 0 !important;
+        border-top: none;
+    }
+</style>
+{% endblock %}
 
 {% block javascript %}
 <script>
-    $('#search-filters-toggle').on('click', function () {
-        $(this).toggleClass('red')
+    $(document).ready(function () {
 
-        if ($(this).hasClass('red')) {
-            $(this).attr("data-tooltip", "Hide Filter");
-        } else {
-            $(this).attr("data-tooltip", "Show Filters");
-        }
+        // Initiate coverage tables
+        var sample_table = $('.samples-list-table').DataTable({
+            "scrollCollapse": true,
+            "paging": true,
+            "pageLength": 25,
+            "footer": false,
+            "dom": '<"top">rt<"bottom">ip<"clear">'
+        });
 
-        $('#search-filters').slideToggle()
-    })
+        // Set up custom search of both tables
+        $('#mySearch').on('keyup click', function () {
+            sample_table.tables().search($(this).val()).draw();
+
+        });
+
+        $("#table-footer").append($(".dataTables_info"));
+        $("#table-footer").append($(".dataTables_paginate"));
+
+        $('tr[data-href]').on("click", function () {
+            document.location = $(this).data('href');
+        });
+
+        $('#search-filters-toggle').on('click', function () {
+            $(this).toggleClass('red')
+
+            if ($(this).hasClass('red')) {
+                $(this).attr("data-tooltip", "Hide Filter");
+            } else {
+                $(this).attr("data-tooltip", "Show Filters");
+            }
+
+            $('#search-filters').slideToggle()
+        })
+
+
+    });
+
+
+
+
 </script>
 {% endblock %}
 
@@ -58,16 +96,10 @@
 
     <div class="item-divider"></div>
 
-    <form action="" method="get" class="form-inline" style="width:100%;">
-
-        <div class="ui small icon input" style="width:100%;">
-            <input type="text" name="q" placeholder="Enter Keyword" value="{{ request.GET.q }}" class="form-control">
-            <i onclick="$(this).closest('form').submit();" class="circular search link icon"></i>
-        </div>
-
-
-    </form>
-
+    <div class="ui small icon input" style="width:100%;">
+        <input type="text" placeholder="Search" id="mySearch">
+        <i class="circular search link icon"></i>
+    </div>
 
     <div class="item-divider" style="margin-left: 15px;"></div>
 
@@ -75,113 +107,61 @@
         data-position="bottom right">
         <i class="filter icon"></i>
     </div>
+</div>
+
+<div id="search-filters" class="ui attached segment hidden"
+    style="border-top: none;height: 7cm;background-color: #F8F8F8;">
+    <h3>Filters</h3>
+</div>
+
+<div id="samples-list" style="flex: 2;display: flex;overflow: hidden;flex-direction: column;">
+
+    <div class="ui attached segment"
+        style="padding: 0;border-top: none;flex: 1;overflow-y: scroll;overflow-x: hidden;background-color: #F8F8F8;">
+
+        <table class='ui samples-list-table selectable celled structured table '
+            style="width: 100%;table-layout: fixed;">
+            <thead>
+                <tr>
+                    <th rowspan="2"> Sample ID </th>
+                    <th rowspan="2"> Lab no. </th>
+                    <th colspan="4"> Latest worksheet </th>
+                </tr>
+                <tr>
+                    <th> Name </th>
+                    <th> Pipeline </th>
+                    <th> Completed </th>
+                    <th> QC Status </th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for sample in samples %}
+                <tr data-href='{% url "sample" sample.slug %}'>
+                    <td> {{ sample.sample_id}} </td>
+                    <td> {{ sample.lab_no}} </td>
+                    <td> {{ sample.samplesheets.last.run.worksheet}} </td>
+                    <td> {{ sample.samplesheets.last.run.pipeline_version.pipeline.name}}
+                        (v.{{sample.samplesheets.last.run.pipeline_version.version}})</td>
+                    <td>{{ sample.samplesheets.last.run.completed_at|naturaltime }}</td>
+                    <td>{{ sample.samplesheets.last.run.get_qc_status }}</td>
+
+                </tr>
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
 
 </div>
 
-
-<div style="padding: 15px;overflow-y: auto;">
-
-
-    <div id="search-filters" class="ui message hidden" style="height: 6cm;">
-
-        <h3>Filters</h3>
-
-    </div>
-
-    <div class="ui grid">
-
-        {% if page_obj %}
-        {% for sample in page_obj %}
-
-        <div class="sixteen wide column">
-
-            <a class="ui fluid raised card">
-                <div class="content">
-                    <div class="header" style="display: flex;">Sample ID: {{ sample.sample_id|upper }} <span
-                            style="margin-left: auto;">{{ sample.date_created|naturaltime }}</span></div>
-
-                    <div class="meta">
-                        <span class="category">Lab Number:{{ sample.lab_no }},</span>
-                        <span class="category">{{ sample.samplesheets.all|join:", " }}</span>
-
-                    </div>
-                    <div class="description">
-
-                        Pipeline:
-                        {% for s in sample.samplesheets.all %}
-                        {{ s.run.pipeline_version.pipeline.name }}
-                        (v{{ s.run.pipeline_version.version }})
-                        {% endfor %}
-
-                        Latest worksheet:
-                        {{ sample.samplesheets.last.run.worksheet }}
-                        Completed:
-                        {{ sample.samplesheets.last.run.completed_at|naturaltime }}
-
-
-                    </div>
-                </div>
-                <div class="extra content" style="background-color:#ebebeb">
-                    <div class="ui fluid styled accordion">
-                        <div class="title">
-                            <i class="dropdown icon"></i>
-                            Samples
-                        </div>
-                        <div class="content">
-                            <p>Info about proband,mum and dad</p>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-        </div>
-
-        {% endfor %}
-
-        {% else %}
-
-        <div class="sixteen wide column">
-            <div class="ui message" style="text-align: center;">No matching samples</div>
-        </div>
-
-
-        {%endif%}
-
-    </div>
-
-
-    <div class="ui right floated pagination menu" style="margin-top: 20px;">
-        <a {% if page_obj.has_previous %} href="?q={{searchq}}&page={{ page_obj.previous_page_number }}" {% endif %}
-            class="item {% if not page_obj.has_previous %} disabled{% endif %}">
-            Previous
-        </a>
-
-        {% if page_obj.number|add:'-4' > 1 %}
-        <a href="?q={{searchq}}&page={{ page_obj.number|add:'-5' }}" class="item">...</a>
-        {% endif %}
-
-        {% for i in page_obj.paginator.page_range %}
-        {% if page_obj.number == i %}
-        <a href='?q={{searchq}}&page={{ i }}' class="item active">
-            {{ i }}
-        </a>
-        {% elif i > page_obj.number|add:'-5' and i < page_obj.number|add:'5' %} <a href='?q={{searchq}}&page={{ i }}'
-            class="item">
-            {{ i }}
-            </a>
-            {% endif %}
-            {% endfor %}
-
-
-            {% if page_obj.paginator.num_pages > page_obj.number|add:'4' %}
-            <a href="?q={{searchq}}&page={{ page_obj.number|add:'5' }}" class="item">...</a>
-            {% endif %}
-
-            <a {% if page_obj.has_next %} href="?q={{searchq}}&page={{ page_obj.next_page_number }}" {% endif %}
-                class="item {% if not page_obj.has_next %} disabled{% endif %}">
-                Next
-            </a>
-    </div>
+<div id="table-footer" class="ui attached segment"
+    style="border-top:none;display: flex;flex-direction: row;align-items: center;justify-content: space-between;">
 
 </div>
 
