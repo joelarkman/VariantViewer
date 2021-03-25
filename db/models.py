@@ -1,4 +1,7 @@
 from django.db import models
+from django.dispatch import receiver
+from django.db.models.signals import pre_save
+from django.template.defaultfilters import slugify
 
 from db.utils.model_utils import BaseModel
 from db.utils.model_utils import PipelineOutputFileModel
@@ -96,6 +99,8 @@ class Samplesheet(BaseModel):
 
 
 class Sample(BaseModel):
+    slug = models.SlugField(max_length=50, unique=True)
+
     sample_id = models.CharField(max_length=50)
     lab_no = models.CharField(max_length=50)
     index = models.CharField(max_length=50)
@@ -114,7 +119,18 @@ class Sample(BaseModel):
     )
 
     def __str__(self):
-        return f"{self.samplesheet.run} {self.lab_no}"
+        # return f"{self.samplesheet.run} {self.lab_no}"
+
+        # All samplesheets for this sample shown with comma seperating them.
+        # Original version caused an error as it assumed one samplesheet per sample.
+        return f"{', '.join([samplesheet.run.worksheet for samplesheet in self.samplesheets.all()])} {self.lab_no}"
+
+
+# Automatically populate empty slug field with sample_id before save.
+@receiver(pre_save, sender=Sample)
+def set_sample_slug(sender, instance, *args, **kwargs):
+    if not instance.slug:
+        instance.slug = slugify(instance.sample_id)
 
 
 class ExcelReport(PipelineOutputFileModel):
