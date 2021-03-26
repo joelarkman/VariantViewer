@@ -126,8 +126,6 @@ class Patient(BaseModel):
 
 class Sample(BaseModel):
     slug = models.SlugField(max_length=50, unique=True)
-
-    sample_id = models.CharField(max_length=50)
     lab_no = models.CharField(max_length=50)
     samplesheets = models.ManyToManyField(
         Samplesheet,
@@ -176,7 +174,7 @@ class SamplesheetSample(BaseModel):
         on_delete=models.PROTECT,
         related_name='sample'
     )
-    sample_id = models.CharField(max_length=50)
+    sample_identifier = models.CharField(max_length=50)
     index = models.CharField(max_length=50)
     index2 = models.CharField(max_length=50)
     gene_key = models.CharField(max_length=50)
