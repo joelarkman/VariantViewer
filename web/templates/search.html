@@ -18,6 +18,24 @@
 
         // Initiate coverage tables
         var sample_table = $('.samples-list-table').DataTable({
+            'serverSide': true,
+            'ajax': '/api/sample_list?format=datatables',
+            'columns': [
+                {
+                    "data": "slug",
+                    "render": function (data, type, row, meta) {
+
+                        data = "<a href='/sample/" + data + "' class='ui small icon button' style='margin:0px;'><i class='external alternate icon'></i></a>"
+                        return data;
+                    },
+                    "orderable": false,
+                    "className": 'center aligned',
+                },
+                { 'data': 'sample_id' },
+                { 'data': 'lab_no' },
+                { 'data': 'samplesheets', 'name': 'samplesheets__run.worksheet' },
+
+            ],
             "scrollCollapse": true,
             "paging": true,
             "pageLength": 25,
@@ -25,7 +43,16 @@
             "dom": '<"top">rt<"bottom">ip<"clear">',
             "language": {
                 "emptyTable": "No relevent samples"
-            }
+            },
+            "order": [[1, "asc"]],
+            "deferRender": true,
+
+        });
+
+        $('#samples-list tbody').on('click', 'tr', function () {
+            //  retreive sample name from col 2 of table
+            var sample = $(this).find("td").eq(1).text();
+            window.location.href = "/sample/" + sample;
         });
 
         // Set up custom search of both tables
@@ -37,9 +64,6 @@
         $("#table-footer").append($(".dataTables_info"));
         $("#table-footer").append($(".dataTables_paginate"));
 
-        $('tr[data-href]').on("click", function () {
-            document.location = $(this).data('href');
-        });
 
         $('#search-filters-toggle').on('click', function () {
             $(this).toggleClass('red')
@@ -126,18 +150,19 @@
             style="width: 100%;table-layout: fixed;">
             <thead>
                 <tr>
+                    <th rowspan="2" width='40px'></th>
                     <th rowspan="2"> Sample ID </th>
                     <th rowspan="2"> Lab no. </th>
-                    <th colspan="4"> Latest worksheet </th>
+                    <th colspan="1"> Latest worksheet </th>
                 </tr>
                 <tr>
                     <th> Name </th>
-                    <th> Pipeline </th>
+                    <!-- <th> Pipeline </th>
                     <th> Completed </th>
-                    <th> QC Status </th>
+                    <th> QC Status </th> -->
                 </tr>
             </thead>
-
+            <!-- 
             <tbody>
 
                 {% for sample in samples %}
@@ -153,7 +178,7 @@
                 </tr>
                 {% endfor %}
 
-            </tbody>
+            </tbody> -->
 
         </table>
 

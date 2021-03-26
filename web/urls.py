@@ -1,8 +1,11 @@
+from django.urls import include
 from django.urls import path
 
 from . import views
 
 urlpatterns = [
+    path('api/', include('web.routing')),
+
     path('', views.IndexView.as_view(), name='index'),
 
     path('search/', views.SearchView.as_view(), name='search'),
