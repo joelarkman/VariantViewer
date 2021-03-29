@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework_datatables',
     'web.apps.WebConfig',
     'db.apps.DbConfig',
+    'accounts.apps.AccountsConfig'
 ]
 
 # Necessary for iframes to load.
@@ -145,3 +146,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
     'PAGE_SIZE': 25,
 }
+
+# DB config
+AUTH_USER_MODEL = 'accounts.User'

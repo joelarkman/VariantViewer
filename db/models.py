@@ -14,6 +14,13 @@ class Pipeline(BaseModel):
         return self.name
 
 
+class Samplesheet(BaseModel):
+    path = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.path}"
+
+
 class PipelineVersion(BaseModel):
     version = models.CharField(max_length=255)
     pipeline = models.ForeignKey(
@@ -35,6 +42,10 @@ class Run(BaseModel):
     worksheet = models.CharField(max_length=255)
     command_line_usage = models.CharField(max_length=255)
     completed_at = models.DateTimeField()
+    samplesheet = models.ForeignKey(
+        Samplesheet,
+        on_delete=models.PROTECT
+    )
     output_dir = models.CharField(max_length=255)
     fastq_dir = models.CharField(max_length=255)
     interop_dir = models.CharField(max_length=255)
@@ -44,7 +55,7 @@ class Run(BaseModel):
         related_name='pipeline_version'
     )
 
-    # Draft implementation
+    # Choice field for run QC status
     class Status(models.IntegerChoices):
         PENDING = 0
         PASS = 1
@@ -52,9 +63,10 @@ class Run(BaseModel):
 
     qc_status = models.IntegerField(
         choices=Status.choices,
-        default=1,
+        default=0,
     )
 
+    # Method to retrieve all samples associated with a run
     def get_samples(self):
         return Sample.objects.filter(samplesheets__run__id=self.id)
 
@@ -100,25 +112,14 @@ class Sequence(BaseModel):
     sequence = models.TextField(null=True, blank=True)
 
 
-class Samplesheet(BaseModel):
-    path = models.CharField(max_length=255)
-    run = models.ForeignKey(
-        Run,
-        on_delete=models.PROTECT,
-        related_name='run'
-    )
-
-    def __str__(self):
-        return f"SampleSheet: {self.run}"
+class Patient(BaseModel):
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
 
 
 class Sample(BaseModel):
     slug = models.SlugField(max_length=50, unique=True)
-
-    sample_id = models.CharField(max_length=50)
     lab_no = models.CharField(max_length=50)
-    index = models.CharField(max_length=50)
-    index2 = models.CharField(max_length=50)
     samplesheets = models.ManyToManyField(
         Samplesheet,
         through="SamplesheetSample"
@@ -132,13 +133,16 @@ class Sample(BaseModel):
         through="SampleVCF"
     )
 
-    def __str__(self):
-        # return f"{self.samplesheet.run} {self.lab_no}"
 
-        # All samplesheets for this sample shown with comma seperating them.
-        return f"{', '.join([samplesheet.run.worksheet for samplesheet in self.samplesheets.all()])} {self.lab_no}"
+def __str__(self):
+    # return f"{self.samplesheet.run} {self.lab_no}"
+
+    # All samplesheets for this sample shown with comma seperating them.
+    # Original version caused an error as it assumed one samplesheet per sample.
+    return f"{', '.join([samplesheet.run.worksheet for samplesheet in self.samplesheets.all()])} {self.lab_no}"
 
 
+# Automatically populate empty slug field with sample_id before save.
 @receiver(pre_save, sender=Sample)
 def set_sample_slug(sender, instance, *args, **kwargs):
     if not instance.slug:
@@ -164,6 +168,10 @@ class SamplesheetSample(BaseModel):
         on_delete=models.PROTECT,
         related_name='sample'
     )
+    sample_identifier = models.CharField(max_length=50)
+    index = models.CharField(max_length=50)
+    index2 = models.CharField(max_length=50)
+    gene_key = models.CharField(max_length=50)
 
 
 class SampleBAM(BaseModel):
@@ -246,6 +254,7 @@ class VariantReport(BaseModel):
     # also store essential VCF info
     qual = models.IntegerField()
     filter_pass = models.BooleanField(null=True)
+    depth = models.IntegerField()
 
 
 class VariantReportInfo(BaseModel):
@@ -348,6 +357,20 @@ class Exon(BaseModel):
     transcript = models.ForeignKey(
         Transcript,
         on_delete=models.CASCADE,
+    )
+    sequence = models.ManyToManyField(
+        Sequence,
+        through="ExonSequence"
+    )
+
+
+class ExonSequence(BaseModel):
+    """
+    Through table to enable multiple builds of an exon sequence to be stored
+    """
+    exon = models.ForeignKey(
+        Exon,
+        on_delete=models.CASCADE
     )
     sequence = models.ForeignKey(
         Sequence,
