@@ -20,6 +20,8 @@
         var sample_table = $('.samples-list-table').DataTable({
             'serverSide': true,
             'ajax': '/api/sample_list?format=datatables',
+            "deferRender": true,
+            'processing': true,
             'columns': [
                 {
                     "data": "slug",
@@ -34,6 +36,10 @@
                 { 'data': 'sample_id' },
                 { 'data': 'lab_no' },
                 { 'data': 'samplesheets', 'name': 'samplesheets__run.worksheet' },
+                { 'data': 'panel', 'name': 'samplesheets__run__pipeline_version__pipeline__name' },
+                { 'data': 'completed_at', 'name': 'samplesheets__run__completed_at' },
+                { 'data': 'qc_status', 'name': 'samplesheets__run__qc_status' },
+
 
             ],
             "scrollCollapse": true,
@@ -42,12 +48,21 @@
             "footer": false,
             "dom": '<"top">rt<"bottom">ip<"clear">',
             "language": {
-                "emptyTable": "No relevent samples"
+                "emptyTable": "No relevent samples",
+                'loadingRecords': '&nbsp;',
+                'processing': 'Loading...'
             },
-            "order": [[1, "asc"]],
-            "deferRender": true,
+            "order": [[5, "desc"]],
+
 
         });
+
+        function applySearches() {
+            table = sample_table
+            search = $('#mySearch').val()
+            pipeline = $('#pipeline-selection').val()
+            table.search(search).column(4).search(pipeline).draw();
+        }
 
         $('#samples-list tbody').on('click', 'tr', function () {
             //  retreive sample name from col 2 of table
@@ -55,10 +70,25 @@
             window.location.href = "/sample/" + sample;
         });
 
+
+        $('.pipeline-choice').on('click', function () {
+            $('.pipeline-choice').removeClass('active')
+            $(this).addClass('active')
+
+            if ($(this).text() == 'All') {
+                $('#pipeline-selection').val('')
+
+            } else {
+                $('#pipeline-selection').val($(this).text())
+
+            }
+
+            applySearches()
+        });
+
         // Set up custom search of both tables
         $('#mySearch').on('keyup click', function () {
-            sample_table.tables().search($(this).val()).draw();
-
+            applySearches()
         });
 
         $("#table-footer").append($(".dataTables_info"));
@@ -139,6 +169,15 @@
 <div id="search-filters" class="ui attached segment hidden"
     style="border-top: none;height: 7cm;background-color: #F8F8F8;">
     <h3>Filters</h3>
+
+
+    <div class="ui primary buttons">
+        <button class="ui active button pipeline-choice">All</button>
+        <button class="ui button pipeline-choice">TSMP</button>
+        <button class="ui button pipeline-choice">TSO</button>
+    </div>
+    <input type="hidden" id="pipeline-selection" value="">
+
 </div>
 
 <div id="samples-list" style="flex: 2;display: flex;overflow: hidden;flex-direction: column;">
@@ -153,32 +192,16 @@
                     <th rowspan="2" width='40px'></th>
                     <th rowspan="2"> Sample ID </th>
                     <th rowspan="2"> Lab no. </th>
-                    <th colspan="1"> Latest worksheet </th>
+                    <th colspan="4"> Latest worksheet </th>
                 </tr>
                 <tr>
                     <th> Name </th>
-                    <!-- <th> Pipeline </th>
+                    <th> Pipeline </th>
                     <th> Completed </th>
-                    <th> QC Status </th> -->
+                    <th> QC Status </th>
                 </tr>
             </thead>
-            <!-- 
-            <tbody>
 
-                {% for sample in samples %}
-                <tr data-href='{% url "sample" sample.slug %}'>
-                    <td> {{ sample.sample_id}} </td>
-                    <td> {{ sample.lab_no}} </td>
-                    <td> {{ sample.samplesheets.last.run.worksheet}} </td>
-                    <td> {{ sample.samplesheets.last.run.pipeline_version.pipeline.name}}
-                        (v.{{sample.samplesheets.last.run.pipeline_version.version}})</td>
-                    <td>{{ sample.samplesheets.last.run.completed_at|naturaltime }}</td>
-                    <td>{{ sample.samplesheets.last.run.get_qc_status }}</td>
-
-                </tr>
-                {% endfor %}
-
-            </tbody> -->
 
         </table>
 
