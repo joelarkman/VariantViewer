@@ -58,12 +58,6 @@ class Run(BaseModel):
     def get_samples(self):
         return Sample.objects.filter(samplesheets__run__id=self.id)
 
-    def get_qc_status(self):
-        try:
-            return self.Status.choices[int(self.qc_status)][1]
-        except:
-            return None
-
     def __str__(self):
         return f"{self.worksheet}"
 
