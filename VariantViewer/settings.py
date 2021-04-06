@@ -39,7 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'web.apps.WebConfig',
     'db.apps.DbConfig',
+<<<<<<< HEAD
     'django_extensions',
+=======
+    'accounts.apps.AccountsConfig'
+>>>>>>> db8d96d2ea24ac1bc3183439e73a9631527884eb
 ]
 
 # Necessary for iframes to load.
@@ -100,7 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
-    {
+    
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
@@ -136,6 +140,9 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 
-
 SHELL_PLUS = 'ipython'
 NOTEBOOK_ARGUMENTS = ['--ip', '0.0.0.0', '--no-browser']
+
+
+# DB config
+AUTH_USER_MODEL = 'accounts.User'

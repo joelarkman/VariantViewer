@@ -1,4 +1,7 @@
 from django.db import models
+from django.dispatch import receiver
+from django.db.models.signals import pre_save
+from django.template.defaultfilters import slugify
 
 from db.utils.model_utils import BaseModel
 from db.utils.model_utils import PipelineOutputFileModel
@@ -9,6 +12,13 @@ class Pipeline(BaseModel):
 
     def __str__(self):
         return self.name
+
+
+class Samplesheet(BaseModel):
+    path = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.path}"
 
 
 class PipelineVersion(BaseModel):
@@ -32,6 +42,10 @@ class Run(BaseModel):
     worksheet = models.CharField(max_length=255)
     command_line_usage = models.CharField(max_length=255)
     completed_at = models.DateTimeField()
+    samplesheet = models.ForeignKey(
+        Samplesheet,
+        on_delete=models.PROTECT
+    )
     output_dir = models.CharField(max_length=255)
     fastq_dir = models.CharField(max_length=255)
     interop_dir = models.CharField(max_length=255)
@@ -40,6 +54,28 @@ class Run(BaseModel):
         on_delete=models.PROTECT,
         related_name='pipeline_version'
     )
+
+    # Choice field for run QC status
+    class Status(models.IntegerChoices):
+        PENDING = 0
+        PASS = 1
+        FAIL = 2
+
+    qc_status = models.IntegerField(
+        choices=Status.choices,
+        default=0,
+    )
+
+    # Method to retrieve all samples associated with a run
+    def get_samples(self):
+        return Sample.objects.filter(samplesheets__run__id=self.id)
+
+    # Method to retrieve readable qc_status value
+    def get_qc_status(self):
+        try:
+            return self.Status.choices[int(self.qc_status)][1]
+        except:
+            return None
 
     def __str__(self):
         return f"{self.worksheet}"
@@ -83,23 +119,14 @@ class Sequence(BaseModel):
     sequence = models.TextField(null=True, blank=True)
 
 
-class Samplesheet(BaseModel):
-    path = models.CharField(max_length=255)
-    run = models.ForeignKey(
-        Run,
-        on_delete=models.PROTECT,
-        related_name='run'
-    )
-
-    def __str__(self):
-        return f"SampleSheet: {self.run}"
+class Patient(BaseModel):
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
 
 
 class Sample(BaseModel):
-    sample_id = models.CharField(max_length=50)
+    slug = models.SlugField(max_length=50, unique=True)
     lab_no = models.CharField(max_length=50)
-    index = models.CharField(max_length=50)
-    index2 = models.CharField(max_length=50)
     samplesheets = models.ManyToManyField(
         Samplesheet,
         through="SamplesheetSample"
@@ -114,7 +141,26 @@ class Sample(BaseModel):
     )
 
     def __str__(self):
-        return f"{self.samplesheet.run} {self.lab_no}"
+        # return f"{self.samplesheet.run} {self.lab_no}"
+
+        # All samplesheets for this sample shown with comma seperating them.
+        # Original version caused an error as it assumed one samplesheet per sample.
+        return f"{', '.join([samplesheet.run.worksheet for samplesheet in self.samplesheets.all()])} {self.lab_no}"
+
+
+# Automatically populate empty slug field with sample_id before save.
+@receiver(pre_save, sender=Sample)
+def set_sample_slug(sender, instance, *args, **kwargs):
+    if not instance.slug:
+        instance.slug = slugify(instance.sample_id)
+
+
+class ExcelReport(PipelineOutputFileModel):
+    """Excel report for a patient, can relate directly to sample."""
+    sample = models.ForeignKey(
+        Sample,
+        on_delete=models.CASCADE
+    )
 
 
 class SamplesheetSample(BaseModel):
@@ -128,7 +174,10 @@ class SamplesheetSample(BaseModel):
         on_delete=models.PROTECT,
         related_name='sample'
     )
-
+    sample_identifier = models.CharField(max_length=50)
+    index = models.CharField(max_length=50)
+    index2 = models.CharField(max_length=50)
+    gene_key = models.CharField(max_length=50)
 
 
 class SampleBAM(BaseModel):
@@ -168,6 +217,20 @@ class Variant(BaseModel):
     alt = models.CharField(max_length=255)
 
 
+class VariantCoordinate(BaseModel):
+    """
+    Linking a particular variant to a particular coordinate in a genome build.
+    """
+    variant = models.ForeignKey(
+        Variant,
+        on_delete=models.CASCADE,
+    )
+    coordinate = models.ForeignKey(
+        GenomicCoordinate,
+        on_delete=models.PROTECT
+    )
+
+
 class SampleVariant(BaseModel):
     """
     Representation of a particular variant in a particular sample.
@@ -197,6 +260,7 @@ class VariantReport(BaseModel):
     # also store essential VCF info
     qual = models.IntegerField()
     filter_pass = models.BooleanField(null=True)
+    depth = models.IntegerField()
 
 
 class VariantReportInfo(BaseModel):
@@ -289,3 +353,82 @@ class SampleTranscriptVariant(BaseModel):
     )
     selected = models.BooleanField()
     effect = models.CharField(max_length=255)
+
+
+class Exon(BaseModel):
+    """
+    An exon, multiple of which comprise a transcript.
+    """
+    number = models.CharField(max_length=4)
+    transcript = models.ForeignKey(
+        Transcript,
+        on_delete=models.CASCADE,
+    )
+    sequence = models.ManyToManyField(
+        Sequence,
+        through="ExonSequence"
+    )
+
+
+class ExonSequence(BaseModel):
+    """
+    Through table to enable multiple builds of an exon sequence to be stored
+    """
+    exon = models.ForeignKey(
+        Exon,
+        on_delete=models.CASCADE
+    )
+    sequence = models.ForeignKey(
+        Sequence,
+        on_delete=models.PROTECT
+    )
+
+
+class CoverageInfo(BaseModel):
+    """Coverage report for a gene or exon."""
+    cov_10x = models.IntegerField()
+    cov_20x = models.IntegerField()
+    cov_30x = models.IntegerField()
+    cov_40x = models.IntegerField()
+    cov_50x = models.IntegerField()
+    cov_100x = models.IntegerField()
+    cov_min = models.IntegerField()
+    cov_max = models.IntegerField()
+    cov_mean = models.FloatField()
+    cov_region = models.IntegerField()
+    pct_10x = models.IntegerField()
+    pct_20x = models.IntegerField()
+    pct_30x = models.IntegerField()
+    pct_40x = models.IntegerField()
+    pct_50x = models.IntegerField()
+    pct_100x = models.IntegerField()
+
+
+class ExonReport(BaseModel):
+    excel_report = models.ForeignKey(
+        ExcelReport,
+        on_delete=models.CASCADE,
+    )
+    exon = models.ForeignKey(
+        Exon,
+        on_delete=models.CASCADE,
+    )
+    coverage_info = models.ForeignKey(
+        CoverageInfo,
+        on_delete=models.PROTECT
+    )
+
+
+class GeneReport(BaseModel):
+    excel_report = models.ForeignKey(
+        ExcelReport,
+        on_delete=models.CASCADE,
+    )
+    gene = models.ForeignKey(
+        Gene,
+        on_delete=models.CASCADE,
+    )
+    coverage_info = models.ForeignKey(
+        CoverageInfo,
+        on_delete=models.PROTECT
+    )
