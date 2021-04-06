@@ -10,7 +10,8 @@ urlpatterns = [
 
     path('search/', views.SearchView.as_view(), name='search'),
 
-    path('sample/<slug:slug>', views.SampleView.as_view(), name='sample'),
+    path('results/<worksheet>/<sample>',
+         views.SampleDetailsView.as_view(), name='sample_details'),
 
 
     path('ajax/load_worksheet_details/<int:pk>',
