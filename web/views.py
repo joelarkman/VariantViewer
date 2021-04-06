@@ -9,7 +9,7 @@ from .models import Document
 from .forms import DocumentForm
 
 
-from db.models import Run, Sample, Samplesheet, PipelineVersion
+from db.models import Run, PipelineVersion, SamplesheetSample
 
 
 class IndexView(ListView):
@@ -63,37 +63,40 @@ class IndexView(ListView):
         return context
 
 
-class SearchView(ListView):
+class SearchView(TemplateView):
     """
-    List View to display search page.
+    Template View to display search page.
     """
 
-    model = Sample
     template_name = 'search.html'
-    context_object_name = 'samples'
 
     def get_context_data(self, **kwargs):
         context = super(SearchView, self).get_context_data()
         # base.html includes page_title by default
         context['page_title'] = 'Search'
+        context['pipelines'] = PipelineVersion.objects.all()
         return context
 
 
-class SampleView(DetailView):
+class SampleDetailsView(TemplateView):
     """
     Template View to display sample page.
     """
 
-    model = Sample
-    slug_field = 'slug'
-    slug_url_kwarg = 'slug'
+    # model = Sample
+    # slug_field = 'slug'
+    # slug_url_kwarg = 'slug'
     template_name = 'sample.html'
-    context_object_name = 'sample'
+    # context_object_name = 'sample'
 
     def get_context_data(self, **kwargs):
-        context = super(SampleView, self).get_context_data()
+        context = super(SampleDetailsView, self).get_context_data()
         # base.html includes page_title by default
         context['page_title'] = 'Sample'
+
+        context['run'] = Run.objects.get(worksheet=self.kwargs['worksheet'])
+        context['sample'] = SamplesheetSample.objects.get(
+            sample_identifier=self.kwargs['sample'])
 
         context['vcf'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz'
         context['tbi'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz.tbi'
@@ -110,37 +113,6 @@ def load_worksheet_details(request, pk):
 
     run = get_object_or_404(Run, pk=pk)
 
-    # # If archive attempt confirmed...
-    # if request.method == 'POST':
-    #     # Set key to archived.
-    #     key.archived = True
-    #     # Update archived_by, archived_at and modified_by fields.
-    #     key.archived_by = user
-    #     key.archived_at = timezone.now()
-    #     key.modified_by = user
-    #     # Save changes.
-    #     key.save()
-    #     # Set form to valid to inform ajax to close modal and update tables.
-    #     data['form_is_valid'] = True
-    #     # Retrieve updated list of active keys.
-    #     active_gene_keys = GeneKey.objects.filter(
-    #         panel=panel.id).exclude(archived=True).exclude(checked=False).order_by('-added_at')
-    #     # Retrieve updated list of archived keys.
-    #     archived_gene_keys = GeneKey.objects.filter(
-    #         panel=panel.id).exclude(archived=False).exclude(checked=False).order_by('-added_at')
-    #     # Add the updated list html to data to allow tables to be updated.
-    #     data['html_key_list_active'] = render_to_string('main/includes/partial_key_list_active.html', {
-    #         'panel': panel,
-    #         'active_gene_keys': active_gene_keys,
-    #         'user': user,
-    #     })
-    #     data['html_key_list_archived'] = render_to_string('main/includes/partial_key_list_archived.html', {
-    #         'panel': panel,
-    #         'archived_gene_keys': archived_gene_keys,
-    #         'user': user
-    #     })
-    # else:
-    # Initially add html for a confirmatatory modal to data, with the ability to confirm or cancel archive request.
     context = {
         'run': run}
     data['html_form'] = render_to_string(
