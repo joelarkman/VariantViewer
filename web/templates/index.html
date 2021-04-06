@@ -164,10 +164,10 @@
     <div id='page-header-title'>
 
         <div id="page-header-title-leftstack">
-            <h1 id="page-header-title-text">Rare Disease</h1>
+            <div id="page-header-title-text">
+                <span class="large-text">Rare Disease</span>
+            </div>
             <div class="ui large breadcrumb">
-                <a class="ui compact tiny grey basic inverted button">Home</a>
-                <i class="right chevron icon divider"></i>
                 <a class="ui compact tiny grey disabled basic inverted button">Rare disease</a>
             </div>
 
@@ -288,7 +288,7 @@
                             </div>
 
                             <div class="ui segment" style="text-align: center;margin: 0;margin-left: 15px;flex: 1;">
-                                {{ run.get_qc_status }}
+                                {{ run.get_qc_status_display }}
                             </div>
 
                             <div class="ui very light dimmer">
@@ -323,11 +323,11 @@
                                         <tbody>
                                             {% for sample in run.get_samples %}
                                             <tr>
-                                                <td data-label="Sample">{{ sample.sample_id }}</td>
-                                                <td data-label="Lab Number">{{ sample.lab_no }}</td>
+                                                <td data-label="Sample">{{ sample.sample_identifier }}</td>
+                                                <td data-label="Lab Number">{{ sample.sample.lab_no }}</td>
                                                 <td data-label="">
-                                                    <a href="{% url 'sample' sample.slug %}"
-                                                        class="ui small {% if not run.get_qc_status == 'Pending' %} disabled {% endif %} icon button">
+                                                    <a href="{% url 'sample_details' run.worksheet sample.sample_identifier %}"
+                                                        class="ui small  icon button">
                                                         <i class="external alternate icon"></i>
                                                     </a>
                                                 </td>

@@ -21,17 +21,33 @@
     <div id='page-header-title'>
 
         <div id="page-header-title-leftstack">
-            <h1 id="page-header-title-text">NGS Results: {{ sample.sample_id }} </h1>
-            <div class="ui large breadcrumb">
-                <a class="ui compact tiny grey basic inverted button">Home</a>
-                <i class="right chevron icon divider"></i>
-                <a class="ui compact tiny grey basic inverted button">Rare disease</a>
+            <div id="page-header-title-text">
+                <span class="large-text">NGS Results</span>
+                <span class="divider">|</span>
+                <div class="small-text-column-container">
+                    <span class="small-text-top">Patient:</span>
+                    <span class="small-text-bottom">Joe Bloggs-longername</span>
+                </div>
+                <span class="divider">|</span>
+                <div class="small-text-column-container">
+                    <span class="small-text-top">Sample (lab no):</span>
+                    <span class="small-text-bottom">{{ sample.sample_identifier }}
+                        ({{sample.sample.lab_no }})</span>
+                </div>
+                <span class="divider">|</span>
+                <div class="small-text-column-container">
+                    <span class="small-text-top">Worksheet:</span>
+                    <span class="small-text-bottom">{{run.worksheet}}</span>
+                </div>
+            </div>
+
+            <div class="ui small breadcrumb">
+                <a href="{% url 'index' %}" class="ui compact tiny grey basic inverted button">Rare disease</a>
                 <i class="right chevron icon divider"></i>
                 <a href="{% url 'search' %}" class="ui compact tiny grey basic inverted button">Search</a>
                 <i class="right chevron icon divider"></i>
-                <a class="ui compact tiny grey basic inverted button">Joe Bloggs</a>
-                <i class="right chevron icon divider"></i>
-                <div class="ui compact tiny grey basic inverted disabled button">{{ sample.sample_id }}</div>
+                <div class="ui compact tiny grey basic inverted disabled button">{{ sample.sample_identifier }}
+                    ({{sample.sample.lab_no }})</div>
             </div>
         </div>
 
@@ -395,7 +411,7 @@
 
 
         <div class="ui attached segment"
-            style="padding: 0;border-top: none;flex: 1;overflow-y: auto;background-color: #F8F8F8;">
+            style="padding: 0;border-top: none;flex: 1;overflow-y:scroll;background-color: #F8F8F8;">
 
             <table class='ui coverage-tables selectable celled table ' style="width: 100%;">
 
@@ -515,9 +531,6 @@
 
 
             <div class="right-float">
-                <!-- <div id='max' class="ui button">test</div> -->
-
-                <!-- <input type="text" id="max" name="max"> -->
                 <div class="item-divider"></div>
                 <span class="subtitle">EXON COVERAGE</span>
             </div>
@@ -525,7 +538,7 @@
         </div>
 
         <div class="ui attached segment"
-            style="padding: 0;border-top: none;flex: 1;overflow-y: auto;background-color: #F8F8F8;">
+            style="padding: 0;border-top: none;flex: 1;overflow-y: scroll;background-color: #F8F8F8;">
 
             <table id="exon-table" class='ui coverage-tables selectable celled table ' style="width: 100%;">
                 <colgroup>

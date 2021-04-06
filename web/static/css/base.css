@@ -72,10 +72,6 @@
        margin-left: 15px;
    }
    
-   #page-header-title-text {
-       margin: 0;
-       margin-bottom: 3px;
-   }
    
    #page-header-title-leftstack {
        display: flex;
@@ -93,6 +89,44 @@
        color: white;
    }
    
+   #page-header-title-text {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 6px;
+    margin-top: 2px;
+    align-items: center;
+    flex-wrap: wrap;
+    height: 35px;
+    overflow: hidden;
+   }
+
+   #page-header-title-text .large-text {
+    font-size: 28px;
+    font-weight: bold;
+   }
+
+   #page-header-title-text .divider {
+    font-size: 28px;
+    font-weight: bold;
+    margin-left: 5px;
+    margin-right: 5px;
+   }
+
+   #page-header-title-text .small-text-column-container {
+    display: flex;
+    flex-direction: column;
+   }
+
+   #page-header-title-text .small-text-top {
+    font-size: 12px;
+    font-weight: lighter;
+    margin-bottom: -3px;
+   }
+
+   #page-header-title-text .small-text-bottom {
+    font-size: 18px;
+   }
+
    #page-header-title-right-buttons { 
        margin: 0;
        width: 350px;
