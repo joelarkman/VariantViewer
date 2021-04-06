@@ -5,7 +5,7 @@ from factory import fuzzy
 
 from db.models import Pipeline, PipelineVersion, Run, Sample, Samplesheet, SamplesheetSample
 
-PIPELINES = ['TSMP', 'TSO']
+PIPELINES = ['TSMP', 'TSO', 'TST170']
 
 
 class PipelineFactory(DjangoModelFactory):
@@ -45,14 +45,33 @@ class SamplesheetFactory(DjangoModelFactory):
 
     path = factory.Faker('file_path')
 
-    run = factory.SubFactory(RunFactory)
+    run1 = factory.RelatedFactory(
+        RunFactory,
+        factory_related_name='samplesheet',
+        qc_status=2,
+        completed_at=factory.Faker(
+            'date_between_dates',
+            date_start=datetime.date(2019, 1, 1),
+            date_end=datetime.date(2019, 12, 31),
+        )
+    )
+
+    run2 = factory.RelatedFactory(
+        RunFactory,
+        factory_related_name='samplesheet',
+        qc_status=1
+    )
+
+    # runs = factory.RelatedFactoryList(
+    #     RunFactory,
+    #     factory_related_name='samplesheet',
+    #     size=2,
+    # )
 
 
 class SampleFactory(DjangoModelFactory):
     class Meta:
         model = Sample
-
-    sample_id = factory.Sequence(lambda n: 'sample-%04d' % n)
 
     lab_no = factory.Faker('bothify', text='?######', letters='GSD')
 
@@ -63,6 +82,8 @@ class SamplesheetSampleFactory(DjangoModelFactory):
 
     samplesheet = factory.SubFactory(SamplesheetFactory)
     sample = factory.SubFactory(SampleFactory)
+    sample_identifier = factory.Sequence(lambda n: 'sample-%04d' % n)
+    gene_key = factory.Sequence(lambda n: 'genekey-%04d' % n)
 
 
 class SamplesheetWith4Samples(SamplesheetFactory):

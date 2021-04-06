@@ -1,6 +1,6 @@
 from django.db import models
 from django.dispatch import receiver
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.template.defaultfilters import slugify
 
 from db.utils.model_utils import BaseModel
@@ -16,6 +16,9 @@ class Pipeline(BaseModel):
 
 class Samplesheet(BaseModel):
     path = models.CharField(max_length=255)
+
+    latest_run = models.ForeignKey(
+        'Run', blank=True, null=True, on_delete=models.PROTECT, related_name='latest')
 
     def __str__(self):
         return f"{self.path}"
@@ -44,7 +47,8 @@ class Run(BaseModel):
     completed_at = models.DateTimeField()
     samplesheet = models.ForeignKey(
         Samplesheet,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        related_name='runs'
     )
     output_dir = models.CharField(max_length=255)
     fastq_dir = models.CharField(max_length=255)
@@ -68,10 +72,18 @@ class Run(BaseModel):
 
     # Method to retrieve all samples associated with a run
     def get_samples(self):
-        return Sample.objects.filter(samplesheets__run__id=self.id)
+        return SamplesheetSample.objects.filter(samplesheet__runs__id=self.id)
 
     def __str__(self):
         return f"{self.worksheet}"
+
+
+@receiver(post_save, sender=Run)
+def set_latest_run(sender, instance, *args, **kwargs):
+    # Ensure latest run is always set to the most recently completed run associated with a given samplesheet.
+    instance.samplesheet.latest_run = Run.objects.filter(
+        samplesheet=instance.samplesheet).order_by('-completed_at')[0]
+    instance.samplesheet.save()
 
 
 class BAM(PipelineOutputFileModel):
@@ -146,7 +158,7 @@ def __str__(self):
 @receiver(pre_save, sender=Sample)
 def set_sample_slug(sender, instance, *args, **kwargs):
     if not instance.slug:
-        instance.slug = slugify(instance.sample_id)
+        instance.slug = slugify(instance.lab_no)
 
 
 class ExcelReport(PipelineOutputFileModel):
