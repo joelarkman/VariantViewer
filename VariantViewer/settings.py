@@ -39,11 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'web.apps.WebConfig',
     'db.apps.DbConfig',
-<<<<<<< HEAD
     'django_extensions',
-=======
     'accounts.apps.AccountsConfig'
->>>>>>> db8d96d2ea24ac1bc3183439e73a9631527884eb
 ]
 
 # Necessary for iframes to load.
