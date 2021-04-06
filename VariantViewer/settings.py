@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'web.apps.WebConfig',
     'db.apps.DbConfig',
+    'django_extensions',
 ]
 
 # Necessary for iframes to load.
@@ -134,3 +135,7 @@ STATIC_DIR = STATIC_ROOT
 STATIC_URL = '/static/'
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
+
+
+SHELL_PLUS = 'ipython'
+NOTEBOOK_ARGUMENTS = ['--ip', '0.0.0.0', '--no-browser']
