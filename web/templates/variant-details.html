@@ -339,6 +339,8 @@
         <div id="evidence-container">
             {% if documents %}
             {% include 'includes/evidence.html' %}
+            {% else %}
+            <span style="font-size:smaller;">No evidence files uploaded yet</span>
             {% endif %}
         </div>
 
