@@ -192,6 +192,13 @@ $("#variant-menu").on("keyup search", "#variant-search", function () {
         .hide()
         .filter(':icontains("' + query + '")')
         .show();
+
+    // If no variants match query, show notice message.
+    if (!$("#variant-menu .gene").is(':visible')) {
+        $("#variant-menu #no-results-notice").show()
+    } else { // otherwise hide notice
+        $("#variant-menu #no-results-notice").hide()
+    }
 });
 
 
@@ -425,7 +432,7 @@ $(document).ready(function () {
     });
 
     // Set up custom search of both tables
-    $('#mySearch').on('keyup click', function () {
+    $('#mySearch').on('keyup click search', function () {
         $('#gene-table tbody tr').children('td').removeClass('row-selected')
         cov_tables.tables().search($(this).val()).draw();
     });
