@@ -91,7 +91,10 @@ class BAM(PipelineOutputFileModel):
 
 
 class VCF(PipelineOutputFileModel):
-    pass
+    run = models.ForeignKey(
+        Run,
+        on_delete=models.CASCADE
+    )
 
 
 class GenomeBuild(BaseModel):
@@ -145,6 +148,10 @@ class Sample(BaseModel):
         through="SampleVCF"
     )
 
+    def get_variants(self):
+        return SampleTranscriptVariant.objects.filter(sample_variant__sample=self,
+                                                      selected=True).order_by('transcript__gene__hgnc_name')
+
 
 def __str__(self):
     # return f"{self.samplesheet.run} {self.lab_no}"
@@ -165,6 +172,10 @@ class ExcelReport(PipelineOutputFileModel):
     """Excel report for a patient, can relate directly to sample."""
     sample = models.ForeignKey(
         Sample,
+        on_delete=models.CASCADE
+    )
+    run = models.ForeignKey(
+        Run,
         on_delete=models.CASCADE
     )
 
@@ -408,6 +419,9 @@ class CoverageInfo(BaseModel):
     pct_40x = models.IntegerField()
     pct_50x = models.IntegerField()
     pct_100x = models.IntegerField()
+
+    def get_percentages(self):
+        return [self.pct_10x, self.pct_20x, self.pct_30x, self.pct_40x, self.pct_50x, self.pct_100x]
 
 
 class ExonReport(BaseModel):
