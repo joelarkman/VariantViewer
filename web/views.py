@@ -6,7 +6,7 @@ from django.db.models import Q
 
 from .models import Document
 
-from .forms import SampleTranscriptVariantForm, DocumentForm
+from .forms import DocumentForm
 
 
 from db.models import ExcelReport, Gene, Run, PipelineVersion, Sample, SamplesheetSample, SampleTranscriptVariant, Transcript

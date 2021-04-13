@@ -1,3 +1,20 @@
+// =================
+// UTILITY FUNCTIONS 
+// ================= 
+
+function ResetHideBrowser() {
+    $('#variants-main-panel').show();
+    $("#browser-expand-collapse").removeClass("primary")
+    $('#browser-expand-collapse .icon').addClass("expand").removeClass("compress")
+    $("#browser-expand-collapse").attr("data-tooltip", "Expand Browser");
+    $('#browser').addClass("browser-collapsed").removeClass("browser-expanded");
+    $('.view-in-browser').attr("data-tooltip", "Show Browser");
+    $('#browser').hide();
+    $('#browser-expand-collapse').hide()
+    $('.view-in-browser').removeClass("red");
+}
+
+
 // ==============
 // VARIANT FILTER 
 // ============== 
@@ -5,16 +22,23 @@
 // Filters scroll
 $(function () {
 
+    // Make buttons scroll filters bar id the buttons are not disabled
     $('#right-button').click(function () {
-        $('.active-filters-container').animate({
-            scrollLeft: "+=150px"
-        }, "500");
+        if (!$(this).hasClass("disabled")) {
+            $('.active-filters-container').animate({
+                scrollLeft: "+=150px"
+            }, "500");
+        }
+
+
     });
 
     $('#left-button').click(function () {
-        $('.active-filters-container').animate({
-            scrollLeft: "-=150px"
-        }, "500");
+        if (!$(this).hasClass("disabled")) {
+            $('.active-filters-container').animate({
+                scrollLeft: "-=150px"
+            }, "500");
+        }
     });
 
     // Code to grey out arrows at each extreme
@@ -52,34 +76,16 @@ $(function () {
 $("#mod_filter").click(function () {
 
     // Reset/Hide browser
-    $('#variants-main-panel').show();
-    $("#browser-expand-collapse").removeClass("primary")
-    $('#browser-expand-collapse .icon').addClass("expand").removeClass("compress")
-    $("#browser-expand-collapse").attr("data-tooltip", "Expand Browser");
-    $('#browser').addClass("browser-collapsed").removeClass("browser-expanded");
-    $('.view-in-browser').attr("data-tooltip", "Show Browser");
-    $('#browser').hide();
-    $('#browser-expand-collapse').hide()
-    $('.view-in-browser').removeClass("red");
-    $('.view-in-browser').addClass('disabled')
+    ResetHideBrowser()
 
-
-    $(this).addClass('disabled')
+    // Modify look of filter button and filter bar.
     $(this).addClass("red");
-    $('#tab-utility-bar .label').addClass('disabled')
+    // Disable all elements in variant tab utility bar
+    $('#variants-tab #tab-utility-bar').find('*').addClass('disabled')
 
+    // Hide lightbox, replace its content with modal and then display it.
     $('#lightbox').dimmer('hide');
     $('#lightbox').html($("#filter-settings").html());
-
-    // Define actrivity for newly defined close button.
-    $(".filter-settings-close").click(function () {
-        $("#mod_filter").removeClass('disabled')
-        $("#mod_filter").removeClass("red");
-        $('#tab-utility-bar .label').removeClass('disabled')
-        $('#lightbox').dimmer('hide');
-
-        $('.view-in-browser').removeClass('disabled')
-    });
 
     $('#lightbox').dimmer({
         closable: false
@@ -87,7 +93,17 @@ $("#mod_filter").click(function () {
 
 });
 
+// Click close button inside lightbox modal.
+$("#lightbox").on("click", ".filter-settings-close", function () {
+    // Reset look of filter button and filter bar
 
+    $("#mod_filter").removeClass("red");
+    // Enable all elements in variant tab utility bar
+    $('#variants-tab #tab-utility-bar').find('*').removeClass('disabled')
+
+    // Hide lightbox
+    $('#lightbox').dimmer('hide');
+});
 
 // ====================
 // LOAD VARIANT DETAILS 
@@ -95,7 +111,7 @@ $("#mod_filter").click(function () {
 
 $(document).ready(function () {
 
-    $('.mini-tabs-link').click(function () {
+    $("#variant-menu").on("click", ".mini-tabs-link", function () {
 
         var tab_url = $(this).attr('data-url');
 
@@ -134,8 +150,12 @@ $(document).ready(function () {
                     clearTimeout(ajaxLoadTimeout);
                     $("#variant-content-loader").removeClass('active');
 
-                    const assemblyName = genomeView.state.assemblyManager.assemblies[0].name
-                    genomeView.view.navToLocString(coords, assemblyName);
+                    // If browser is open, navigate to variant.
+                    if ($('#browser').css("display") != 'none') {
+                        const assemblyName = genomeView.state.assemblyManager.assemblies[0].name
+                        genomeView.view.navToLocString(coords, assemblyName);
+                    }
+
                 }
             });
         }
@@ -146,7 +166,7 @@ $(document).ready(function () {
 // Hide non-active tabs initially
 $('.mini-tabs-content').hide()
 
-$('#menu-toggle-open').click(function () {
+$("#variant-menu").on("click", "#menu-toggle-open", function () {
     $('#variant-menu').hide()
     $('.menu-toggle-closed').show()
 })
@@ -156,7 +176,139 @@ $('.menu-toggle-closed').click(function () {
     $('.menu-toggle-closed').hide()
 })
 
-// $('.menu-toggle-closed').hide()
+// ===================
+// VARIANT LIST SEARCH 
+// ===================
+
+// Create case insensitive .contains filter https://stackoverflow.com/questions/8746882/jquery-contains-selector-uppercase-and-lower-case-issue
+jQuery.expr[':'].icontains = function (a, i, m) {
+    return jQuery(a).text().toUpperCase()
+        .indexOf(m[3].toUpperCase()) >= 0;
+};
+
+$("#variant-menu").on("keyup search", "#variant-search", function () {
+    var query = $(this).val()
+    $("#variant-menu .gene")
+        .hide()
+        .filter(':icontains("' + query + '")')
+        .show();
+});
+
+
+// ==========================
+// UPDATE SELECTED TRANSCRIPT 
+// ==========================
+
+// Initialise pop-ups
+$("#variant-menu .js-update-transcript").popup({
+    inline: false
+})
+
+$(function () {
+
+    /* Functions */
+
+    var loadForm = function () {
+        var btn = $(this);
+        $.ajax({
+            url: btn.attr("data-url"),
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+                ResetHideBrowser()
+                $('#lightbox').dimmer('hide');
+            },
+            success: function (data) {
+
+                // Disable all elements in variant tab utility bar
+                $('#variants-tab #tab-utility-bar').find('*').addClass('disabled')
+
+                // Populate lightbox with modal featuring form.
+                $('#lightbox').html(data.html_form);
+
+                // Filter table of variants to show only those relevent to the current transcript
+                currently_selected_transcript = $("#lightbox .selected-transcript").attr('data-current');
+                $("#lightbox .variant-row").hide().filter('[data-transcript-id="' + currently_selected_transcript + '"]').show()
+
+                // Show lightbox
+                $('#lightbox').dimmer({
+                    closable: false
+                }).dimmer('show');
+            }
+        });
+    };
+
+    var saveForm = function () {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    $('#variant-menu').html(data.variant_list)
+
+                    // Hide lightbox
+                    $('#lightbox').dimmer('hide');
+
+                    // Enable tab utility bar
+                    $('#variants-tab #tab-utility-bar').find('*').removeClass('disabled')
+
+                    // Close any open variants
+                    $('.mini-tabs-link').removeClass('active');
+                    $(".mini-tabs-content").hide();
+                    $("#variant-content-loader").removeClass('active');
+                    $(".basic_message").show();
+
+                    // Refresh popups
+                    $("#variant-menu .js-update-transcript").popup({
+                        inline: false
+                    })
+                }
+                else {
+                    $('#lightbox').html(data.html_form);
+                }
+            }
+        });
+        return false;
+    };
+
+
+    /* Binding */
+
+    // Update transcript
+    $("#variant-menu").on("click", ".js-update-transcript", loadForm);
+    $("#lightbox").on("submit", "#js-update-transcript-form", saveForm);
+
+});
+
+// When select a different transcript
+$("#lightbox").on("click", ".transcript-choice", function () {
+    // Deselect others and make this appear selected
+    $("#lightbox .transcript-choice").removeClass('inverted')
+    $("#lightbox .transcript-choice").addClass('link')
+    $(this).addClass('inverted')
+    $(this).removeClass('link')
+
+    // Extract new and previous transcript id's from data attributes.
+    var new_transcript = $(this).attr('data-transcript-id');
+    var currently_selected_transcript = $("#lightbox .selected-transcript").attr('data-current');
+
+    // Set hidden input value to new transcript. This will be sent to server when user submits form.
+    $("#lightbox .selected-transcript").val(new_transcript);
+
+    // Check whether user has chosen a different transcript, if so allow them to save changes.
+    if (new_transcript === currently_selected_transcript) {
+        $("#lightbox .js-update-transcript-form-submit").addClass('disabled')
+    } else {
+        $("#lightbox .js-update-transcript-form-submit").removeClass('disabled')
+    }
+
+    // Filter table of variants to show only those relevent to the new transcript
+    $("#lightbox .variant-row").hide().filter('[data-transcript-id="' + new_transcript + '"]').show()
+});
+
 
 // =========
 // MAIN TABS 
@@ -274,8 +426,8 @@ $(document).ready(function () {
 
     // Set up custom search of both tables
     $('#mySearch').on('keyup click', function () {
+        $('#gene-table tbody tr').children('td').removeClass('row-selected')
         cov_tables.tables().search($(this).val()).draw();
-
     });
 
     // Hide raw value columns by default
@@ -302,6 +454,22 @@ $(document).ready(function () {
         cov_tables.draw();
     });
 
+
+    // Search exon table when select gene
+    $('#gene-table tbody').on('click', 'tr', function (event) {
+        var row = cov_tables.tables(0).row(this);
+        var selected_gene = row.data()[0]
+
+        if ($(this).children('td').hasClass('row-selected')) {
+            $(this).children('td').removeClass('row-selected')
+            cov_tables.tables(1).search('').draw()
+        } else {
+            $('#gene-table tbody tr').children('td').removeClass('row-selected')
+            $(this).children('td').addClass('row-selected')
+            cov_tables.tables(1).search(selected_gene).draw()
+        }
+    });
+
 });
 
 $('#min-read-filter-input').hide()
@@ -324,6 +492,7 @@ $.fn.dataTable.ext.search.push(
         return false;
     }
 );
+
 
 
 // ==============

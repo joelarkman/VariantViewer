@@ -1,0 +1,54 @@
+<div id="variant-menu-topper">
+    <button id="menu-toggle-open" class="active circular ui icon button" data-tooltip="Collapse Menu"
+        data-position="bottom left">
+        <i class="icon bars"></i>
+    </button>
+
+    <div class="ui small icon input" style="width:100%;margin-left: 10px;">
+        <input type="search" placeholder="Search variants..." id="variant-search">
+        <i class="search icon"></i>
+    </div>
+
+</div>
+
+<!-- Group list of variants by their transcript/gene -->
+{% regroup sample.sample.get_variants by transcript as variant_list %}
+
+{% for transcript in variant_list %}
+
+<div class="gene">
+    <div class="title" {% if forloop.first %} style='margin-top:10px' {%endif%}>
+        <b>{{transcript.grouper.gene.hgnc_name}}</b>
+        <a data-url="{% url 'update_selected_transcript' sample=sample.sample.id transcript=transcript.grouper.id %}"
+            class="ui horizontal right icon {% if transcript.grouper.canonical %}grey{%else%}red{% endif %} label js-update-transcript"
+            data-html="<span>{% if transcript.grouper.canonical %}Canonical{% else %}Non-canonical{% endif %} transcript selected</span><br><span style='font-size:smaller;'>(Click to update)</span>"
+            data-position="right center">
+            {{transcript.grouper.name}}
+            <i class="sync icon"></i>
+        </a>
+    </div>
+
+    {% for variant in transcript.list %}
+
+    <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' variant=variant.id %}" data-chr="3"
+        data-location="121973128" {% if forloop.last %} style="border-bottom:0.5px solid #E8E9E9;" {%endif%}>
+        <div class="variant-title">
+            {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}}
+        </div>
+
+        <div class="variant-attribute-container">
+
+            <div class="variant-attribute">
+                <span style="font-weight: bold;">Exonic SNV</span>
+                <span
+                    style="font-weight: lighter;font-style: italic;font-size: small;color: #5D5D5D;">Non-synonymous</span>
+            </div>
+
+        </div>
+    </a>
+
+    {%endfor%}
+
+</div>
+
+{%endfor%}
