@@ -94,7 +94,11 @@
                 <div class="align title and dropdown" style="display: flex;align-items: center">
 
                     <h2 class="ui header" style="margin: 0px;">
-                        NOTCH1 c.1966A>G
+                        {{variant.transcript.gene.hgnc_name}}
+                        {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}}
+                        {{variant.sample_variant.variant.variantcoordinate_set.last.coordinate.pos}}
+                        {{variant.sample_variant.variant.variantcoordinate_set.last.coordinate.chrom}}
+                        {{variant.sample_variant.variant.variantcoordinate_set.last.coordinate.genome_build.name}}
                     </h2>
 
 
