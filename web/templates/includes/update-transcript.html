@@ -1,12 +1,18 @@
+{% load humanize %}
+
 <div class="ui segments" style="display: flex;min-width: 75%;max-width: 90%;;max-height: 90%;">
     <div class="ui left aligned clearing segment">
         <h3 class="ui header" style="margin:0">Set Transcript For {{selected_transcript.gene.hgnc_name}}</h3>
+        <span style="margin-top: 5px;font-size: smaller;">
+            Last modified {{variant_containing_transcripts.first.date_modified|naturaltime}} by JHDL
+        </span>
     </div>
 
 
     <div class="ui left aligned segment">
         <div class="ui message">
-            test
+            Variants have been dectected in the following {{selected_transcript.gene.hgnc_name}} transcripts for this
+            sample. Please select which one to use for analysis.
         </div>
     </div>
 
