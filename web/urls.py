@@ -23,7 +23,7 @@ urlpatterns = [
     path('ajax/load_variant_details/<int:variant>',
          views.load_variant_details, name='load_variant_details'),
 
-    path('ajax/save_evidence',
+    path('ajax/save_evidence/<int:stv>',
          views.save_evidence, name='save_evidence'),
 
     # Temporary to explore jbrowse during development

@@ -133,11 +133,12 @@ def load_variant_details(request, variant):
 
     data = dict()
 
-    documents = Document.objects.all().order_by('-uploaded_at')
+    stv = SampleTranscriptVariant.objects.get(id=variant)
+    documents = stv.evidence_files.order_by('-date_created')
 
     form = DocumentForm()
 
-    context = {'variant': SampleTranscriptVariant.objects.get(id=variant),
+    context = {'stv': stv,
                'form': form,
                'documents': documents}
 
@@ -185,7 +186,7 @@ def update_selected_transcript(request, sample, transcript):
     return JsonResponse(data)
 
 
-def save_evidence(request):
+def save_evidence(request, stv):
     """
     AJAX view to facilitate jquery-file-upload save process. When recieve document from file uploader,
     save the file and retreive an updated set of evidence files. Return refreshed set of evidence 
@@ -193,17 +194,18 @@ def save_evidence(request):
     """
 
     data = dict()
+    stv = SampleTranscriptVariant.objects.get(id=stv)
 
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
 
         if form.is_valid():
 
-            # print(form.cleaned_data)
+            evidence_file = form.save(commit=False)
+            evidence_file.sample_transcript_variant = stv
+            evidence_file.save()
 
-            form.save()
-
-            documents = Document.objects.all().order_by('-uploaded_at')
+            documents = stv.evidence_files.order_by('-date_created')
             data['is_valid'] = True
             data['documents'] = render_to_string('includes/evidence.html',
                                                  {'documents': documents},

@@ -1,3 +1,5 @@
+{% load humanize %}
+
 <div class="ui three horizontal link cards">
 
     {% for doc in documents %}
@@ -35,7 +37,7 @@
             </div>
             <div class="extra content" style="flex-shrink: 0;">
                 <span class="right floated">
-                    {{doc.uploaded_at}}
+                    {{doc.date_created|naturaltime}}
                 </span>
                 <span>
                     <i class="user icon"></i>

@@ -94,11 +94,11 @@
                 <div class="align title and dropdown" style="display: flex;align-items: center">
 
                     <h2 class="ui header" style="margin: 0px;">
-                        {{variant.transcript.gene.hgnc_name}}
-                        {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}}
-                        {{variant.sample_variant.variant.variantcoordinate_set.last.coordinate.pos}}
-                        {{variant.sample_variant.variant.variantcoordinate_set.last.coordinate.chrom}}
-                        {{variant.sample_variant.variant.variantcoordinate_set.last.coordinate.genome_build.name}}
+                        {{stv.transcript.gene.hgnc_name}}
+                        {{stv.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}}
+                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.pos}}
+                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.chrom}}
+                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.genome_build.name}}
                     </h2>
 
 
@@ -122,7 +122,7 @@
         <div class="ui segment"
             style="background-color:#F8F8F8;display: flex;margin: 0px;align-items: stretch;padding: 0px;">
 
-            <div class="ui right floated top pointing dropdown small basic button"
+            <div class="ui right floated top pointing dropdown small basic button classification"
                 style="display: flex;margin: 10px;align-items: center;">
                 <span class="text">Classification</span>
                 <div class="menu">
@@ -306,7 +306,7 @@
 
         <div id="upload-form" class="ui segment" style="margin:0px;margin-bottom: 15px;">
             <div style="display: flex;align-items: stretch; margin-bottom: 15px;height: 224px;">
-                <form id="fileupload" class="ui form" action="{% url 'save_evidence' %}" method="POST"
+                <form id="fileupload" class="ui form" action="{% url 'save_evidence' stv=stv.id %}" method="POST"
                     enctype="multipart/form-data" csrf_token="{{ csrf_token }}"
                     style="flex: 1;display: flex;flex-direction: column;">
                     <input id="file-dialog" type="file" name="document" style="display: none;">
@@ -351,8 +351,3 @@
     </div>
 
 </div>
-
-<!-- Lightbox dimmer populated with images/pdfs via js. -->
-<!-- Relocated this to sample page to ensure it ocupies the correct div. -->
-<!-- <div id="lightbox" class="ui page dimmer">
-</div> -->
