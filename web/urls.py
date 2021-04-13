@@ -16,8 +16,13 @@ urlpatterns = [
 
     path('ajax/load_worksheet_details/<int:pk>',
          views.load_worksheet_details, name='load_worksheet_details'),
-    path('ajax/load_variant_details',
+
+    path('ajax/update_selected_transcript/<int:sample>/<int:transcript>',
+         views.update_selected_transcript, name='update_selected_transcript'),
+
+    path('ajax/load_variant_details/<int:variant>',
          views.load_variant_details, name='load_variant_details'),
+
     path('ajax/save_evidence',
          views.save_evidence, name='save_evidence'),
 

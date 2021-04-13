@@ -6,10 +6,10 @@ from django.db.models import Q
 
 from .models import Document
 
-from .forms import DocumentForm
+from .forms import SampleTranscriptVariantForm, DocumentForm
 
 
-from db.models import Run, PipelineVersion, SamplesheetSample
+from db.models import ExcelReport, Gene, Run, PipelineVersion, Sample, SamplesheetSample, SampleTranscriptVariant, Transcript
 
 
 class IndexView(ListView):
@@ -83,21 +83,24 @@ class SampleDetailsView(TemplateView):
     Template View to display sample page.
     """
 
-    # model = Sample
-    # slug_field = 'slug'
-    # slug_url_kwarg = 'slug'
     template_name = 'sample.html'
-    # context_object_name = 'sample'
 
     def get_context_data(self, **kwargs):
         context = super(SampleDetailsView, self).get_context_data()
         # base.html includes page_title by default
-        context['page_title'] = 'Sample'
 
-        context['run'] = Run.objects.get(worksheet=self.kwargs['worksheet'])
-        context['sample'] = SamplesheetSample.objects.get(
+        sample = SamplesheetSample.objects.get(
             sample_identifier=self.kwargs['sample'])
 
+        run = Run.objects.get(worksheet=self.kwargs['worksheet'])
+
+        context['run'] = run
+        context['sample'] = sample
+        context['page_title'] = f"{sample.sample_identifier} ({sample.sample.lab_no})"
+        context['excelreport'] = ExcelReport.objects.get(
+            run=run, sample=sample.sample)
+
+        # Load files for jbrowse
         context['vcf'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz'
         context['tbi'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz.tbi'
 
@@ -121,7 +124,7 @@ def load_worksheet_details(request, pk):
     return JsonResponse(data)
 
 
-def load_variant_details(request):
+def load_variant_details(request, variant):
     """
     AJAX view to load variant details. Database filtered for correct variant and its associated 
     evidence documents; data rendered using relevent template and sent back to sample page as
@@ -134,13 +137,51 @@ def load_variant_details(request):
 
     form = DocumentForm()
 
-    context = {'test': "this is a test",
+    context = {'variant': SampleTranscriptVariant.objects.get(id=variant),
                'form': form,
                'documents': documents}
 
     data['variant_details'] = render_to_string('variant-details.html',
                                                context,
                                                request=request)
+    return JsonResponse(data)
+
+
+def update_selected_transcript(request, sample, transcript):
+    """
+    AJAX view to view all available transcripts for a sequenced gene, preview variants identified for each one, and set one as selected for a given sample.
+    """
+    current_transcript = Transcript.objects.get(id=transcript)
+    sample = Sample.objects.get(id=sample)
+    data = dict()
+
+    if request.method == 'POST':
+        data['form_is_valid'] = True
+        new_transcript = Transcript.objects.get(
+            id=request.POST.get('selected-transcript'))
+
+        # Temporary implementation until unique-together has been added:
+        for stv in SampleTranscriptVariant.objects.filter(sample_variant__sample=sample, transcript__gene=new_transcript.gene):
+            if stv.transcript == new_transcript:
+                stv.selected = True
+                stv.save()
+            else:
+                stv.selected = False
+                stv.save()
+
+        data['variant_list'] = render_to_string('includes/variant-list.html',
+                                                {'sample': SamplesheetSample.objects.get(
+                                                    sample=sample)},
+                                                request=request)
+
+    context = {'form': 'form',
+               'sample': SamplesheetSample.objects.get(sample=sample),
+               'selected_transcript': current_transcript,
+               'variant_containing_transcripts': SampleTranscriptVariant.objects.filter(sample_variant__sample=sample, transcript__gene=current_transcript.gene).order_by('transcript__gene__hgnc_name')}
+
+    data['html_form'] = render_to_string('includes/update-transcript.html',
+                                         context,
+                                         request=request)
     return JsonResponse(data)
 
 
@@ -184,6 +225,8 @@ class JbrowseTestingView(TemplateView):
         context = super(JbrowseTestingView, self).get_context_data()
         # base.html includes page_title by default
         context['page_title'] = 'Jbrowse Testing'
+
+        context['genes'] = Gene.objects.all()
 
         context['vcf'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz'
         context['tbi'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz.tbi'
