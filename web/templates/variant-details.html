@@ -90,73 +90,46 @@
         <div id="variant-title" class="ui segment"
             style="background-color:#F8F8F8;padding: 0px;display: flex;align-items: center;margin-top: 0;margin-right: auto;margin-bottom: 0px;flex-shrink: 1;">
 
-            <div class="col-container" style="display: flex;flex-direction: column;margin: 5px;margin-left: 10px;">
-                <div class="align title and dropdown" style="display: flex;align-items: center">
-
-                    <h2 class="ui header" style="margin: 0px;">
-                        {{stv.transcript.gene.hgnc_name}}
-                        {{stv.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}}
-                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.pos}}
-                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.chrom}}
-                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.genome_build.name}}
-                    </h2>
+            <div class="col-container"
+                style="display: flex;flex-direction: column;margin: 5px;margin-left: 10px;margin-right: 10px;align-items: center;justify-content: center;">
 
 
+                <h2 class="ui header" style="margin: 0px;align-self: flex-start;">
+                    {{stv.get_long_hgvs.hgvs_c}}
+                </h2>
+
+
+                <div
+                    style="display: flex;flex-direction: row;gap: 5px;margin-top: 5px;margin-bottom: 3px;align-items: center;justify-content: center;">
+                    <div
+                        style="display: flex;flex-direction: column;background-color: #e2e2e2;padding: 5px;border-radius: 3px;min-width: 100px;">
+                        <span style="font-size: smaller;margin-top: -2px;">GENE SYMBOL:</span>
+                        <span style="font-weight: bold;margin-top: -2px;">{{stv.transcript.gene.hgnc_name}}</span>
+                    </div>
+
+                    <div
+                        style="display: flex;flex-direction: column;background-color: #e2e2e2;padding: 5px;border-radius: 3px;flex: 1;">
+                        <span style="font-size: smaller;margin-top: -2px;">PROTEIN HGVS:</span>
+                        <span style="font-weight: bold;margin-top: -2px;">{{stv.get_long_hgvs.hgvs_p}}</span>
+                    </div>
+
+                    <div
+                        style="display: flex;flex-direction: column;background-color: #e2e2e2;padding: 5px;border-radius: 3px;flex: 1;">
+                        <span style="font-size: smaller;margin-top: -2px;">GENOMIC HGVS:</span>
+                        <span style="font-weight: bold;margin-top: -2px;">{{stv.get_long_hgvs.hgvs_g}}</span>
+                    </div>
                 </div>
-
-                <span id="report-status">Update the toggle to include in this variant in the report
-                    for
-                    this sample.</span>
-
-
-                <i>(Variant classification last updated by JHDL just now)</i>
 
             </div>
 
-            <div id="include-in-report" class="ui toggle checkbox" style="margin-left: 20px;margin-right: 10px;">
+            <!-- <div id="include-in-report" class="ui toggle checkbox" style="margin-left: 20px;margin-right: 10px;">
                 <input type="checkbox">
                 <label></label>
-            </div>
+            </div> -->
         </div>
 
-        <div class="ui segment"
-            style="background-color:#F8F8F8;display: flex;margin: 0px;align-items: stretch;padding: 0px;">
-
-            <div class="ui right floated top pointing dropdown small basic button classification"
-                style="display: flex;margin: 10px;align-items: center;">
-                <span class="text">Classification</span>
-                <div class="menu">
-                    <div class="header">
-                        Classification
-                    </div>
-                    <div class="divider"></div>
-                    <div class="item" data-filter="unclassified">
-                        <div class="ui blue empty circular label"></div>
-                        Unclassified
-                    </div>
-
-                    <div class="item">
-                        <div class="ui red empty circular label"></div>
-                        Pathogenic
-                    </div>
-                    <div class="item">
-                        <div class="ui orange empty circular label"></div>
-                        Likely Pathogenic
-                    </div>
-                    <div class="item">
-                        <div class="ui yellow empty circular label"></div>
-                        VUS
-                    </div>
-                    <div class="item">
-                        <div class="ui olive empty circular label"></div>
-                        Likely Benign
-                    </div>
-                    <div class="item">
-                        <div class="ui green empty circular label"></div>
-                        Benign
-                    </div>
-                </div>
-            </div>
+        <div id='variant-classification-container' style="display:flex;align-self: flex-start;">
+            {% include 'includes/classification.html' %}
         </div>
 
     </div>
@@ -189,21 +162,24 @@
             <div class="teal card">
                 <div class="content">
                     <div class="center aligned header">Chromosome</div>
-                    <div class="center aligned description">Chr 9</div>
+                    <div class="center aligned description">
+                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.chrom}}</div>
                 </div>
             </div>
 
             <div class="teal card">
                 <div class="content">
                     <div class="center aligned header">Position</div>
-                    <div class="center aligned description">95491490</div>
+                    <div class="center aligned description">
+                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.pos}}</div>
                 </div>
             </div>
 
             <div class="teal card">
                 <div class="content">
                     <div class="center aligned header">Alleles</div>
-                    <div class="center aligned description">G>T</div>
+                    <div class="center aligned description">
+                        {{stv.sample_variant.variant.ref}}>{{stv.sample_variant.variant.alt}}</div>
                 </div>
             </div>
 
@@ -217,7 +193,8 @@
             <div class="teal card">
                 <div class="content">
                     <div class="center aligned header">Gene(s) | Transcript</div>
-                    <div class="center aligned description">ABRA (NM_012654.3 )</div>
+                    <div class="center aligned description">{{stv.transcript.gene.hgnc_name}} |
+                        {{stv.transcript.refseq_id}}</div>
                 </div>
             </div>
 
@@ -265,24 +242,33 @@
 <!-- Evidence tab -->
 <div class="ui tab" data-tab="evidence">
 
-    <div class="ui top attached segment" style="display: flex;align-items: center;">
-        <h4 style="margin: 0;">Comment</h4>
-        <div class="ui icon button" style="margin-top: -10px;margin-bottom: -10px;margin-left: auto;"
-            data-tooltip="Edit comment" data-position="bottom right">
+    <div class="ui top attached segment action-header js-update-create-comment"
+        data-url="{% url 'comment_update_or_create' stv=stv.id %}" style="display: flex;align-items: center;">
+        <h4 style="margin: 0;">Variant Information</h4>
+
+        <div class="ui right icon link label"
+            style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">
+            Click here to {% if stv.comments.last %}update{%else%}add{%endif%} variant information
             <i class="pen icon"></i>
         </div>
     </div>
 
+    <!-- Shown when files are being uploaded to remove button. -->
+    <div class="ui top attached segment hidden js-update-create-comment-active-header">
+        <h4>Variant Information</h4>
+    </div>
+
     <div class="ui bottom attached segment" style="background-color: #eeeeee;">
-        <div class="ui form">
-            <div class="field" style="margin-bottom: 2px;">
-                <textarea rows="8" readonly></textarea>
-            </div>
-            <span style="font-size:smaller;">Last modified by: JHDL 2 days ago</span>
+        <div id="comment-form" class="ui segment hidden" style="margin:0px;">
+            <!-- populated using ajax -->
+        </div>
+
+        <div id="readonly-comment-form">
+            {% include 'includes/comment-display.html' %}
         </div>
     </div>
 
-    <div id="target" class="ui top attached segment js-upload-photos" style="display: flex;">
+    <div id="target" class="ui top attached segment action-header js-upload-photos" style="display: flex;">
         <h4 style="margin: 0;">Evidence </h4>
         <div class="ui right icon label"
             style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">

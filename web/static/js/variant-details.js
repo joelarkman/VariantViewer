@@ -105,7 +105,7 @@ $(function () {
             // Once file has been added, checked for filetype and image containers populated... show form and hide upload button.
             $(".js-upload-photos").hide()
             $('#target-uploading').show()
-            $('#upload-form').show()
+            $('#upload-form').fadeIn()
 
 
             // When press the submit button... 

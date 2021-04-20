@@ -156,6 +156,12 @@ $(document).ready(function () {
                         genomeView.view.navToLocString(coords, assemblyName);
                     }
 
+                    // Generate variant classification popup
+                    $(".mini-tabs-content .variant-classification").popup({
+                        inline: false,
+                        hoverable: true
+                    })
+
                 }
             });
         }
@@ -186,8 +192,8 @@ jQuery.expr[':'].icontains = function (a, i, m) {
         .indexOf(m[3].toUpperCase()) >= 0;
 };
 
-$("#variant-menu").on("keyup search", "#variant-search", function () {
-    var query = $(this).val()
+function apply_variant_search() {
+    var query = $("#variant-menu #variant-search").val()
     $("#variant-menu .gene")
         .hide()
         .filter(':icontains("' + query + '")')
@@ -199,7 +205,9 @@ $("#variant-menu").on("keyup search", "#variant-search", function () {
     } else { // otherwise hide notice
         $("#variant-menu #no-results-notice").hide()
     }
-});
+}
+
+$("#variant-menu").on("keyup search", "#variant-search", apply_variant_search);
 
 
 // ==========================
@@ -215,7 +223,7 @@ $(function () {
 
     /* Functions */
 
-    var loadForm = function () {
+    var loadTranscriptForm = function () {
         var btn = $(this);
         $.ajax({
             url: btn.attr("data-url"),
@@ -237,6 +245,10 @@ $(function () {
                 currently_selected_transcript = $("#lightbox .selected-transcript").attr('data-current');
                 $("#lightbox .variant-row").hide().filter('[data-transcript-id="' + currently_selected_transcript + '"]').show()
 
+                // Set hidden input of sear-value hidden field. Enables search to be preserved when transcript is changed.
+                current_search = $("#variant-menu #variant-search").val();
+                $("#lightbox .search-value").val(current_search);
+
                 // Show lightbox
                 $('#lightbox').dimmer({
                     closable: false
@@ -245,7 +257,7 @@ $(function () {
         });
     };
 
-    var saveForm = function () {
+    var saveTranscriptForm = function () {
         var form = $(this);
         $.ajax({
             url: form.attr("action"),
@@ -268,6 +280,9 @@ $(function () {
                     $("#variant-content-loader").removeClass('active');
                     $(".basic_message").show();
 
+                    // Apply any search carried over from before transcript change.
+                    apply_variant_search()
+
                     // Refresh popups
                     $("#variant-menu .js-update-transcript").popup({
                         inline: false
@@ -285,8 +300,8 @@ $(function () {
     /* Binding */
 
     // Update transcript
-    $("#variant-menu").on("click", ".js-update-transcript", loadForm);
-    $("#lightbox").on("submit", "#js-update-transcript-form", saveForm);
+    $("#variant-menu").on("click", ".js-update-transcript", loadTranscriptForm);
+    $("#lightbox").on("submit", "#js-update-transcript-form", saveTranscriptForm);
 
 });
 
@@ -314,6 +329,100 @@ $("#lightbox").on("click", ".transcript-choice", function () {
 
     // Filter table of variants to show only those relevent to the new transcript
     $("#lightbox .variant-row").hide().filter('[data-transcript-id="' + new_transcript + '"]').show()
+});
+
+// ===============
+// Variant Details 
+// =============== 
+
+// Comment form
+$(function () {
+
+    /* Functions */
+
+    var loadCommentForm = function () {
+        var btn = $(this);
+        $.ajax({
+            url: btn.attr("data-url"),
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+                $('.mini-tabs-content .js-update-create-comment').hide()
+                $('.mini-tabs-content .js-update-create-comment-active-header').show()
+            },
+            success: function (data) {
+                $('.mini-tabs-content #readonly-comment-form').hide()
+                $('.mini-tabs-content #comment-form').fadeIn()
+                $('.mini-tabs-content #comment-form').html(data.html_form);
+                $('.ui.dropdown').dropdown();
+            }
+        });
+    };
+
+    var saveCommentForm = function () {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    $('.mini-tabs-content #readonly-comment-form').html(data.html_comment_display)
+
+                    $('.mini-tabs-content .js-update-create-comment-active-header').hide()
+                    $('.mini-tabs-content .js-update-create-comment').show()
+
+                    $('.mini-tabs-content #comment-form').hide()
+                    $('.mini-tabs-content #readonly-comment-form').fadeIn()
+
+                    // Fade out existing classifcation, replace with new data from ajax data and fade back in. 
+                    $('.mini-tabs-content #variant-classification-container').fadeOut(function () {
+                        $('.mini-tabs-content #variant-classification-container').html(data.html_classification);
+                        $('.mini-tabs-content #variant-classification-container').fadeIn(function () {
+                            // Refresh variant classification popup
+                            $(".mini-tabs-content .variant-classification").popup({
+                                inline: false,
+                                hoverable: true
+                            })
+                        });
+                    })
+
+
+
+                }
+                else {
+                    $('.mini-tabs-content #comment-form').html(data.html_form);
+                }
+            }
+        });
+        return false;
+    };
+
+
+    /* Binding */
+
+    // Update transcript
+    $(".mini-tabs-content").on("click", ".js-update-create-comment", loadCommentForm);
+    $(".mini-tabs-content").on("submit", "#js-comment-update-create-form", saveCommentForm);
+
+});
+
+// Create cancel button to close comment form.
+$(".mini-tabs-content").on("click", ".js-comment-update-create-cancel", function () {
+    $('.mini-tabs-content .js-update-create-comment-active-header').hide()
+    $('.mini-tabs-content .js-update-create-comment').show()
+    $('.mini-tabs-content #comment-form').hide()
+    $('.mini-tabs-content #readonly-comment-form').fadeIn()
+});
+
+// Create shortcut button to alter pathogenicity classification.
+$(".mini-tabs-content").on("click", ".update-classification-button", function () {
+    $('.mini-tabs-content .variant-classification').popup('hide')
+    $('.mini-tabs-content .details-tabs .item')
+        .tab("change tab", 'evidence')
+        ;
+    $('.mini-tabs-content .js-update-create-comment').trigger('click');
 });
 
 

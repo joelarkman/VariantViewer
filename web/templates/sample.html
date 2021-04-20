@@ -25,18 +25,18 @@
                 <span class="large-text">NGS Results</span>
                 <span class="divider">|</span>
                 <div class="small-text-column-container">
-                    <span class="small-text-top">Patient:</span>
+                    <span class="small-text-top">PATIENT:</span>
                     <span class="small-text-bottom">Joe Bloggs</span>
                 </div>
                 <span class="divider">|</span>
                 <div class="small-text-column-container">
-                    <span class="small-text-top">Sample (lab no):</span>
+                    <span class="small-text-top">SAMPLE (LAB NO):</span>
                     <span class="small-text-bottom">{{ sample.sample_identifier }}
                         ({{sample.sample.lab_no }})</span>
                 </div>
                 <span class="divider">|</span>
                 <div class="small-text-column-container">
-                    <span class="small-text-top">Worksheet:</span>
+                    <span class="small-text-top">WORKSHEET:</span>
                     <span class="small-text-bottom">{{run.worksheet}}</span>
                 </div>
             </div>
@@ -152,6 +152,7 @@
                 <div class="ui large fast loader"></div>
             </div>
 
+            <!-- This div is populated with variant details using AJAX -->
             <div class="mini-tabs-content" style="padding: 15px;"></div>
 
             <div class="basic_message" style="display: flex;flex-direction: column;flex: 1; min-height: 100%;">

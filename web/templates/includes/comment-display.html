@@ -1,0 +1,12 @@
+{% load humanize %}
+
+{% if stv.comments.last.comment %}
+<div class="ui form">
+    <div class="field" style="margin-bottom: 5px;">
+        <textarea rows="8" readonly style="resize: none;" placeholder="">{{stv.comments.last.comment}}</textarea>
+    </div>
+    <span style="font-size:smaller;">Last modified by: JHDL {{stv.comments.last.date_modified|naturaltime}}</span>
+</div>
+{% else %}
+<span style="font-size:smaller;">No comment added yet</span>
+{% endif %}

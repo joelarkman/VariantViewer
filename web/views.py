@@ -4,9 +4,9 @@ from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.db.models import Q
 
-from .models import Document
+from .models import Comment, Document
 
-from .forms import DocumentForm
+from .forms import CommentForm, DocumentForm
 
 
 from db.models import ExcelReport, Gene, Run, PipelineVersion, Sample, SamplesheetSample, SampleTranscriptVariant, Transcript
@@ -172,17 +172,55 @@ def update_selected_transcript(request, sample, transcript):
 
         data['variant_list'] = render_to_string('includes/variant-list.html',
                                                 {'sample': SamplesheetSample.objects.get(
-                                                    sample=sample)},
+                                                    sample=sample),
+                                                 'search_value': request.POST.get('search-value')},
                                                 request=request)
 
-    context = {'form': 'form',
-               'sample': SamplesheetSample.objects.get(sample=sample),
+    context = {'sample': SamplesheetSample.objects.get(sample=sample),
                'selected_transcript': current_transcript,
                'variant_containing_transcripts': SampleTranscriptVariant.objects.filter(sample_variant__sample=sample, transcript__gene=current_transcript.gene).order_by('transcript__gene__hgnc_name')}
 
     data['html_form'] = render_to_string('includes/update-transcript.html',
                                          context,
                                          request=request)
+    return JsonResponse(data)
+
+
+def comment_update_or_create(request, stv):
+
+    data = dict()
+    stv = SampleTranscriptVariant.objects.get(id=stv)
+
+    try:
+        comment = stv.comments.last()
+    except:
+        comment = None
+
+    if request.method == 'POST':
+        form = CommentForm(request.POST, instance=comment)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.sample_transcript_variant = stv
+            comment.save()
+
+            data['form_is_valid'] = True
+            data['html_comment_display'] = render_to_string('includes/comment-display.html', {
+                'stv': stv
+            })
+            data['html_classification'] = render_to_string('includes/classification.html', {
+                'stv': stv
+            })
+        else:
+            data['form_is_valid'] = False
+    else:
+        form = CommentForm(instance=comment)
+
+    context = {'form': form,
+               'stv': stv}
+    data['html_form'] = render_to_string('includes/comment-form.html',
+                                         context,
+                                         request=request
+                                         )
     return JsonResponse(data)
 
 

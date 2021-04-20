@@ -14,6 +14,11 @@ urlpatterns = [
          views.SampleDetailsView.as_view(), name='sample_details'),
 
 
+    ######################
+    ##### AJAX VIEWS #####
+    ######################
+
+    # temp
     path('ajax/load_worksheet_details/<int:pk>',
          views.load_worksheet_details, name='load_worksheet_details'),
 
@@ -22,6 +27,9 @@ urlpatterns = [
 
     path('ajax/load_variant_details/<int:variant>',
          views.load_variant_details, name='load_variant_details'),
+
+    path('ajax/comment_update_or_create/<int:stv>',
+         views.comment_update_or_create, name='comment_update_or_create'),
 
     path('ajax/save_evidence/<int:stv>',
          views.save_evidence, name='save_evidence'),

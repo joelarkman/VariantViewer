@@ -9,17 +9,18 @@
     font-weight: lighter;
 } */
 
-#target:hover {
+.action-header:hover {
     background-color: #f5f3f3;
-    border: 1px dashed rgb(163, 163, 179)
+    border: 1px dashed rgb(163, 163, 179) !important;
+    cursor: pointer
 }
 
-#target:active {
+.action-header:active {
     background: #e5e5e5;
-    -webkit-box-shadow: inset 0px 0px 5px #c1c1c1;
-    -moz-box-shadow: inset 0px 0px 5px #c1c1c1;
-    box-shadow: inset 0px 0px 5px #c1c1c1;
-    outline: none;
+    -webkit-box-shadow: inset 0px 0px 5px #c1c1c1 !important;
+    -moz-box-shadow: inset 0px 0px 5px #c1c1c1 !important;
+    box-shadow: inset 0px 0px 5px #c1c1c1 !important;
+    outline: none !important;
 }
 
 #pending-container {
