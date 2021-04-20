@@ -34,7 +34,7 @@
 
                     <div class="content">
                         <div class="header">
-                            {{transcript.grouper.name}}
+                            {{transcript.grouper.refseq_id}}
                         </div>
                         <div class="meta">
                             Variants Identified: {{transcript.list|length}}
@@ -57,7 +57,7 @@
 
                     <div class="content">
                         <div class="header">
-                            {{transcript.grouper.name}}
+                            {{transcript.grouper.refseq_id}}
                         </div>
                         <div class="meta">
                             Variants Identified: {{transcript.list|length}}
@@ -101,6 +101,7 @@
             {% csrf_token %}
             <input class='selected-transcript' type="hidden" name='selected-transcript'
                 data-current={{selected_transcript.id}}>
+            <input class='search-value' type="hidden" name='search-value'>
         </form>
     </div>
     <div class="ui secondary left aligned clearing segment">
