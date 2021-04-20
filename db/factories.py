@@ -97,6 +97,9 @@ class TranscriptFactory(DjangoModelFactory):
     class Meta:
         model = Transcript
 
+    refseq_id = factory.LazyFunction(
+        lambda: f"NM_{random.randint(1,9999):06d}.{random.randint(1,9)}")
+
     name = factory.LazyAttribute(lambda transcript: "transcript-{:04d}".format(int(
         transcript.gene.transcript_set.count()) + 1))
 
@@ -310,6 +313,13 @@ class TranscriptVariantFactory(DjangoModelFactory):
     class Meta:
         model = TranscriptVariant
 
+    hgvs_c = factory.LazyAttribute(
+        lambda transcriptvariant: f"{transcriptvariant.transcript.refseq_id}:c.{random.randint(100,1500)}{transcriptvariant.variant.ref}>{transcriptvariant.variant.alt}")
+    hgvs_p = factory.LazyFunction(
+        lambda: f"NP_{random.randint(1,9999):06d}.{random.randint(1,9)}:p.{f'{random.randint(0,999)}'.join(map(str, random.sample(['A','B','C','D','E','F','G','H','I','K','L','M','N','P','Q','R','S','T','U','V','W','Y'],2)))}")
+    hgvs_g = factory.LazyAttribute(
+        lambda transcriptvariant: f"NG_{random.randint(1,9999):06d}.{random.randint(1,9)}:g.{transcriptvariant.variant.variantcoordinate_set.last().coordinate.pos}{transcriptvariant.variant.ref}>{transcriptvariant.variant.alt}")
+
 
 class SampleTranscriptVariantFactory(DjangoModelFactory):
     class Meta:
@@ -406,6 +416,10 @@ def create_samplesheet():
                             sample_variant__variant=variantcoordinate.variant,
                             transcript=transcript,
                             selected=False)
+
+                    # Create a transcriptvariant
+                    transcriptvariant = TranscriptVariantFactory(
+                        transcript=transcript, variant=variantcoordinate.variant)
 
 
 def create_samplesheets(n):

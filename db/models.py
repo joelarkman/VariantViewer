@@ -371,6 +371,18 @@ class SampleTranscriptVariant(BaseModel):
     selected = models.BooleanField()
     effect = models.CharField(max_length=255)
 
+    def get_short_hgvs(self):
+        tv = TranscriptVariant.objects.get(
+            variant=self.sample_variant.variant, transcript=self.transcript)
+        long_hgvs = [i.partition(':')[2]
+                     for i in [tv.hgvs_c, tv.hgvs_p, tv.hgvs_g]]
+        return {'hgvs_c': long_hgvs[0], 'hgvs_p': long_hgvs[1], 'hgvs_g': long_hgvs[2]}
+
+    def get_long_hgvs(self):
+        tv = TranscriptVariant.objects.get(
+            variant=self.sample_variant.variant, transcript=self.transcript)
+        return {'hgvs_c': tv.hgvs_c, 'hgvs_p': tv.hgvs_p, 'hgvs_g': tv.hgvs_g}
+
 
 class Exon(BaseModel):
     """
