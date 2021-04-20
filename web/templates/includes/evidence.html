@@ -32,7 +32,11 @@
                     Click to view
                 </div>
                 <div class="description">
+                    {% if doc.description%}
                     {{ doc.description }}
+                    {% else %}
+                    No description provided
+                    {% endif %}
                 </div>
             </div>
             <div class="extra content" style="flex-shrink: 0;">
