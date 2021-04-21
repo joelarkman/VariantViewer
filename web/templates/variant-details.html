@@ -87,7 +87,7 @@
             <i class="icon bars"></i>
         </button>
 
-        <div id="variant-title" class="ui segment"
+        <div id="variant-title" class="ui segment {% if stv.pinned %}ischecked{%endif%}"
             style="background-color:#F8F8F8;padding: 0px;display: flex;align-items: center;margin-top: 0;margin-right: auto;margin-bottom: 0px;flex-shrink: 1;">
 
             <div class="col-container"
@@ -122,10 +122,12 @@
 
             </div>
 
-            <!-- <div id="include-in-report" class="ui toggle checkbox" style="margin-left: 20px;margin-right: 10px;">
-                <input type="checkbox">
+            <div id="pin-variant-checkbox" class="ui toggle checkbox" data-url="{% url 'pin_variant' stv=stv.id %}"
+                data-stv="{{stv.id}}" data-tooltip="Pin variant for investigation" data-position="bottom left"
+                style="margin-left: 15px;margin-right: 10px;">
+                <input type="checkbox" {% if stv.pinned %}checked="checked" {%endif%}>
                 <label></label>
-            </div> -->
+            </div>
         </div>
 
         <div id='variant-classification-container' style="display:flex;align-self: flex-start;">
@@ -253,7 +255,7 @@
         </div>
     </div>
 
-    <!-- Shown when files are being uploaded to remove button. -->
+    <!-- Shown when comment is being edited to remove button. -->
     <div class="ui top attached segment hidden js-update-create-comment-active-header">
         <h4>Variant Information</h4>
     </div>
@@ -283,12 +285,6 @@
     </div>
 
     <div class=" ui bottom attached segment" style="background-color: #eeeeee;">
-
-        <!-- <div id="target" class="ui fluid card js-upload-photos">
-            <span style="user-select: none;color: #7C7B7C; font-size: 15px;">
-                PASTE, DROP OR BROWSE FOR EVIDENCE TO UPLOAD
-            </span>
-        </div> -->
 
         <div id="upload-form" class="ui segment" style="margin:0px;margin-bottom: 15px;">
             <div style="display: flex;align-items: stretch; margin-bottom: 15px;height: 224px;">

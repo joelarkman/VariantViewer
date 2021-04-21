@@ -28,6 +28,9 @@ urlpatterns = [
     path('ajax/load_variant_details/<int:variant>',
          views.load_variant_details, name='load_variant_details'),
 
+    path('ajax/pin_variant/<int:stv>',
+         views.pin_variant, name='pin_variant'),
+
     path('ajax/comment_update_or_create/<int:stv>',
          views.comment_update_or_create, name='comment_update_or_create'),
 

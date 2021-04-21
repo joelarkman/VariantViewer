@@ -148,9 +148,14 @@ class Sample(BaseModel):
         through="SampleVCF"
     )
 
-    def get_variants(self):
+    def get_unpinned_variants(self):
         return SampleTranscriptVariant.objects.filter(sample_variant__sample=self,
-                                                      selected=True).order_by('transcript__gene__hgnc_name')
+                                                      selected=True,
+                                                      pinned=False).order_by('transcript__gene__hgnc_name')
+
+    def get_pinned_variants(self):
+        return SampleTranscriptVariant.objects.filter(sample_variant__sample=self,
+                                                      pinned=True).order_by('transcript__gene__hgnc_name')
 
 
 def __str__(self):
@@ -368,7 +373,10 @@ class SampleTranscriptVariant(BaseModel):
         SampleVariant,
         on_delete=models.PROTECT
     )
+
     selected = models.BooleanField()
+    pinned = models.BooleanField(default=False)
+
     effect = models.CharField(max_length=255)
 
     def get_short_hgvs(self):

@@ -105,6 +105,99 @@ $("#lightbox").on("click", ".filter-settings-close", function () {
     $('#lightbox').dimmer('hide');
 });
 
+// ============
+// PIN VARIANTS
+// ============
+
+function SetupVariantPinning() {
+    $('.mini-tabs-content #pin-variant-checkbox').checkbox({ // If select toggle
+        onChange: function () {
+            // check if toggle is checked
+            var ischecked = $('.mini-tabs-content #pin-variant-checkbox').checkbox('is checked')
+
+            // toggle class of variant title to indicate selection status.
+            $('.mini-tabs-content #variant-title').toggleClass('ischecked')
+
+            // Initiate AJAX
+            $.ajax(
+                {
+                    type: 'get',
+                    url: $('.mini-tabs-content #pin-variant-checkbox').attr('data-url'), //get url from toggle attribute
+                    data: {
+                        "ischecked": ischecked, //send check status as data
+                    },
+                    success: function (data) {
+
+                        // Use returned data to update the unpinned and pinned lists of variants. 
+                        // This is done individually to retain search term and scroll positions.
+                        $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
+                        $('#variant-menu #pinned-container').html($(data.variant_list).filter('#pinned-container').html())
+                        $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
+
+                        // Apply searches to carry them over.
+                        apply_variant_search()
+
+                        // Look at the stv id attribute from toggle and find the matching variant menu item and set its class to active.
+                        // This will ensure that the menu item still appears selected once the variant lists have been updated.
+                        stv = $('.mini-tabs-content #pin-variant-checkbox').attr('data-stv')
+                        $('#variant-menu').find(`[data-id='${stv}']`).addClass('active')
+
+                        // If there is an active menu item (variant still available as a choice)
+                        if ($("#variant-menu .mini-tabs-link.active")[0]) {
+                            // Scroll relevent list to active item
+                            if (ischecked) {
+                                $("#variant-menu #pinned-list").animate({
+                                    scrollTop: $("#variant-menu #pinned-list").scrollTop() + $("#variant-menu .mini-tabs-link.active").position().top
+                                        - $("#variant-menu #pinned-list").height() / 2 + $("#variant-menu .mini-tabs-link.active").height() / 2
+                                }, 200);
+                            } else {
+                                setTimeout(function () {
+                                    $("#variant-menu #unpinned-list").animate({
+                                        scrollTop: $("#variant-menu #unpinned-list").scrollTop() + $("#variant-menu .mini-tabs-link.active").position().top
+                                            - $("#variant-menu #unpinned-list").height() / 2 + $("#variant-menu .mini-tabs-link.active").height() / 2
+                                    }, 200);
+                                }, 100);
+
+                            }
+                        } else {
+                            // If no active item variant is now not available as choice.
+                            // Close variant details
+                            $('.mini-tabs-link').removeClass('active');
+                            $(".mini-tabs-content").hide();
+                            $("#variant-content-loader").removeClass('active');
+                            $(".basic_message").show();
+                        }
+
+                        // Refresh popups
+                        $("#variant-menu .js-update-transcript,.pinned-transcript-popup").popup({
+                            inline: false
+                        })
+
+                    },
+                    error: function () {
+                        alert("error");
+                    }
+                })
+        }
+    })
+}
+
+// $("#variant-menu").on("click", ".variant-sub-menu", function () {
+//     // Reset look of filter button and filter bar
+//     $("#variant-menu .variant-sub-menu").removeClass('active')
+//     $(this).addClass('active')
+
+//     if ($(this).hasClass('pinned')) {
+//         $("#variant-menu #pinned-list").show()
+//         $("#variant-menu #unpinned-list").hide()
+//     } else {
+//         $("#variant-menu #pinned-list").hide()
+//         $("#variant-menu #unpinned-list").show()
+//     }
+
+
+// });
+
 // ====================
 // LOAD VARIANT DETAILS 
 // ==================== 
@@ -162,6 +255,9 @@ $(document).ready(function () {
                         hoverable: true
                     })
 
+                    // Setup listener on pin toggle.
+                    SetupVariantPinning()
+
                 }
             });
         }
@@ -194,16 +290,25 @@ jQuery.expr[':'].icontains = function (a, i, m) {
 
 function apply_variant_search() {
     var query = $("#variant-menu #variant-search").val()
-    $("#variant-menu .gene")
+    $("#variant-menu #unpinned-list .gene")
         .hide()
         .filter(':icontains("' + query + '")')
         .show();
 
     // If no variants match query, show notice message.
-    if (!$("#variant-menu .gene").is(':visible')) {
+    if (!$("#variant-menu #unpinned-list .gene").is(':visible')) {
         $("#variant-menu #no-results-notice").show()
     } else { // otherwise hide notice
         $("#variant-menu #no-results-notice").hide()
+    }
+
+    // Update header message
+    if (query) {
+        $("#variant-menu .variant-sub-menu.unpinned i").removeClass('tasks').addClass('search')
+        $("#variant-menu .variant-sub-menu.unpinned .title").text("SEARCHING FOR: '" + query + "'")
+    } else {
+        $("#variant-menu .variant-sub-menu.unpinned i").addClass('tasks').removeClass('search')
+        $("#variant-menu .variant-sub-menu.unpinned .title").text('ALL VARIANTS')
     }
 }
 
@@ -215,7 +320,7 @@ $("#variant-menu").on("keyup search", "#variant-search", apply_variant_search);
 // ==========================
 
 // Initialise pop-ups
-$("#variant-menu .js-update-transcript").popup({
+$("#variant-menu .js-update-transcript,.pinned-transcript-popup").popup({
     inline: false
 })
 
@@ -245,10 +350,6 @@ $(function () {
                 currently_selected_transcript = $("#lightbox .selected-transcript").attr('data-current');
                 $("#lightbox .variant-row").hide().filter('[data-transcript-id="' + currently_selected_transcript + '"]').show()
 
-                // Set hidden input of sear-value hidden field. Enables search to be preserved when transcript is changed.
-                current_search = $("#variant-menu #variant-search").val();
-                $("#lightbox .search-value").val(current_search);
-
                 // Show lightbox
                 $('#lightbox').dimmer({
                     closable: false
@@ -266,7 +367,8 @@ $(function () {
             dataType: 'json',
             success: function (data) {
                 if (data.form_is_valid) {
-                    $('#variant-menu').html(data.variant_list)
+                    $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
+                    $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
 
                     // Hide lightbox
                     $('#lightbox').dimmer('hide');
@@ -284,7 +386,7 @@ $(function () {
                     apply_variant_search()
 
                     // Refresh popups
-                    $("#variant-menu .js-update-transcript").popup({
+                    $("#variant-menu .js-update-transcript,.pinned-transcript-popup").popup({
                         inline: false
                     })
                 }
@@ -332,10 +434,9 @@ $("#lightbox").on("click", ".transcript-choice", function () {
 });
 
 // ===============
-// Variant Details 
+// VARIANT COMMENT 
 // =============== 
 
-// Comment form
 $(function () {
 
     /* Functions */

@@ -148,6 +148,29 @@ def load_variant_details(request, variant):
     return JsonResponse(data)
 
 
+def pin_variant(request, stv):
+    """
+    AJAX view to pin variant. 
+    """
+
+    data = dict()
+    stv = SampleTranscriptVariant.objects.get(id=stv)
+    ischecked = request.GET.get('ischecked')
+
+    if ischecked == 'true':
+        stv.pinned = True
+        stv.save()
+    else:
+        stv.pinned = False
+        stv.save()
+
+    data['variant_list'] = render_to_string('includes/variant-list.html',
+                                            {'sample': SamplesheetSample.objects.get(
+                                                sample=stv.sample_variant.sample)},
+                                            request=request)
+    return JsonResponse(data)
+
+
 def update_selected_transcript(request, sample, transcript):
     """
     AJAX view to view all available transcripts for a sequenced gene, preview variants identified for each one, and set one as selected for a given sample.
@@ -172,8 +195,7 @@ def update_selected_transcript(request, sample, transcript):
 
         data['variant_list'] = render_to_string('includes/variant-list.html',
                                                 {'sample': SamplesheetSample.objects.get(
-                                                    sample=sample),
-                                                 'search_value': request.POST.get('search-value')},
+                                                    sample=sample)},
                                                 request=request)
 
     context = {'sample': SamplesheetSample.objects.get(sample=sample),

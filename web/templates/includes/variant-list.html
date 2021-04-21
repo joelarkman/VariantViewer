@@ -4,56 +4,125 @@
         <i class="icon bars"></i>
     </button>
 
-    <div class="ui small icon input" style="width:100%;margin-left: 10px;">
-        <input type="search" placeholder="Search variants..." id="variant-search" value="{{search_value}}">
+    <div class="ui small icon input" style="width:100%;margin-left: 10px;margin-right: 5px;">
+        <input type="search" placeholder="Search variants..." id="variant-search">
         <i class="search icon"></i>
     </div>
-
 </div>
 
-<!-- Group list of variants by their transcript/gene -->
-{% regroup sample.sample.get_variants by transcript as variant_list %}
-
-{% for transcript in variant_list %}
-
-<div class="gene">
-    <div class="title" {% if forloop.first %} style='margin-top:10px' {%endif%}>
-        <b>{{transcript.grouper.gene.hgnc_name}}</b>
-        <a data-url="{% url 'update_selected_transcript' sample=sample.sample.id transcript=transcript.grouper.id %}"
-            class="ui horizontal right icon {% if transcript.grouper.canonical %}grey{%else%}red{% endif %} label js-update-transcript"
-            data-html="<span>{% if transcript.grouper.canonical %}Canonical{% else %}Non-canonical{% endif %} transcript selected</span><br><span style='font-size:smaller;'>(Click to update)</span>"
-            data-position="right center">
-            {{transcript.grouper.refseq_id}}
-            <i class="sync icon"></i>
-        </a>
+<!-- Pinned Variants -->
+<div id="pinned-container">
+    {% if sample.sample.get_pinned_variants.all %}
+    <div class="ui attached segment variant-sub-menu-header pinned">
+        <i class="pin icon"></i>
+        PINNED
     </div>
+    {%endif%}
+</div>
 
-    {% for variant in transcript.list %}
+<div id='pinned-list' class="ui attached segment"
+    style="display: flex;flex-direction: column;flex-shrink: 1;padding: 0;border-top: none;overflow-y: auto;overflow-x: hidden;max-height: 30vh;">
 
-    <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' variant=variant.id %}" data-chr="3"
-        data-location="121973128" {% if forloop.last %} style="border-bottom:0.5px solid #E8E9E9;" {%endif%}>
-        <div class="variant-title">
-            <!-- {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}} -->
-            {{variant.get_short_hgvs.hgvs_c}} / {{variant.get_short_hgvs.hgvs_p}}
+    <!-- Group list of variants by their transcript/gene -->
+    {% regroup sample.sample.get_pinned_variants by transcript as variant_list %}
+
+    {% for transcript in variant_list %}
+
+    <div class="gene">
+        <div class="title">
+            <b>{{transcript.grouper.gene.hgnc_name}}</b>
+
+            <div class="pinned-transcript-popup" data-position="right center"
+                data-html="<span>{% if transcript.grouper.canonical %}Canonical{% else %}Non-canonical{% endif %} transcript</span>{% if not transcript.list.0.selected %}<br><span class='ui red text' style='font-size:smaller;'>Warning: Pinned variant/s in transcript that is not currently selected for this sample.</span>{%endif%}">
+                <div
+                    class="ui horizontal right icon {% if not transcript.list.0.selected %}red{% elif transcript.grouper.canonical %}grey{%else%}blue{% endif %} label disabled ">
+                    {{transcript.grouper.refseq_id}}
+                    <i class="lock icon"></i>
+                </div>
+            </div>
         </div>
 
-        <div class="variant-attribute-container">
+        {% for variant in transcript.list %}
 
-            <div class="variant-attribute">
-                <span style="font-weight: bold;">Exonic SNV</span>
-                <span
-                    style="font-weight: lighter;font-style: italic;font-size: small;color: #5D5D5D;">Non-synonymous</span>
+        <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' variant=variant.id %}"
+            data-id="{{variant.id}}" data-chr="3" data-location="121973128" {% if forloop.last %}
+            style="border-bottom:0.5px solid #E8E9E9;" {%endif%}>
+            <div class="variant-title">
+                <!-- {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}} -->
+                {{variant.get_short_hgvs.hgvs_c}} / {{variant.get_short_hgvs.hgvs_p}}
             </div>
 
+            <div class="variant-attribute-container">
+
+                <div class="variant-attribute">
+                    <span style="font-weight: bold;">Exonic SNV</span>
+                    <span
+                        style="font-weight: lighter;font-style: italic;font-size: small;color: #5D5D5D;">Non-synonymous</span>
+                </div>
+
+            </div>
+        </a>
+
+        {%endfor%}
+
+    </div>
+
+    {%endfor%}
+</div>
+
+<div class="ui attached segment variant-sub-menu-header unpinned">
+    <i class="tasks icon"></i>
+    <span class="title">ALL VARIANTS</span>
+</div>
+
+<!-- Unpinned variants -->
+<div id="unpinned-list" style="position: relative;flex: 1;overflow-y: auto;overflow-x: hidden;">
+
+    <!-- Group list of variants by their transcript/gene -->
+    {% regroup sample.sample.get_unpinned_variants by transcript as variant_list %}
+
+    {% for transcript in variant_list %}
+
+    <div class="gene">
+        <div class="title">
+            <b>{{transcript.grouper.gene.hgnc_name}}</b>
+            <a data-url="{% url 'update_selected_transcript' sample=sample.sample.id transcript=transcript.grouper.id %}"
+                class="ui horizontal right icon {% if transcript.grouper.canonical %}grey{%else%}blue{% endif %} label js-update-transcript"
+                data-html="<span>{% if transcript.grouper.canonical %}Canonical{% else %}Non-canonical{% endif %} transcript selected</span><br><span style='font-size:smaller;'>(Click to update)</span>"
+                data-position="right center">
+                {{transcript.grouper.refseq_id}}
+                <i class="sync icon"></i>
+            </a>
         </div>
-    </a>
+
+        {% for variant in transcript.list %}
+
+        <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' variant=variant.id %}"
+            data-id="{{variant.id}}" data-chr="3" data-location="121973128" {% if forloop.last %}
+            style="border-bottom:0.5px solid #E8E9E9;" {%endif%}>
+            <div class="variant-title">
+                <!-- {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}} -->
+                {{variant.get_short_hgvs.hgvs_c}} / {{variant.get_short_hgvs.hgvs_p}}
+            </div>
+
+            <div class="variant-attribute-container">
+
+                <div class="variant-attribute">
+                    <span style="font-weight: bold;">Exonic SNV</span>
+                    <span
+                        style="font-weight: lighter;font-style: italic;font-size: small;color: #5D5D5D;">Non-synonymous</span>
+                </div>
+
+            </div>
+        </a>
+
+        {%endfor%}
+
+    </div>
 
     {%endfor%}
 
-</div>
-
-{%endfor%}
-
-<div id='no-results-notice' class="hidden">
-    <span style="margin-left: 10px;">No matching results</span>
+    <div id='no-results-notice' class="hidden" style="padding-top: 15px;">
+        <span style="margin-left: 10px;">No matching results</span>
+    </div>
 </div>

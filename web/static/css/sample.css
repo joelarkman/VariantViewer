@@ -34,12 +34,37 @@
     min-height: 100%;
     border-radius: 0%;
     border-top: none;
+    /* overflow-y: auto;
+    overflow-x: hidden; */
+    display: flex;
+    flex-direction: column;
 }
 
 #variant-menu-topper {
     display: flex;
-    margin: 15px;
+    /* margin: 0px; */
+    border:none;
+    padding: 0px;
+    margin: 15px
     }
+
+.variant-sub-menu-header {
+    padding-top: 9px !important;
+    padding-bottom: 9px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 12px !important;
+    border-left: none !important;
+    color: rgba(0,0,0,.6) !important;
+    background-color: #e8e8e8 !important;
+}    
+
+.variant-sub-menu-header i {
+    margin-right: 9px;
+    width: 9px;
+}    
 
 .gene .title {
     display: flex;
@@ -59,7 +84,7 @@
 
 .gene .item.mini-tabs-link .variant-title{
     display: flex;
-    border:0.5px solid #E8E9E9;
+    border:0.25px solid #D5D5D6;
     border-top: none;
     border-left: none;
     border-bottom: none;
@@ -83,7 +108,7 @@
 .gene .item.mini-tabs-link .variant-attribute{
     display: flex;
     flex-direction: column;
-    border: 0.5px solid #c5c5c5;
+    border: 0.25px solid #D5D5D6;
     border-radius: 5px;
     padding: 5px;
     align-items: center;
@@ -103,19 +128,10 @@
     /* flex: 1; */
     min-height: 100%;
     border-top: none;
-}
-
-/* Overflow for variant menu */
-.mini_tabs {
     overflow-y: auto;
     overflow-x: hidden;
 }
     
-.mini-tabs-content-container {
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
 .browser-collapsed {
     margin: 0px;
     max-height: 400px;
@@ -193,6 +209,11 @@
     margin-bottom: 10px;
     text-align: center;
 }
+
+#variant-title.ischecked {
+    background-color: rgb(255, 167, 108) !important;
+}
+
 
 /* ==========
    OTHER TABS 
