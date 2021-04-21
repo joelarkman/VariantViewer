@@ -304,11 +304,11 @@ function apply_variant_search() {
 
     // Update header message
     if (query) {
-        $("#variant-menu .variant-sub-menu.unpinned i").removeClass('tasks').addClass('search')
-        $("#variant-menu .variant-sub-menu.unpinned .title").text("SEARCHING FOR: '" + query + "'")
+        $("#variant-menu .variant-sub-menu-header.unpinned i").removeClass('tasks').addClass('search')
+        $("#variant-menu .variant-sub-menu-header.unpinned .title").text("SEARCHING FOR: '" + query + "'")
     } else {
-        $("#variant-menu .variant-sub-menu.unpinned i").addClass('tasks').removeClass('search')
-        $("#variant-menu .variant-sub-menu.unpinned .title").text('ALL VARIANTS')
+        $("#variant-menu .variant-sub-menu-header.unpinned i").addClass('tasks').removeClass('search')
+        $("#variant-menu .variant-sub-menu-header.unpinned .title").text('ALL VARIANTS')
     }
 }
 
