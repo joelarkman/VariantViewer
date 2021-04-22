@@ -26,13 +26,14 @@
                 <span class="divider">|</span>
                 <div class="small-text-column-container">
                     <span class="small-text-top">PATIENT:</span>
-                    <span class="small-text-bottom">Joe Bloggs</span>
+                    <span class="small-text-bottom">{{ss_sample.sample.patient.first_name}}
+                        {{ss_sample.sample.patient.last_name}}</span>
                 </div>
                 <span class="divider">|</span>
                 <div class="small-text-column-container">
                     <span class="small-text-top">SAMPLE (LAB NO):</span>
-                    <span class="small-text-bottom">{{ sample.sample_identifier }}
-                        ({{sample.sample.lab_no }})</span>
+                    <span class="small-text-bottom">{{ ss_sample.sample_identifier }}
+                        ({{ss_sample.sample.lab_no }})</span>
                 </div>
                 <span class="divider">|</span>
                 <div class="small-text-column-container">
@@ -46,8 +47,8 @@
                 <i class="right chevron icon divider"></i>
                 <a href="{% url 'search' %}" class="ui compact tiny grey basic inverted button">Search</a>
                 <i class="right chevron icon divider"></i>
-                <div class="ui compact tiny grey basic inverted disabled button">{{ sample.sample_identifier }}
-                    ({{sample.sample.lab_no }})</div>
+                <div class="ui compact tiny grey basic inverted disabled button">{{ ss_sample.sample_identifier }}
+                    ({{ss_sample.sample.lab_no }})</div>
             </div>
         </div>
 
@@ -251,9 +252,8 @@
     </div>
 
     <!-- Genome Browser -->
-    <div class="browser-collapsed hidden" id="browser">
+    <div class="browser-collapsed" style="display: none;" id="browser">
         <div class="ui attached segment" style="padding: 5px;border: none;">
-            <!-- <div id="igv-div"></div> -->
             <div id="jbrowse_linear_view" data-sample='testing' data-vcf='{{ vcf }}' data-tbi='{{ tbi }}'
                 data-bam='{{ bam }}' data-bai='{{ bai }}' data-media-url='{{ MEDIA_URL }}'>
             </div>
