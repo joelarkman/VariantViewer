@@ -232,7 +232,7 @@
             </div>
 
             <div class="thirteen wide column">
-                <div id="search-filters" class="ui message hidden" style="height: 6cm;">
+                <div id="search-filters" class="ui message" style="height: 6cm;display: none;">
                     <h3>Filters</h3>
                 </div>
                 {% if page_obj %}
@@ -373,20 +373,20 @@
             {% elif i > page_obj.number|add:'-5' and i < page_obj.number|add:'5' %} <a
                 href='?pipeline={{pipeline}}&q={{searchq}}&page={{ i }}' class="item">
                 {{ i }}
-                </a>
-                {% endif %}
-                {% endfor %}
+            </a>
+            {% endif %}
+            {% endfor %}
 
 
-                {% if page_obj.paginator.num_pages > page_obj.number|add:'4' %}
-                <a href="?pipeline={{pipeline}}&q={{searchq}}&page={{ page_obj.number|add:'5' }}" class="item">...</a>
-                {% endif %}
+            {% if page_obj.paginator.num_pages > page_obj.number|add:'4' %}
+            <a href="?pipeline={{pipeline}}&q={{searchq}}&page={{ page_obj.number|add:'5' }}" class="item">...</a>
+            {% endif %}
 
-                <a {% if page_obj.has_next %}
-                    href="?pipeline={{pipeline}}&q={{searchq}}&page={{ page_obj.next_page_number }}" {% endif %}
-                    class="item {% if not page_obj.has_next %} disabled{% endif %}">
-                    Next
-                </a>
+            <a {% if page_obj.has_next %}
+                href="?pipeline={{pipeline}}&q={{searchq}}&page={{ page_obj.next_page_number }}" {% endif %}
+                class="item {% if not page_obj.has_next %} disabled{% endif %}">
+                Next
+            </a>
         </div>
     </div>
 

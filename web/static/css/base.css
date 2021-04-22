@@ -39,7 +39,7 @@
    
    /* Create a hidden class to hide non-default tabs. This is removed and readded when tabs are selected/deselected */
    .hidden {
-       display: none;
+       display: none !important;
    }
    
    /* ===========

@@ -12,7 +12,7 @@
 
 <!-- Pinned Variants -->
 <div id="pinned-container">
-    {% if sample.sample.get_pinned_variants.all %}
+    {% if pinned_variants %}
     <div class="ui attached segment variant-sub-menu-header pinned">
         <i class="pin icon"></i>
         PINNED
@@ -24,7 +24,7 @@
     style="display: flex;flex-direction: column;flex-shrink: 1;padding: 0;border-top: none;overflow-y: auto;overflow-x: hidden;max-height: 30vh;">
 
     <!-- Group list of variants by their transcript/gene -->
-    {% regroup sample.sample.get_pinned_variants by transcript as variant_list %}
+    {% regroup pinned_variants by transcript as variant_list %}
 
     {% for transcript in variant_list %}
 
@@ -42,14 +42,14 @@
             </div>
         </div>
 
-        {% for variant in transcript.list %}
+        {% for stv in transcript.list %}
 
-        <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' variant=variant.id %}"
-            data-id="{{variant.id}}" data-chr="3" data-location="121973128" {% if forloop.last %}
+        <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' run=run.id stv=stv.id %}"
+            data-id="{{stv.id}}" data-chr="3" data-location="121973128" {% if forloop.last %}
             style="border-bottom:0.5px solid #E8E9E9;" {%endif%}>
             <div class="variant-title">
                 <!-- {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}} -->
-                {{variant.get_short_hgvs.hgvs_c}} / {{variant.get_short_hgvs.hgvs_p}}
+                {{stv.get_short_hgvs.hgvs_c}} / {{stv.get_short_hgvs.hgvs_p}}
             </div>
 
             <div class="variant-attribute-container">
@@ -79,14 +79,14 @@
 <div id="unpinned-list" style="position: relative;flex: 1;overflow-y: auto;overflow-x: hidden;">
 
     <!-- Group list of variants by their transcript/gene -->
-    {% regroup sample.sample.get_unpinned_variants by transcript as variant_list %}
+    {% regroup unpinned_variants by transcript as variant_list %}
 
     {% for transcript in variant_list %}
 
     <div class="gene">
         <div class="title">
             <b>{{transcript.grouper.gene.hgnc_name}}</b>
-            <a data-url="{% url 'update_selected_transcript' sample=sample.sample.id transcript=transcript.grouper.id %}"
+            <a data-url="{% url 'update_selected_transcript' run=run.id ss_sample=ss_sample.id transcript=transcript.grouper.id %}"
                 class="ui horizontal right icon {% if transcript.grouper.canonical %}grey{%else%}blue{% endif %} label js-update-transcript"
                 data-html="<span>{% if transcript.grouper.canonical %}Canonical{% else %}Non-canonical{% endif %} transcript selected</span><br><span style='font-size:smaller;'>(Click to update)</span>"
                 data-position="right center">
@@ -95,14 +95,14 @@
             </a>
         </div>
 
-        {% for variant in transcript.list %}
+        {% for stv in transcript.list %}
 
-        <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' variant=variant.id %}"
-            data-id="{{variant.id}}" data-chr="3" data-location="121973128" {% if forloop.last %}
+        <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' run=run.id stv=stv.id %}"
+            data-id="{{stv.id}}" data-chr="3" data-location="121973128" {% if forloop.last %}
             style="border-bottom:0.5px solid #E8E9E9;" {%endif%}>
             <div class="variant-title">
                 <!-- {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}} -->
-                {{variant.get_short_hgvs.hgvs_c}} / {{variant.get_short_hgvs.hgvs_p}}
+                {{stv.get_short_hgvs.hgvs_c}} / {{stv.get_short_hgvs.hgvs_p}}
             </div>
 
             <div class="variant-attribute-container">

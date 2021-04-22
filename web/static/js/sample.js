@@ -117,6 +117,14 @@ function SetupVariantPinning() {
 
             // toggle class of variant title to indicate selection status.
             $('.mini-tabs-content #variant-title').toggleClass('ischecked')
+            $('.mini-tabs-content #variant-title #pinned-icon').toggleClass('hidden')
+
+            // Update tooltip
+            if (ischecked) {
+                $('.mini-tabs-content #pin-variant-checkbox').attr("data-tooltip", "Unpin Variant");
+            } else {
+                $('.mini-tabs-content #pin-variant-checkbox').attr("data-tooltip", "Pin Variant");
+            }
 
             // Initiate AJAX
             $.ajax(
@@ -239,6 +247,7 @@ $(document).ready(function () {
                 success: function (data) {
                     $(".mini-tabs-content").html(data.variant_details);
                     $(".mini-tabs-content").show();
+                    $("#variant-content-container").scrollTop(0)
 
                     clearTimeout(ajaxLoadTimeout);
                     $("#variant-content-loader").removeClass('active');
@@ -297,9 +306,9 @@ function apply_variant_search() {
 
     // If no variants match query, show notice message.
     if (!$("#variant-menu #unpinned-list .gene").is(':visible')) {
-        $("#variant-menu #no-results-notice").show()
+        $("#variant-menu #no-results-notice").removeClass('hidden')
     } else { // otherwise hide notice
-        $("#variant-menu #no-results-notice").hide()
+        $("#variant-menu #no-results-notice").addClass('hidden')
     }
 
     // Update header message

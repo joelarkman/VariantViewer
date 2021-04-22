@@ -94,7 +94,9 @@
                 style="display: flex;flex-direction: column;margin: 5px;margin-left: 10px;margin-right: 10px;align-items: center;justify-content: center;">
 
 
-                <h2 class="ui header" style="margin: 0px;align-self: flex-start;">
+                <h2 class="ui header" style="display: flex;margin: 0px;align-self: flex-start;align-items: center;">
+                    <i id="pinned-icon" class="tiny inverted circular pin icon {% if not stv.pinned %}hidden{%endif%}"
+                        style="margin: 0;margin-right: 5px;"></i>
                     {{stv.get_long_hgvs.hgvs_c}}
                 </h2>
 
@@ -122,9 +124,9 @@
 
             </div>
 
-            <div id="pin-variant-checkbox" class="ui toggle checkbox" data-url="{% url 'pin_variant' stv=stv.id %}"
-                data-stv="{{stv.id}}" data-tooltip="Pin variant for investigation" data-position="bottom left"
-                style="margin-left: 15px;margin-right: 10px;">
+            <div id="pin-variant-checkbox" class="ui toggle checkbox"
+                data-url="{% url 'pin_variant' run=run.id stv=stv.id %}" data-stv="{{stv.id}}"
+                data-tooltip="Pin variant" data-position="bottom left" style="margin-left: 15px;margin-right: 10px;">
                 <input type="checkbox" {% if stv.pinned %}checked="checked" {%endif%}>
                 <label></label>
             </div>
@@ -160,7 +162,7 @@
     </div>
 
     <div class="ui bottom attached segment" style="background-color: #eeeeee;">
-        <div class="ui four centered cards">
+        <div class="ui five centered cards">
             <div class="teal card">
                 <div class="content">
                     <div class="center aligned header">Chromosome</div>
@@ -187,18 +189,32 @@
 
             <div class="teal card">
                 <div class="content">
-                    <div class="center aligned header">Variation Type</div>
-                    <div class="center aligned description">Exonic SNV</div>
+                    <div class="center aligned header">Quality</div>
+                    <div class="center aligned description">{{variant_report.qual}}</div>
                 </div>
             </div>
 
             <div class="teal card">
                 <div class="content">
-                    <div class="center aligned header">Gene(s) | Transcript</div>
-                    <div class="center aligned description">{{stv.transcript.gene.hgnc_name}} |
-                        {{stv.transcript.refseq_id}}</div>
+                    <div class="center aligned header">Filter pass</div>
+                    <div class="center aligned description">{{variant_report.filter_pass}}</div>
                 </div>
             </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Depth</div>
+                    <div class="center aligned description">{{variant_report.depth}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Variation Type</div>
+                    <div class="center aligned description">Exonic SNV</div>
+                </div>
+            </div>
+
 
             <div class="teal card">
                 <div class="content">
@@ -223,6 +239,37 @@
 
         </div>
     </div>
+
+
+    <div class="ui top attached segment">
+        <h4>Other Info</h4>
+    </div>
+
+
+    <table class="ui bottom attached compact celled table" style="background-color: #eeeeee;">
+        <thead>
+            <tr>
+                <th style="background-color: white !important;border-radius: 0;">Tag</th>
+                <th style="background-color: white !important;">Description</th>
+                <th style="background-color: white !important;border-radius: 0;">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for info in variant_report.variantreportinfo_set.all %}
+            <tr>
+                <td>{{info.tag}}</td>
+                <td>{{info.description}}</td>
+                <td>{{info.value}}</td>
+            </tr>
+            {%endfor%}
+        </tbody>
+    </table>
+    <!-- <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+
+
+
+    </div> -->
+
 </div>
 
 
@@ -256,12 +303,12 @@
     </div>
 
     <!-- Shown when comment is being edited to remove button. -->
-    <div class="ui top attached segment hidden js-update-create-comment-active-header">
+    <div class="ui top attached segment  js-update-create-comment-active-header">
         <h4>Variant Information</h4>
     </div>
 
     <div class="ui bottom attached segment" style="background-color: #eeeeee;">
-        <div id="comment-form" class="ui segment hidden" style="margin:0px;">
+        <div id="comment-form" class="ui segment " style="margin:0px;">
             <!-- populated using ajax -->
         </div>
 
@@ -280,7 +327,7 @@
     </div>
 
     <!-- Shown when files are being uploaded to remove button. -->
-    <div id="target-uploading" class="ui top attached segment hidden">
+    <div id="target-uploading" class="ui top attached segment">
         <h4>Evidence </h4>
     </div>
 

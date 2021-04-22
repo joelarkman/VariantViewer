@@ -89,16 +89,23 @@ class SampleDetailsView(TemplateView):
         context = super(SampleDetailsView, self).get_context_data()
         # base.html includes page_title by default
 
-        sample = SamplesheetSample.objects.get(
+        ss_sample = SamplesheetSample.objects.get(
             sample_identifier=self.kwargs['sample'])
 
         run = Run.objects.get(worksheet=self.kwargs['worksheet'])
 
+        context['page_title'] = f"{ss_sample.sample_identifier} ({ss_sample.sample.lab_no})"
         context['run'] = run
-        context['sample'] = sample
-        context['page_title'] = f"{sample.sample_identifier} ({sample.sample.lab_no})"
+        context['ss_sample'] = ss_sample
+
+        context['unpinned_variants'] = ss_sample.sample.get_variants(
+            run=run, pinned=False)
+
+        context['pinned_variants'] = ss_sample.sample.get_variants(
+            run=run, pinned=True)
+
         context['excelreport'] = ExcelReport.objects.get(
-            run=run, sample=sample.sample)
+            run=run, sample=ss_sample.sample)
 
         # Load files for jbrowse
         context['vcf'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz'
@@ -124,7 +131,7 @@ def load_worksheet_details(request, pk):
     return JsonResponse(data)
 
 
-def load_variant_details(request, variant):
+def load_variant_details(request, run, stv):
     """
     AJAX view to load variant details. Database filtered for correct variant and its associated 
     evidence documents; data rendered using relevent template and sent back to sample page as
@@ -133,12 +140,16 @@ def load_variant_details(request, variant):
 
     data = dict()
 
-    stv = SampleTranscriptVariant.objects.get(id=variant)
+    run = Run.objects.get(id=run)
+    stv = SampleTranscriptVariant.objects.get(id=stv)
+    variant_report = stv.get_variant_report(run=run)
     documents = stv.evidence_files.order_by('-date_created')
 
     form = DocumentForm()
 
-    context = {'stv': stv,
+    context = {'run': run,
+               'stv': stv,
+               'variant_report': variant_report,
                'form': form,
                'documents': documents}
 
@@ -148,13 +159,21 @@ def load_variant_details(request, variant):
     return JsonResponse(data)
 
 
-def pin_variant(request, stv):
+def pin_variant(request, run, stv):
     """
     AJAX view to pin variant. 
     """
 
     data = dict()
+    run = Run.objects.get(id=run)
     stv = SampleTranscriptVariant.objects.get(id=stv)
+    ss_sample = SamplesheetSample.objects.get(
+        sample=stv.sample_variant.sample.id)
+    unpinned_variants = stv.sample_variant.sample.get_variants(
+        run=run, pinned=False)
+    pinned_variants = stv.sample_variant.sample.get_variants(
+        run=run, pinned=True)
+
     ischecked = request.GET.get('ischecked')
 
     if ischecked == 'true':
@@ -165,18 +184,32 @@ def pin_variant(request, stv):
         stv.save()
 
     data['variant_list'] = render_to_string('includes/variant-list.html',
-                                            {'sample': SamplesheetSample.objects.get(
-                                                sample=stv.sample_variant.sample)},
+                                            {'run': run,
+                                             'ss_sample': ss_sample,
+                                             'unpinned_variants': unpinned_variants,
+                                             'pinned_variants': pinned_variants},
                                             request=request)
     return JsonResponse(data)
 
 
-def update_selected_transcript(request, sample, transcript):
+def update_selected_transcript(request, run, ss_sample, transcript):
     """
     AJAX view to view all available transcripts for a sequenced gene, preview variants identified for each one, and set one as selected for a given sample.
     """
+
+    run = Run.objects.get(id=run)
     current_transcript = Transcript.objects.get(id=transcript)
-    sample = Sample.objects.get(id=sample)
+    ss_sample = SamplesheetSample.objects.get(
+        id=ss_sample)
+    unpinned_variants = ss_sample.sample.get_variants(
+        run=run, pinned=False)
+    pinned_variants = ss_sample.sample.get_variants(
+        run=run, pinned=True)
+    variant_containing_transcripts = SampleTranscriptVariant.objects.filter(sample_variant__sample=ss_sample.sample,
+                                                                            sample_variant__variant__variantreport__vcf=ss_sample.sample.vcfs.get(
+                                                                                run=run),
+                                                                            transcript__gene=current_transcript.gene).order_by('transcript__gene__hgnc_name')
+
     data = dict()
 
     if request.method == 'POST':
@@ -185,7 +218,7 @@ def update_selected_transcript(request, sample, transcript):
             id=request.POST.get('selected-transcript'))
 
         # Temporary implementation until unique-together has been added:
-        for stv in SampleTranscriptVariant.objects.filter(sample_variant__sample=sample, transcript__gene=new_transcript.gene):
+        for stv in SampleTranscriptVariant.objects.filter(sample_variant__sample=ss_sample.sample, transcript__gene=new_transcript.gene):
             if stv.transcript == new_transcript:
                 stv.selected = True
                 stv.save()
@@ -194,13 +227,16 @@ def update_selected_transcript(request, sample, transcript):
                 stv.save()
 
         data['variant_list'] = render_to_string('includes/variant-list.html',
-                                                {'sample': SamplesheetSample.objects.get(
-                                                    sample=sample)},
+                                                {'run': run,
+                                                 'ss_sample': ss_sample,
+                                                 'unpinned_variants': unpinned_variants,
+                                                 'pinned_variants': pinned_variants},
                                                 request=request)
 
-    context = {'sample': SamplesheetSample.objects.get(sample=sample),
+    context = {'run': run,
+               'ss_sample': ss_sample,
                'selected_transcript': current_transcript,
-               'variant_containing_transcripts': SampleTranscriptVariant.objects.filter(sample_variant__sample=sample, transcript__gene=current_transcript.gene).order_by('transcript__gene__hgnc_name')}
+               'variant_containing_transcripts': variant_containing_transcripts}
 
     data['html_form'] = render_to_string('includes/update-transcript.html',
                                          context,

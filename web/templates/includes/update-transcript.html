@@ -96,7 +96,7 @@
         </div>
 
         <form method="POST"
-            action="{% url 'update_selected_transcript' sample=sample.sample.id transcript=selected_transcript.id %}"
+            action="{% url 'update_selected_transcript' run=run.id ss_sample=ss_sample.id transcript=selected_transcript.id %}"
             id="js-update-transcript-form">
             {% csrf_token %}
             <input class='selected-transcript' type="hidden" name='selected-transcript'

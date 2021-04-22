@@ -27,6 +27,11 @@ $('.tabCloser').click(function () {
     $(".basic_message").show();
 })
 
+// Hide certain components by default.
+$('.js-update-create-comment-active-header').hide()
+$('#comment-form').hide()
+$('#target-uploading').hide()
+$('#upload-form').hide()
 
 // Evidence upload - jquery-file-upload main function.
 $(function () {

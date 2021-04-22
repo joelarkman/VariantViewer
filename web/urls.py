@@ -22,13 +22,13 @@ urlpatterns = [
     path('ajax/load_worksheet_details/<int:pk>',
          views.load_worksheet_details, name='load_worksheet_details'),
 
-    path('ajax/update_selected_transcript/<int:sample>/<int:transcript>',
+    path('ajax/update_selected_transcript/<int:run>/<int:ss_sample>/<int:transcript>',
          views.update_selected_transcript, name='update_selected_transcript'),
 
-    path('ajax/load_variant_details/<int:variant>',
+    path('ajax/load_variant_details/<int:run>/<int:stv>',
          views.load_variant_details, name='load_variant_details'),
 
-    path('ajax/pin_variant/<int:stv>',
+    path('ajax/pin_variant/<int:run>/<int:stv>',
          views.pin_variant, name='pin_variant'),
 
     path('ajax/comment_update_or_create/<int:stv>',
