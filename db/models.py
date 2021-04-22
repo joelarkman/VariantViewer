@@ -87,7 +87,10 @@ def set_latest_run(sender, instance, *args, **kwargs):
 
 
 class BAM(PipelineOutputFileModel):
-    pass
+    run = models.ForeignKey(
+        Run,
+        on_delete=models.CASCADE
+    )
 
 
 class VCF(PipelineOutputFileModel):
@@ -134,6 +137,11 @@ class Patient(BaseModel):
 
 class Sample(BaseModel):
     slug = models.SlugField(max_length=50, unique=True)
+    patient = models.ForeignKey(
+        Patient,
+        on_delete=models.PROTECT,
+        related_name='samples'
+    )
     lab_no = models.CharField(max_length=50)
     samplesheets = models.ManyToManyField(
         Samplesheet,
@@ -148,14 +156,19 @@ class Sample(BaseModel):
         through="SampleVCF"
     )
 
-    def get_unpinned_variants(self):
-        return SampleTranscriptVariant.objects.filter(sample_variant__sample=self,
-                                                      selected=True,
-                                                      pinned=False).order_by('transcript__gene__hgnc_name')
+    def get_variants(self, run, pinned):
 
-    def get_pinned_variants(self):
-        return SampleTranscriptVariant.objects.filter(sample_variant__sample=self,
-                                                      pinned=True).order_by('transcript__gene__hgnc_name')
+        vcf = self.vcfs.get(run=run)
+
+        if pinned:
+            return SampleTranscriptVariant.objects.filter(sample_variant__sample=self,
+                                                          sample_variant__variant__variantreport__vcf=vcf,
+                                                          pinned=True).order_by('transcript__gene__hgnc_name')
+        else:
+            return SampleTranscriptVariant.objects.filter(sample_variant__sample=self,
+                                                          sample_variant__variant__variantreport__vcf=vcf,
+                                                          selected=True,
+                                                          pinned=False).order_by('transcript__gene__hgnc_name')
 
 
 def __str__(self):
@@ -390,6 +403,11 @@ class SampleTranscriptVariant(BaseModel):
         tv = TranscriptVariant.objects.get(
             variant=self.sample_variant.variant, transcript=self.transcript)
         return {'hgvs_c': tv.hgvs_c, 'hgvs_p': tv.hgvs_p, 'hgvs_g': tv.hgvs_g}
+
+    def get_variant_report(self, run):
+        vcf = self.sample_variant.sample.vcfs.get(run=run)
+        variant = self.sample_variant.variant
+        return VariantReport.objects.get(vcf=vcf, variant=variant)
 
 
 class Exon(BaseModel):

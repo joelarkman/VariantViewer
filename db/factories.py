@@ -6,7 +6,7 @@ import datetime
 from factory.django import DjangoModelFactory
 from factory import fuzzy
 
-from db.models import CoverageInfo, ExcelReport, Exon, ExonReport, ExonSequence, Gene, GeneAlias, GeneReport, GenomeBuild, GenomicCoordinate, Pipeline, PipelineVersion, Run, Sample, SampleTranscriptVariant, SampleVCF, SampleVariant, Samplesheet, SamplesheetSample, Sequence, Transcript, TranscriptVariant, VCF, Variant, VariantCoordinate
+from db.models import BAM, CoverageInfo, ExcelReport, Exon, ExonReport, ExonSequence, Gene, GeneAlias, GeneReport, GenomeBuild, GenomicCoordinate, Patient, Pipeline, PipelineVersion, Run, Sample, SampleBAM, SampleTranscriptVariant, SampleVCF, SampleVariant, Samplesheet, SamplesheetSample, Sequence, Transcript, TranscriptVariant, VCF, Variant, VariantCoordinate, VariantReport, VariantReportFilter, VariantReportInfo
 
 ########################
 ### Pipeline creation###
@@ -185,6 +185,18 @@ class SampleVCFFactory(DjangoModelFactory):
     vcf = factory.SubFactory(VCFFactory)
 
 
+class BAMFactory(DjangoModelFactory):
+    class Meta:
+        model = BAM
+
+
+class SampleBAMFactory(DjangoModelFactory):
+    class Meta:
+        model = SampleBAM
+
+    bam = factory.SubFactory(BAMFactory)
+
+
 class CoverageInfoFactory(DjangoModelFactory):
     class Meta:
         model = CoverageInfo
@@ -258,10 +270,19 @@ class SamplesheetFactory(DjangoModelFactory):
             'random_element', elements=(0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2)))
 
 
+class PatientFactory(DjangoModelFactory):
+    class Meta:
+        model = Patient
+
+    first_name = factory.Faker('first_name')
+    last_name = factory.Faker('last_name')
+
+
 class SampleFactory(DjangoModelFactory):
     class Meta:
         model = Sample
 
+    patient = factory.SubFactory(PatientFactory)
     lab_no = factory.Faker('bothify', text='?######', letters='GSD')
 
 
@@ -327,6 +348,25 @@ class SampleTranscriptVariantFactory(DjangoModelFactory):
 
     sample_variant = factory.SubFactory(SampleVariantFactory)
 
+
+class VariantReportFactory(DjangoModelFactory):
+    class Meta:
+        model = VariantReport
+
+    qual = factory.Faker('random_number', digits=2)
+    filter_pass = factory.Faker('boolean', chance_of_getting_true=75)
+    depth = factory.Faker('random_number', digits=2)
+
+
+class VariantReportInfoFactory(DjangoModelFactory):
+    class Meta:
+        model = VariantReportInfo
+
+
+class VariantReportFilterFactory(DjangoModelFactory):
+    class Meta:
+        model = VariantReportFilter
+
 ############################
 ### Generation Functions ###
 ############################
@@ -377,8 +417,9 @@ def create_samplesheet():
         samplevcf = SampleVCFFactory(sample=sample,
                                      vcf__run=latest_run)
 
-        print(samplevcf)
-        print(samplevcf.vcf)
+        # Create a bam and link it with currently iterated sample.
+        samplebam = SampleBAMFactory(sample=sample,
+                                     bam__run=latest_run)
 
         # Create genereport for each gene analysised
         for gene in subset_genes:
@@ -405,13 +446,13 @@ def create_samplesheet():
                                                                  coordinate__pos=random.randint(transcript.sequence.start_coord.pos, transcript.sequence.end_coord.pos))
 
                     if transcript.canonical:
-                        sampletranscriptvariant = SampleTranscriptVariantFactory(
+                        SampleTranscriptVariantFactory(
                             sample_variant__sample=sample,
                             sample_variant__variant=variantcoordinate.variant,
                             transcript=transcript,
                             selected=True)
                     else:
-                        sampletranscriptvariant = SampleTranscriptVariantFactory(
+                        SampleTranscriptVariantFactory(
                             sample_variant__sample=sample,
                             sample_variant__variant=variantcoordinate.variant,
                             transcript=transcript,
@@ -420,6 +461,22 @@ def create_samplesheet():
                     # Create a transcriptvariant
                     transcriptvariant = TranscriptVariantFactory(
                         transcript=transcript, variant=variantcoordinate.variant)
+
+                    variantreport = VariantReportFactory(vcf=samplevcf.vcf,
+                                                         variant=variantcoordinate.variant)
+
+                    VariantReportInfoFactory(variant_report=variantreport,
+                                             tag='DP',
+                                             description='Total read depth at position',
+                                             value=variantreport.depth)
+
+                    for info in range(random.randint(10, 25)):
+                        VariantReportInfoFactory(variant_report=variantreport,
+                                                 tag=factory.Faker(
+                                                     'word'),
+                                                 description=factory.Faker(
+                                                     'words', nb=8),
+                                                 value=factory.Faker('random_number', digits=3))
 
 
 def create_samplesheets(n):
