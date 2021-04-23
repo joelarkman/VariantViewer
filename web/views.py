@@ -2,6 +2,7 @@ from django.views.generic import TemplateView, ListView, DetailView
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.db.models import Q
 
 from .models import Comment, Document
@@ -61,6 +62,13 @@ class IndexView(ListView):
                 'pipeline_version__pipeline__name')
 
         return context
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('accounts/login')
+        # elif some-logic:
+        #     return redirect('some-page') #needs defined as valid url
+        return super(IndexView, self).dispatch(request, *args, **kwargs)
 
 
 class SearchView(TemplateView):

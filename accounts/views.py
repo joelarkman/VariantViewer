@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from django.views.generic import TemplateView
 
-# Create your views here.
+
+class LogoutSuccessfulView(TemplateView):
+    """
+    Template View to display logout successful page.
+    """
+
+    template_name = 'registration/logout_successful.html'
