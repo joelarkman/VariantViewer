@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
+    <link rel="mask-icon" href="{% static 'favicon/safari-pinned-tab.svg' %}" color="#005eb8">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+
+
+    <!-- Page Title -->
+    <title>VariantViewer - {% block page_title %}{% endblock %}</title>
+
+    <!-- Dependencies -->
+    <link rel="stylesheet" type="text/css" href="{% static 'dependencies/fomantic/css/fomantic.min.css' %}">
+
+    <script src="{% static 'dependencies/jquery/js/jquery.min.js' %}"></script>
+    <script src="{% static 'dependencies/fomantic/js/fomantic.min.js' %}"></script>
+
+    <!-- Project Files -->
+    <link rel="stylesheet" href="{% static 'css/accounts-base.css' %}">
+    {% block stylesheet %} {% endblock %}
+</head>
+
+<body>
+
+    {% block content %} {% endblock %}
+
+</body>
+
+<script src="{% static 'js/base.js'%}"></script>
+
+{% block javascript %} {% endblock %}
+
+</html>

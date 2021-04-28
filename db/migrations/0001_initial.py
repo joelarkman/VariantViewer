@@ -15,7 +15,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='BAM',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('path', models.TextField()),
@@ -28,7 +29,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CoverageInfo',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('cov_10x', models.IntegerField()),
@@ -55,7 +57,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ExcelReport',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('path', models.TextField()),
@@ -68,7 +71,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Exon',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('number', models.CharField(max_length=4)),
@@ -80,7 +84,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Gene',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('hgnc_id', models.CharField(max_length=255)),
@@ -93,7 +98,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GenomeBuild',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('name', models.CharField(max_length=255)),
@@ -107,12 +113,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GenomicCoordinate',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('chrom', models.CharField(max_length=2)),
                 ('pos', models.IntegerField()),
-                ('genome_build', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.genomebuild')),
+                ('genome_build', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.genomebuild')),
             ],
             options={
                 'abstract': False,
@@ -121,7 +129,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Pipeline',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('name', models.CharField(max_length=255)),
@@ -133,12 +142,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PipelineVersion',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('version', models.CharField(max_length=255)),
-                ('pipeline', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.pipeline')),
-                ('updates', models.OneToOneField(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='updated_by', to='db.pipelineversion')),
+                ('pipeline', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.pipeline')),
+                ('updates', models.OneToOneField(null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                                 related_name='updated_by', to='db.pipelineversion')),
             ],
             options={
                 'abstract': False,
@@ -147,7 +159,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Run',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('worksheet', models.CharField(max_length=255)),
@@ -156,8 +169,10 @@ class Migration(migrations.Migration):
                 ('output_dir', models.CharField(max_length=255)),
                 ('fastq_dir', models.CharField(max_length=255)),
                 ('interop_dir', models.CharField(max_length=255)),
-                ('qc_status', models.IntegerField(choices=[(0, 'Pending'), (1, 'Pass'), (2, 'Fail')], default=1)),
-                ('pipeline_version', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='pipeline_version', to='db.pipelineversion')),
+                ('qc_status', models.IntegerField(choices=[
+                 (0, 'Pending'), (1, 'Pass'), (2, 'Fail')], default=1)),
+                ('pipeline_version', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT,
+                                                       related_name='pipeline_version', to='db.pipelineversion')),
             ],
             options={
                 'abstract': False,
@@ -166,7 +181,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Sample',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('slug', models.SlugField(unique=True)),
@@ -182,11 +198,13 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Samplesheet',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('path', models.CharField(max_length=255)),
-                ('run', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='run', to='db.run')),
+                ('run', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, related_name='run', to='db.run')),
             ],
             options={
                 'abstract': False,
@@ -195,13 +213,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Sequence',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('strand', models.CharField(max_length=1)),
                 ('sequence', models.TextField(blank=True, null=True)),
-                ('end_coord', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='sequence_ends', to='db.genomiccoordinate')),
-                ('start_coord', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='sequence_starts', to='db.genomiccoordinate')),
+                ('end_coord', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT,
+                                                related_name='sequence_ends', to='db.genomiccoordinate')),
+                ('start_coord', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT,
+                                                  related_name='sequence_starts', to='db.genomiccoordinate')),
             ],
             options={
                 'abstract': False,
@@ -210,14 +231,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Transcript',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('refseq_id', models.CharField(max_length=255)),
                 ('name', models.CharField(max_length=255)),
                 ('canonical', models.BooleanField()),
-                ('gene', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.gene')),
-                ('sequence', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.sequence')),
+                ('gene', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.gene')),
+                ('sequence', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.sequence')),
             ],
             options={
                 'abstract': False,
@@ -226,7 +250,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Variant',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('ref', models.CharField(max_length=255)),
@@ -239,12 +264,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='VariantReport',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('qual', models.IntegerField()),
                 ('filter_pass', models.BooleanField(null=True)),
-                ('variant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.variant')),
+                ('variant', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.variant')),
             ],
             options={
                 'abstract': False,
@@ -253,12 +280,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='VCF',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('path', models.TextField()),
                 ('file', models.FileField(default=None, null=True, upload_to='')),
-                ('run', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.run')),
+                ('run', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.run')),
             ],
             options={
                 'abstract': False,
@@ -267,13 +296,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='VariantReportInfo',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('tag', models.CharField(max_length=50)),
                 ('description', models.TextField()),
                 ('value', models.CharField(max_length=255)),
-                ('variant_report', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.variantreport')),
+                ('variant_report', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.variantreport')),
             ],
             options={
                 'abstract': False,
@@ -282,13 +313,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='VariantReportFilter',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('tag', models.CharField(max_length=50)),
                 ('description', models.TextField()),
                 ('value', models.CharField(max_length=255)),
-                ('variant_report', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.variantreport')),
+                ('variant_report', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.variantreport')),
             ],
             options={
                 'abstract': False,
@@ -297,16 +330,20 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='variantreport',
             name='vcf',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.vcf'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to='db.vcf'),
         ),
         migrations.CreateModel(
             name='VariantCoordinate',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
-                ('coordinate', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.genomiccoordinate')),
-                ('variant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.variant')),
+                ('coordinate', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.genomiccoordinate')),
+                ('variant', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.variant')),
             ],
             options={
                 'abstract': False,
@@ -315,14 +352,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TranscriptVariant',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('hgvs_c', models.TextField()),
                 ('hgvs_p', models.TextField()),
                 ('hgvs_g', models.TextField()),
-                ('transcript', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.transcript')),
-                ('variant', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.variant')),
+                ('transcript', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.transcript')),
+                ('variant', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.variant')),
             ],
             options={
                 'abstract': False,
@@ -331,11 +371,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SampleVCF',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
-                ('sample', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.sample')),
-                ('vcf', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.vcf')),
+                ('sample', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.sample')),
+                ('vcf', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.vcf')),
             ],
             options={
                 'abstract': False,
@@ -344,11 +387,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SampleVariant',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
-                ('sample', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.sample')),
-                ('variant', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.variant')),
+                ('sample', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.sample')),
+                ('variant', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.variant')),
             ],
             options={
                 'abstract': False,
@@ -357,13 +403,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SampleTranscriptVariant',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('selected', models.BooleanField()),
                 ('effect', models.CharField(max_length=255)),
-                ('sample_variant', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.samplevariant')),
-                ('transcript', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.transcript')),
+                ('sample_variant', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.samplevariant')),
+                ('transcript', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.transcript')),
             ],
             options={
                 'abstract': False,
@@ -372,11 +421,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SamplesheetSample',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
-                ('sample', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='sample', to='db.sample')),
-                ('samplesheet', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='samplesheet', to='db.samplesheet')),
+                ('sample', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, related_name='sample', to='db.sample')),
+                ('samplesheet', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT,
+                                                  related_name='samplesheet', to='db.samplesheet')),
             ],
             options={
                 'abstract': False,
@@ -385,11 +437,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SampleBAM',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
-                ('bam', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.bam')),
-                ('sample', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.sample')),
+                ('bam', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.bam')),
+                ('sample', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.sample')),
             ],
             options={
                 'abstract': False,
@@ -403,7 +458,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sample',
             name='samplesheets',
-            field=models.ManyToManyField(through='db.SamplesheetSample', to='db.Samplesheet'),
+            field=models.ManyToManyField(
+                through='db.SamplesheetSample', to='db.Samplesheet'),
         ),
         migrations.AddField(
             model_name='sample',
@@ -413,12 +469,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GeneReport',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
-                ('coverage_info', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.coverageinfo')),
-                ('excel_report', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.excelreport')),
-                ('gene', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.gene')),
+                ('coverage_info', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.coverageinfo')),
+                ('excel_report', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.excelreport')),
+                ('gene', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.gene')),
             ],
             options={
                 'abstract': False,
@@ -427,11 +487,13 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GeneAlias',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('name', models.CharField(max_length=255)),
-                ('gene', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.gene')),
+                ('gene', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.gene')),
             ],
             options={
                 'abstract': False,
@@ -440,12 +502,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ExonReport',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
-                ('coverage_info', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.coverageinfo')),
-                ('excel_report', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.excelreport')),
-                ('exon', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.exon')),
+                ('coverage_info', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT, to='db.coverageinfo')),
+                ('excel_report', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.excelreport')),
+                ('exon', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='db.exon')),
             ],
             options={
                 'abstract': False,
@@ -454,26 +520,31 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='exon',
             name='sequence',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.sequence'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT, to='db.sequence'),
         ),
         migrations.AddField(
             model_name='exon',
             name='transcript',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.transcript'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to='db.transcript'),
         ),
         migrations.AddField(
             model_name='excelreport',
             name='run',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.run'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT, to='db.run'),
         ),
         migrations.AddField(
             model_name='excelreport',
             name='sample',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='db.sample'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to='db.sample'),
         ),
         migrations.AddField(
             model_name='bam',
             name='run',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='db.run'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT, to='db.run'),
         ),
     ]

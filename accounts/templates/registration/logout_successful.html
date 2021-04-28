@@ -1,0 +1,35 @@
+{% extends 'accounts-base.html' %}
+{% load static %}
+{% block page_title %}Logout successful{% endblock %}
+{% block content %}
+<div class="ui middle aligned center aligned grid">
+    <div class="column">
+        <div class="ui top attached raised inverted segment logo-segment">
+            <i class="huge dna icon" style="margin: 0;color:#005EB8"></i>
+
+            <div class="text-title" style="margin: 0;margin-top: 5px;">
+                <span style="font-weight: bold;font-size:x-large;">VARIANT</span>
+                <span style="font-weight: lighter;font-size: x-large;color:#9aa4ac">VIEWER</span>
+            </div>
+
+        </div>
+
+        <div class="ui raised inverted attached segment form-segment">
+
+            <p class="ui info message">Logout successful. Thanks for visiting VariantViewer.</p>
+
+        </div>
+
+        <div class="ui bottom attached raised inverted segment footer-segment">
+
+
+            <a style="margin-left: auto;" href="{% url 'login' %}" class="ui inverted tiny basic button">Log in
+                again</a>
+
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

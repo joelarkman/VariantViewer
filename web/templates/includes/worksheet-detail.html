@@ -1,0 +1,21 @@
+<div class="ui segments" style="display: flex;min-width: 60%;max-width: 90%;max-height: 90%;">
+    <div class="ui left aligned clearing segment">
+        <h3 class="ui header" style="margin:0">{{run.worksheet|upper }}</h3>
+    </div>
+    <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
+        <form id='worksheet-detail-form' method="post" action="{% url 'load_worksheet_details' pk=run.id %}"
+            class="js-worksheet-detail-form">
+
+            {% csrf_token %}
+
+        </form>
+        <span class='ui grey small text' style="text-align: left"> Last modified by </span>
+
+
+    </div>
+    <div class="ui secondary left aligned clearing segment">
+        <input type="submit" value="Save" form="worksheet-detail-form" class="ui right floated primary button"
+            style="margin-left: 10px;">
+        <div class="ui right floated button worksheet-detail-close">Cancel</div>
+    </div>
+</div>

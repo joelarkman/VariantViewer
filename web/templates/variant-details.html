@@ -10,9 +10,9 @@
 <link rel="stylesheet" href="{% static 'css/variant-details.css' %}">
 
 <!-- Variant-details header -->
-<div class="variant-details-header">
+<!-- <div class="variant-details-header">
 
-    <button class="circular ui icon button menu-toggle-closed">
+    <button class="circular ui icon button menu-toggle-closed" data-tooltip="Expand Menu" data-position="bottom left">
         <i class="icon bars"></i>
     </button>
 
@@ -75,88 +75,208 @@
         </div>
     </div>
 
-</div>
+</div> -->
 
-<!-- Details Tab -->
-<div class="ui tab" data-tab="details">
-    <div class="ui stackable stretched compact grid" style="margin: -7px;">
+<div class="topper"
+    style="margin: -15px;margin-bottom: 15px;padding: 15px;padding-bottom: 0px;padding-top: 10px;background-color: #e2e2e2;border-bottom: 2px solid #D5D5D6;">
 
-        <div class="sixteen wide column">
+    <div class="top-row-container" style="display: flex;flex-flow: row wrap;row-gap: 5px;">
 
-            <div class="ui top attached segment" style="margin-top:4px">
-                <h4>Summary</h4>
+        <button class="circular ui icon button menu-toggle-closed" data-tooltip="Expand Menu"
+            data-position="bottom left" style="margin-top: 5px;margin-left: 1px;">
+            <i class="icon bars"></i>
+        </button>
+
+        <div id="variant-title" class="ui segment {% if stv.pinned %}ischecked{%endif%}"
+            style="background-color:#F8F8F8;padding: 0px;display: flex;align-items: center;margin-top: 0;margin-right: auto;margin-bottom: 0px;flex-shrink: 1;">
+
+            <div class="col-container"
+                style="display: flex;flex-direction: column;margin: 5px;margin-left: 10px;margin-right: 10px;align-items: center;justify-content: center;">
+
+
+                <h2 class="ui header" style="display: flex;margin: 0px;align-self: flex-start;align-items: center;">
+                    <i id="pinned-icon" class="tiny inverted circular pin icon {% if not stv.pinned %}hidden{%endif%}"
+                        style="margin: 0;margin-right: 5px;"></i>
+                    {{stv.get_long_hgvs.hgvs_c}}
+                </h2>
+
+
+                <div
+                    style="display: flex;flex-direction: row;gap: 5px;margin-top: 5px;margin-bottom: 3px;align-items: center;justify-content: center;">
+                    <div
+                        style="display: flex;flex-direction: column;background-color: #e2e2e2;padding: 5px;border-radius: 3px;min-width: 100px;">
+                        <span style="font-size: smaller;margin-top: -2px;">GENE SYMBOL:</span>
+                        <span style="font-weight: bold;margin-top: -2px;">{{stv.transcript.gene.hgnc_name}}</span>
+                    </div>
+
+                    <div
+                        style="display: flex;flex-direction: column;background-color: #e2e2e2;padding: 5px;border-radius: 3px;flex: 1;">
+                        <span style="font-size: smaller;margin-top: -2px;">PROTEIN HGVS:</span>
+                        <span style="font-weight: bold;margin-top: -2px;">{{stv.get_long_hgvs.hgvs_p}}</span>
+                    </div>
+
+                    <div
+                        style="display: flex;flex-direction: column;background-color: #e2e2e2;padding: 5px;border-radius: 3px;flex: 1;">
+                        <span style="font-size: smaller;margin-top: -2px;">GENOMIC HGVS:</span>
+                        <span style="font-weight: bold;margin-top: -2px;">{{stv.get_long_hgvs.hgvs_g}}</span>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="ui bottom attached segment" style="background-color: #eeeeee;">
-                <div class="ui four centered cards">
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Chromosome</div>
-                            <div class="center aligned description">Chr 9</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Position</div>
-                            <div class="center aligned description">95491490</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Alleles</div>
-                            <div class="center aligned description">G>T</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Variation Type</div>
-                            <div class="center aligned description">Exonic SNV</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Gene(s) | Transcript</div>
-                            <div class="center aligned description">ABRA (NM_012654.3 )</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Worst Consequence</div>
-                            <div class="center aligned description">Missense</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">ClinVar Clin Sig</div>
-                            <div class="center aligned description">Likely Pathogenic</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">WMRGL AF</div>
-                            <div class="center aligned description">2/100</div>
-                        </div>
-                    </div>
-
-                </div>
+            <div id="pin-variant-checkbox" class="ui toggle checkbox"
+                data-url="{% url 'pin_variant' run=run.id stv=stv.id %}" data-stv="{{stv.id}}"
+                data-tooltip="Pin variant" data-position="bottom left" style="margin-left: 15px;margin-right: 10px;">
+                <input type="checkbox" {% if stv.pinned %}checked="checked" {%endif%}>
+                <label></label>
             </div>
         </div>
 
+        <div id='variant-classification-container' style="display:flex;align-self: flex-start;">
+            {% include 'includes/classification.html' %}
+        </div>
 
     </div>
+
+    <div class="ui secondary pointing menu details-tabs" style="margin-top: 5px;border: none;">
+        <a class="item active" data-tab="details">
+            Variant Details
+        </a>
+        <a class="item " data-tab="databases">
+            Databases
+        </a>
+        <a class="item" data-tab="evidence">
+            Evidence
+        </a>
+    </div>
+
 </div>
+
+
+
+<!-- Details Tab -->
+<div class="ui tab" data-tab="details">
+
+    <div class="ui top attached segment">
+        <h4>Summary</h4>
+    </div>
+
+    <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+        <div class="ui five centered cards">
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Chromosome</div>
+                    <div class="center aligned description">
+                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.chrom}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Position</div>
+                    <div class="center aligned description">
+                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.pos}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Alleles</div>
+                    <div class="center aligned description">
+                        {{stv.sample_variant.variant.ref}}>{{stv.sample_variant.variant.alt}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Quality</div>
+                    <div class="center aligned description">{{variant_report.qual}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Filter pass</div>
+                    <div class="center aligned description">{{variant_report.filter_pass}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Depth</div>
+                    <div class="center aligned description">{{variant_report.depth}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Variation Type</div>
+                    <div class="center aligned description">Exonic SNV</div>
+                </div>
+            </div>
+
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Worst Consequence</div>
+                    <div class="center aligned description">Missense</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">ClinVar Clin Sig</div>
+                    <div class="center aligned description">Likely Pathogenic</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">WMRGL AF</div>
+                    <div class="center aligned description">2/100</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="ui top attached segment">
+        <h4>Other Info</h4>
+    </div>
+
+
+    <table class="ui bottom attached compact celled table" style="background-color: #eeeeee;">
+        <thead>
+            <tr>
+                <th style="background-color: white !important;border-radius: 0;">Tag</th>
+                <th style="background-color: white !important;">Description</th>
+                <th style="background-color: white !important;border-radius: 0;">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for info in variant_report.variantreportinfo_set.all %}
+            <tr>
+                <td>{{info.tag}}</td>
+                <td>{{info.description}}</td>
+                <td>{{info.value}}</td>
+            </tr>
+            {%endfor%}
+        </tbody>
+    </table>
+    <!-- <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+
+
+
+    </div> -->
+
+</div>
+
 
 <!-- Databases tab -->
 <div class="ui tab" data-tab="databases">
 
-    <div class="ui top attached segment" style="margin-top: 14px;">
+    <div class="ui top attached segment">
         <h4>Databases</h4>
     </div>
 
@@ -171,21 +291,51 @@
 <!-- Evidence tab -->
 <div class="ui tab" data-tab="evidence">
 
-    <div class="ui top attached segment" style="margin-top: 14px;">
-        <h4>Evidence</h4>
+    <div class="ui top attached segment action-header js-update-create-comment"
+        data-url="{% url 'comment_update_or_create' stv=stv.id %}" style="display: flex;align-items: center;">
+        <h4 style="margin: 0;">Variant Information</h4>
+
+        <div class="ui right icon link label"
+            style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">
+            Click here to {% if stv.comments.last %}update{%else%}add{%endif%} variant information
+            <i class="pen icon"></i>
+        </div>
+    </div>
+
+    <!-- Shown when comment is being edited to remove button. -->
+    <div class="ui top attached segment  js-update-create-comment-active-header">
+        <h4>Variant Information</h4>
+    </div>
+
+    <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+        <div id="comment-form" class="ui segment " style="margin:0px;">
+            <!-- populated using ajax -->
+        </div>
+
+        <div id="readonly-comment-form">
+            {% include 'includes/comment-display.html' %}
+        </div>
+    </div>
+
+    <div id="target" class="ui top attached segment action-header js-upload-photos" style="display: flex;">
+        <h4 style="margin: 0;">Evidence </h4>
+        <div class="ui right icon label"
+            style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">
+            Paste, Drop or Click here to upload evidence
+            <i class="upload icon"></i>
+        </div>
+    </div>
+
+    <!-- Shown when files are being uploaded to remove button. -->
+    <div id="target-uploading" class="ui top attached segment">
+        <h4>Evidence </h4>
     </div>
 
     <div class=" ui bottom attached segment" style="background-color: #eeeeee;">
 
-        <div id="target" class="ui fluid card js-upload-photos">
-            <span style="user-select: none;color: #7C7B7C; font-size: 15px;">
-                PASTE, DROP OR BROWSE FOR EVIDENCE TO UPLOAD
-            </span>
-        </div>
-
-        <div id="upload-form" class="ui segment" style="margin:0px;">
+        <div id="upload-form" class="ui segment" style="margin:0px;margin-bottom: 15px;">
             <div style="display: flex;align-items: stretch; margin-bottom: 15px;height: 224px;">
-                <form id="fileupload" class="ui form" action="{% url 'save_evidence' %}" method="POST"
+                <form id="fileupload" class="ui form" action="{% url 'save_evidence' stv=stv.id %}" method="POST"
                     enctype="multipart/form-data" csrf_token="{{ csrf_token }}"
                     style="flex: 1;display: flex;flex-direction: column;">
                     <input id="file-dialog" type="file" name="document" style="display: none;">
@@ -222,14 +372,11 @@
         <div id="evidence-container">
             {% if documents %}
             {% include 'includes/evidence.html' %}
+            {% else %}
+            <span style="font-size:smaller;">No evidence files uploaded yet</span>
             {% endif %}
         </div>
 
     </div>
 
 </div>
-
-<!-- Lightbox dimmer populated with images/pdfs via js. -->
-<!-- Relocated this to sample page to ensure it ocupies the correct div. -->
-<!-- <div id="lightbox" class="ui page dimmer">
-</div> -->

@@ -1,0 +1,115 @@
+{% load humanize %}
+
+<div class="ui segments" style="display: flex;min-width: 75%;max-width: 90%;;max-height: 90%;">
+    <div class="ui left aligned clearing segment">
+        <h3 class="ui header" style="margin:0">Set Transcript For {{selected_transcript.gene.hgnc_name}}</h3>
+        <span style="margin-top: 5px;font-size: smaller;">
+            Last modified {{variant_containing_transcripts.first.date_modified|naturaltime}} by JHDL
+        </span>
+    </div>
+
+
+    <div class="ui left aligned segment">
+        <div class="ui message">
+            Variants have been dectected in the following {{selected_transcript.gene.hgnc_name}} transcripts for this
+            sample. Please select which one to use for analysis.
+        </div>
+    </div>
+
+
+    <div class="ui left aligned segment"
+        style="display: flex;flex-direction: row;flex-wrap: wrap;overflow: hidden;padding: 0;">
+
+        {% regroup variant_containing_transcripts by transcript as transcript_list %}
+        <div
+            style="display: flex;flex: 1;flex-direction: column;margin-right: auto;overflow-y: auto;height: 100%;padding: 14px;">
+            <span style="margin-bottom: 10px;">Canonical:</span>
+
+            <div style="display: inline-flex;flex-wrap: wrap;gap: 10px;">
+                {% for transcript in transcript_list %}
+                {% if transcript.grouper.canonical %}
+                <div data-transcript-id='{{transcript.grouper.id}}'
+                    class="ui {% if transcript.grouper == selected_transcript %}inverted{%endif%} card transcript-choice"
+                    style="margin: 0;">
+
+                    <div class="content">
+                        <div class="header">
+                            {{transcript.grouper.refseq_id}}
+                        </div>
+                        <div class="meta">
+                            Variants Identified: {{transcript.list|length}}
+                        </div>
+                    </div>
+
+                </div>
+                {%endif%}
+                {%endfor%}
+            </div>
+
+            <span style="margin-bottom: 10px;margin-top: 15px;">Other:</span>
+
+            <div style="display: inline-flex;flex-wrap: wrap;gap: 10px;">
+                {% for transcript in transcript_list %}
+                {% if not transcript.grouper.canonical %}
+                <div data-transcript-id='{{transcript.grouper.id}}'
+                    class="ui {% if transcript.grouper == selected_transcript %}inverted{%endif%} link card transcript-choice"
+                    style="margin: 0;">
+
+                    <div class="content">
+                        <div class="header">
+                            {{transcript.grouper.refseq_id}}
+                        </div>
+                        <div class="meta">
+                            Variants Identified: {{transcript.list|length}}
+                        </div>
+                    </div>
+                </div>
+                {%endif%}
+                {%endfor%}
+            </div>
+        </div>
+
+        <div class="ui attached segment"
+            style="flex-direction: column;flex: 0 1 35%;padding: 0;height: 100%;margin: 0;border-top: none;border-bottom: none;overflow-y: auto;min-height: 285px;">
+
+            <table class="ui celled table" style="border-radius: 0;border: 0">
+                <thead>
+                    <tr>
+                        <th>Change</th>
+                        <th>Chrom</th>
+                        <th>Position</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for variant in variant_containing_transcripts %}
+                    <tr class='variant-row' data-transcript-id="{{variant.transcript.id}}">
+                        <td data-label="Change">
+                            {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}}</td>
+                        <td data-label="Chrom">
+                            {{variant.sample_variant.variant.variantcoordinate_set.last.coordinate.chrom}}</td>
+                        <td data-label="Position">
+                            {{variant.sample_variant.variant.variantcoordinate_set.last.coordinate.pos}}</td>
+                    </tr>
+                    {%endfor%}
+                </tbody>
+            </table>
+        </div>
+
+        <form method="POST"
+            action="{% url 'update_selected_transcript' run=run.id ss_sample=ss_sample.id transcript=selected_transcript.id %}"
+            id="js-update-transcript-form">
+            {% csrf_token %}
+            <input class='selected-transcript' type="hidden" name='selected-transcript'
+                data-current={{selected_transcript.id}}>
+        </form>
+    </div>
+
+
+    <div class="ui secondary left aligned clearing segment">
+        <input type="submit" form="js-update-transcript-form"
+            class="ui right floated disabled primary button js-update-transcript-form-submit" style="margin-left: 10px;"
+            value="Save changes">
+        <div class="ui right floated button filter-settings-close">Cancel</div>
+
+    </div>
+</div>

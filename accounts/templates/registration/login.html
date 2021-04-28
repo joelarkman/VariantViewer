@@ -1,0 +1,73 @@
+{% extends 'accounts-base.html' %}
+{% load static %}
+{% block page_title %}Login{% endblock %}
+{% block content %}
+<div class="ui middle aligned center aligned grid">
+    <div class="column">
+        <div class="ui top attached raised inverted segment logo-segment">
+            <i class="huge dna icon" style="margin: 0;color:#005EB8"></i>
+
+            <div class="text-title" style="margin: 0;margin-top: 5px;">
+                <span style="font-weight: bold;font-size:x-large;">VARIANT</span>
+                <span style="font-weight: lighter;font-size: x-large;color:#9aa4ac">VIEWER</span>
+            </div>
+
+        </div>
+
+        <div class="ui raised inverted attached segment form-segment">
+
+            {% if next %}
+            {% if user.is_authenticated %}
+            <p class="ui error message">Your account doesn't have access to this page. To proceed,
+                please login with an account that has access.</p>
+
+
+            <p class="ui error message">Please login to see this page.</p>
+            {% endif %}
+            {% endif %}
+
+            {% if form.errors %}
+            <p class="ui error message">Username and password provided do not match. <br> Please try again.</p>
+            {% endif %}
+
+            <form class="ui large form" , method="post" , action="{% url 'login' %}" novalidate>
+                {% csrf_token %}
+
+                <div class="field {% if form.errors %} error{% endif %}">
+                    <div class="ui left icon input floating-label">
+                        <i class="mail icon"></i>
+                        <input type="text" name="{{ form.username.html_name }}" placeholder="NHS email address">
+                        <label>NHS email address</label>
+                    </div>
+                </div>
+
+                <div class="field {% if form.errors %} error{% endif %}">
+                    <div class="ui left icon input floating-label">
+                        <i class="lock icon"></i>
+                        <input type="password" name="{{ form.password.html_name }}" placeholder="Password">
+                        <label>Password</label>
+                    </div>
+                </div>
+
+                <input class="ui fluid large submit button" type="submit" value="Login" />
+                <input type="hidden" name="next" value="{{ next }}" />
+
+            </form>
+        </div>
+
+        <div class="ui bottom attached raised inverted segment footer-segment">
+
+            <div style="margin-left: auto;" class="ui inverted tiny basic buttons">
+                <a href="{% url 'password_reset' %}" class="ui button">Forgot
+                    your password?
+                </a>
+                <a href="{% url 'password_reset' %}" class="ui button">Sign
+                    up</a>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

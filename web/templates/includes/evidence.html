@@ -1,4 +1,6 @@
-<div class="ui three horizontal link cards" style="margin-top:3px">
+{% load humanize %}
+
+<div class="ui three horizontal link cards">
 
     {% for doc in documents %}
 
@@ -30,12 +32,16 @@
                     Click to view
                 </div>
                 <div class="description">
+                    {% if doc.description%}
                     {{ doc.description }}
+                    {% else %}
+                    No description provided
+                    {% endif %}
                 </div>
             </div>
             <div class="extra content" style="flex-shrink: 0;">
                 <span class="right floated">
-                    {{doc.uploaded_at}}
+                    {{doc.date_created|naturaltime}}
                 </span>
                 <span>
                     <i class="user icon"></i>

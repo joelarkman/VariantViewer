@@ -1,3 +1,20 @@
+// =================
+// UTILITY FUNCTIONS 
+// ================= 
+
+function ResetHideBrowser() {
+    $('#variants-main-panel').show();
+    $("#browser-expand-collapse").removeClass("primary")
+    $('#browser-expand-collapse .icon').addClass("expand").removeClass("compress")
+    $("#browser-expand-collapse").attr("data-tooltip", "Expand Browser");
+    $('#browser').addClass("browser-collapsed").removeClass("browser-expanded");
+    $('.view-in-browser').attr("data-tooltip", "Show Browser");
+    $('#browser').hide();
+    $('#browser-expand-collapse').hide()
+    $('.view-in-browser').removeClass("red");
+}
+
+
 // ==============
 // VARIANT FILTER 
 // ============== 
@@ -5,16 +22,23 @@
 // Filters scroll
 $(function () {
 
+    // Make buttons scroll filters bar id the buttons are not disabled
     $('#right-button').click(function () {
-        $('.active-filters-container').animate({
-            scrollLeft: "+=150px"
-        }, "500");
+        if (!$(this).hasClass("disabled")) {
+            $('.active-filters-container').animate({
+                scrollLeft: "+=150px"
+            }, "500");
+        }
+
+
     });
 
     $('#left-button').click(function () {
-        $('.active-filters-container').animate({
-            scrollLeft: "-=150px"
-        }, "500");
+        if (!$(this).hasClass("disabled")) {
+            $('.active-filters-container').animate({
+                scrollLeft: "-=150px"
+            }, "500");
+        }
     });
 
     // Code to grey out arrows at each extreme
@@ -49,45 +73,230 @@ $(function () {
 
 });
 
-$("#mod_filter").click(function () {
+$(function () {
 
-    // Reset/Hide browser
-    $('#variants-main-panel').show();
-    $("#browser-expand-collapse").removeClass("primary")
-    $('#browser-expand-collapse .icon').addClass("expand").removeClass("compress")
-    $("#browser-expand-collapse").attr("data-tooltip", "Expand Browser");
-    $('#browser').addClass("browser-collapsed").removeClass("browser-expanded");
-    $('.view-in-browser').attr("data-tooltip", "Show Browser");
-    $('#browser').hide();
-    $('#browser-expand-collapse').hide()
-    $('.view-in-browser').removeClass("red");
-    $('.view-in-browser').addClass('disabled')
+    /* Functions */
+
+    var loadFilterForm = function () {
+        var btn = $(this);
+        $.ajax({
+            url: btn.attr("data-url"),
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+                // Reset/Hide browser
+                ResetHideBrowser()
+
+                // Prevent mod_filter button from being selected.
+                $(btn).removeClass("selectable");
+
+                // remove popup
+                $("#mod_filter").popup('destroy')
+
+                // Disable all elements in variant tab utility bar
+                $('#variants-tab #tab-utility-bar').find('*').addClass('disabled')
+
+                // Hide lightbox, replace its content with modal and then display it.
+                $('#lightbox').dimmer('hide');
+            },
+            success: function (data) {
+                // Populate lightbox with modal featuring form.
+                $('#lightbox').html(data.html_form);
+
+                // Store the currently active stv as an attribute of the filter submit button.
+                // This allows it to be set to active once again when variant lists are refreshed.
+                var active_stv = $("#variant-menu .mini-tabs-link.active").attr('data-id')
+                $('#lightbox .js-modify-filter-form-submit').attr('data-stv', active_stv)
+
+                // Show lightbox
+                $('#lightbox').dimmer({
+                    closable: false
+                }).dimmer('show');
+            }
+        });
+    };
+
+    var saveFilterForm = function () {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
+                    $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
+                    $('#variants-tab #tab-utility-bar .filters-sub-menu-container').html(data.active_filters)
+
+                    $("#mod_filter").addClass("selectable");
+                    // Enable all elements in variant tab utility bar
+                    $('#variants-tab #tab-utility-bar').find('*').removeClass('disabled')
+
+                    // Set the variant item that was active before filter was changed to being active
+                    // again now that the variant lists have been refreshed.
+                    stv = $('#lightbox .js-modify-filter-form-submit').attr('data-stv')
+                    $('#variant-menu').find(`[data-id='${stv}']`).addClass('active blue')
+
+                    if (!$("#variant-menu .mini-tabs-link.active")[0]) {
+                        // If no active item variant is now not available as choice.
+                        // Close variant details as it has been filtered out
+                        $('.mini-tabs-link').removeClass('active blue');
+                        $(".mini-tabs-content").hide();
+                        $("#variant-content-loader").removeClass('active');
+                        $(".basic_message").show();
+                    }
+
+                    // If no variants match filter, show notice message.
+                    if (!$("#variant-menu #unpinned-list .gene").is(':visible')) {
+                        $("#variant-menu #no-results-notice").removeClass('hidden')
+                    } else { // otherwise hide notice
+                        $("#variant-menu #no-results-notice").addClass('hidden')
+                    }
+
+                    // Refresh popups
+                    $("#variant-menu .js-update-transcript,.pinned-transcript-popup, #mod_filter.selectable").popup({
+                        inline: false
+                    })
+
+                    // Hide lightbox
+                    $('#lightbox').dimmer('hide');
+
+                }
+                else {
+                    $('#lightbox').html(data.html_form);
+                }
+            }
+        });
+        return false;
+    };
 
 
-    $(this).addClass('disabled')
-    $(this).addClass("red");
-    $('#tab-utility-bar .label').addClass('disabled')
+    /* Binding */
 
-    $('#lightbox').dimmer('hide');
-    $('#lightbox').html($("#filter-settings").html());
-
-    // Define actrivity for newly defined close button.
-    $(".filter-settings-close").click(function () {
-        $("#mod_filter").removeClass('disabled')
-        $("#mod_filter").removeClass("red");
-        $('#tab-utility-bar .label').removeClass('disabled')
-        $('#lightbox').dimmer('hide');
-
-        $('.view-in-browser').removeClass('disabled')
-    });
-
-    $('#lightbox').dimmer({
-        closable: false
-    }).dimmer('show');
+    // Update transcript
+    $("#variants-tab").on("click", '#mod_filter.selectable', loadFilterForm);
+    $("#lightbox").on("submit", "#js-modify-filter-form", saveFilterForm);
 
 });
 
 
+// Click close button inside lightbox modal.
+$("#lightbox").on("click", ".filter-settings-close", function () {
+    // Reset look of filter button and filter bar
+
+    $("#mod_filter").addClass("selectable");
+    $("#variant-menu .js-update-transcript,.pinned-transcript-popup, #mod_filter.selectable").popup({
+        inline: false
+    })
+
+    // Enable all elements in variant tab utility bar
+    $('#variants-tab #tab-utility-bar').find('*').removeClass('disabled')
+
+    // Hide lightbox
+    $('#lightbox').dimmer('hide');
+});
+
+// ============
+// PIN VARIANTS
+// ============
+
+function SetupVariantPinning() {
+    $('.mini-tabs-content #pin-variant-checkbox').checkbox({ // If select toggle
+        onChange: function () {
+            // check if toggle is checked
+            var ischecked = $('.mini-tabs-content #pin-variant-checkbox').checkbox('is checked')
+
+            // toggle class of variant title to indicate selection status.
+            $('.mini-tabs-content #variant-title').toggleClass('ischecked')
+            $('.mini-tabs-content #variant-title #pinned-icon').toggleClass('hidden')
+
+            // Update tooltip
+            if (ischecked) {
+                $('.mini-tabs-content #pin-variant-checkbox').attr("data-tooltip", "Unpin Variant");
+            } else {
+                $('.mini-tabs-content #pin-variant-checkbox').attr("data-tooltip", "Pin Variant");
+            }
+
+            // Initiate AJAX
+            $.ajax(
+                {
+                    type: 'get',
+                    url: $('.mini-tabs-content #pin-variant-checkbox').attr('data-url'), //get url from toggle attribute
+                    data: {
+                        "ischecked": ischecked, //send check status as data
+                    },
+                    success: function (data) {
+
+                        // Use returned data to update the unpinned and pinned lists of variants. 
+                        // This is done individually to retain search term and scroll positions.
+                        $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
+                        $('#variant-menu #pinned-container').html($(data.variant_list).filter('#pinned-container').html())
+                        $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
+
+                        // Apply searches to carry them over.
+                        apply_variant_search()
+
+                        // Look at the stv id attribute from toggle and find the matching variant menu item and set its class to active.
+                        // This will ensure that the menu item still appears selected once the variant lists have been updated.
+                        stv = $('.mini-tabs-content #pin-variant-checkbox').attr('data-stv')
+                        $('#variant-menu').find(`[data-id='${stv}']`).addClass('active blue')
+
+                        // If there is an active menu item (variant still available as a choice)
+                        if ($("#variant-menu .mini-tabs-link.active")[0]) {
+                            // Scroll relevent list to active item
+                            if (ischecked) {
+                                $("#variant-menu #pinned-list").animate({
+                                    scrollTop: $("#variant-menu #pinned-list").scrollTop() + $("#variant-menu .mini-tabs-link.active").position().top
+                                        - $("#variant-menu #pinned-list").height() / 2 + $("#variant-menu .mini-tabs-link.active").height() / 2
+                                }, 200);
+                            } else {
+                                setTimeout(function () {
+                                    $("#variant-menu #unpinned-list").animate({
+                                        scrollTop: $("#variant-menu #unpinned-list").scrollTop() + $("#variant-menu .mini-tabs-link.active").position().top
+                                            - $("#variant-menu #unpinned-list").height() / 2 + $("#variant-menu .mini-tabs-link.active").height() / 2
+                                    }, 200);
+                                }, 100);
+
+                            }
+                        } else {
+                            // If no active item variant is now not available as choice.
+                            // Close variant details
+                            $('.mini-tabs-link').removeClass('active blue');
+                            $(".mini-tabs-content").hide();
+                            $("#variant-content-loader").removeClass('active');
+                            $(".basic_message").show();
+                        }
+
+                        // Refresh popups
+                        $("#variant-menu .js-update-transcript,.pinned-transcript-popup").popup({
+                            inline: false
+                        })
+
+                    },
+                    error: function () {
+                        alert("error");
+                    }
+                })
+        }
+    })
+}
+
+// $("#variant-menu").on("click", ".variant-sub-menu", function () {
+//     // Reset look of filter button and filter bar
+//     $("#variant-menu .variant-sub-menu").removeClass('active')
+//     $(this).addClass('active')
+
+//     if ($(this).hasClass('pinned')) {
+//         $("#variant-menu #pinned-list").show()
+//         $("#variant-menu #unpinned-list").hide()
+//     } else {
+//         $("#variant-menu #pinned-list").hide()
+//         $("#variant-menu #unpinned-list").show()
+//     }
+
+
+// });
 
 // ====================
 // LOAD VARIANT DETAILS 
@@ -95,7 +304,7 @@ $("#mod_filter").click(function () {
 
 $(document).ready(function () {
 
-    $('.mini-tabs-link').click(function () {
+    $("#variant-menu").on("click", ".mini-tabs-link", function () {
 
         var tab_url = $(this).attr('data-url');
 
@@ -107,13 +316,13 @@ $(document).ready(function () {
         var coords = chr + ":" + left + '..' + right;
 
         if ($(this).hasClass('active')) {
-            $('.mini-tabs-link').removeClass('active');
+            $('.mini-tabs-link').removeClass('active blue');
             $(".mini-tabs-content").hide();
             $("#variant-content-loader").removeClass('active');
             $(".basic_message").show();
         } else {
-            $('.mini-tabs-link').removeClass('active');
-            $(this).addClass('active');
+            $('.mini-tabs-link').removeClass('active blue');
+            $(this).addClass('active blue');
 
             $(".basic_message").hide();
 
@@ -130,11 +339,26 @@ $(document).ready(function () {
                 success: function (data) {
                     $(".mini-tabs-content").html(data.variant_details);
                     $(".mini-tabs-content").show();
+                    $("#variant-content-container").scrollTop(0)
 
                     clearTimeout(ajaxLoadTimeout);
                     $("#variant-content-loader").removeClass('active');
 
-                    genomeView.view.navToLocString(coords);
+                    // If browser is open, navigate to variant.
+                    if ($('#browser').css("display") != 'none') {
+                        const assemblyName = genomeView.state.assemblyManager.assemblies[0].name
+                        genomeView.view.navToLocString(coords, assemblyName);
+                    }
+
+                    // Generate variant classification popup
+                    $(".mini-tabs-content .variant-classification").popup({
+                        inline: false,
+                        hoverable: true
+                    })
+
+                    // Setup listener on pin toggle.
+                    SetupVariantPinning()
+
                 }
             });
         }
@@ -145,7 +369,7 @@ $(document).ready(function () {
 // Hide non-active tabs initially
 $('.mini-tabs-content').hide()
 
-$('#menu-toggle-open').click(function () {
+$("#variant-menu").on("click", "#menu-toggle-open", function () {
     $('#variant-menu').hide()
     $('.menu-toggle-closed').show()
 })
@@ -155,7 +379,254 @@ $('.menu-toggle-closed').click(function () {
     $('.menu-toggle-closed').hide()
 })
 
-// $('.menu-toggle-closed').hide()
+// ===================
+// VARIANT LIST SEARCH 
+// ===================
+
+// Create case insensitive .contains filter https://stackoverflow.com/questions/8746882/jquery-contains-selector-uppercase-and-lower-case-issue
+jQuery.expr[':'].icontains = function (a, i, m) {
+    return jQuery(a).text().toUpperCase()
+        .indexOf(m[3].toUpperCase()) >= 0;
+};
+
+function apply_variant_search() {
+    var query = $("#variant-menu #variant-search").val()
+    $("#variant-menu #unpinned-list .gene")
+        .hide()
+        .filter(':icontains("' + query + '")')
+        .show();
+
+    // If no variants match query, show notice message.
+    if (!$("#variant-menu #unpinned-list .gene").is(':visible')) {
+        $("#variant-menu #no-results-notice").removeClass('hidden')
+    } else { // otherwise hide notice
+        $("#variant-menu #no-results-notice").addClass('hidden')
+    }
+
+    // Update header message
+    if (query) {
+        $("#variant-menu .variant-sub-menu-header.unpinned i").removeClass('tasks').addClass('search')
+        $("#variant-menu .variant-sub-menu-header.unpinned .title").text("SEARCHING FOR: '" + query + "'")
+    } else {
+        $("#variant-menu .variant-sub-menu-header.unpinned i").addClass('tasks').removeClass('search')
+        $("#variant-menu .variant-sub-menu-header.unpinned .title").text('ALL VARIANTS')
+    }
+}
+
+$("#variant-menu").on("keyup search", "#variant-search", apply_variant_search);
+
+
+// ==========================
+// UPDATE SELECTED TRANSCRIPT 
+// ==========================
+
+// Initialise pop-ups
+$("#variant-menu .js-update-transcript,.pinned-transcript-popup, #mod_filter.selectable").popup({
+    inline: false
+})
+
+$(function () {
+
+    /* Functions */
+
+    var loadTranscriptForm = function () {
+        var btn = $(this);
+        $.ajax({
+            url: btn.attr("data-url"),
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+                ResetHideBrowser()
+                $('#lightbox').dimmer('hide');
+            },
+            success: function (data) {
+
+                // Disable all elements in variant tab utility bar
+                $('#variants-tab #tab-utility-bar').find('*').addClass('disabled')
+
+                // Populate lightbox with modal featuring form.
+                $('#lightbox').html(data.html_form);
+
+                // Filter table of variants to show only those relevent to the current transcript
+                currently_selected_transcript = $("#lightbox .selected-transcript").attr('data-current');
+                $("#lightbox .variant-row").hide().filter('[data-transcript-id="' + currently_selected_transcript + '"]').show()
+
+                // Show lightbox
+                $('#lightbox').dimmer({
+                    closable: false
+                }).dimmer('show');
+            }
+        });
+    };
+
+    var saveTranscriptForm = function () {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
+                    $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
+
+                    // Hide lightbox
+                    $('#lightbox').dimmer('hide');
+
+                    // Enable tab utility bar
+                    $('#variants-tab #tab-utility-bar').find('*').removeClass('disabled')
+
+                    // Close any open variants
+                    $('.mini-tabs-link').removeClass('active blue');
+                    $(".mini-tabs-content").hide();
+                    $("#variant-content-loader").removeClass('active');
+                    $(".basic_message").show();
+
+                    // Apply any search carried over from before transcript change.
+                    apply_variant_search()
+
+                    // Refresh popups
+                    $("#variant-menu .js-update-transcript,.pinned-transcript-popup").popup({
+                        inline: false
+                    })
+                }
+                else {
+                    $('#lightbox').html(data.html_form);
+                }
+            }
+        });
+        return false;
+    };
+
+
+    /* Binding */
+
+    // Update transcript
+    $("#variant-menu").on("click", ".js-update-transcript", loadTranscriptForm);
+    $("#lightbox").on("submit", "#js-update-transcript-form", saveTranscriptForm);
+
+});
+
+// When select a different transcript
+$("#lightbox").on("click", ".transcript-choice", function () {
+    // Deselect others and make this appear selected
+    $("#lightbox .transcript-choice").removeClass('inverted')
+    $("#lightbox .transcript-choice").addClass('link')
+    $(this).addClass('inverted')
+    $(this).removeClass('link')
+
+    // Extract new and previous transcript id's from data attributes.
+    var new_transcript = $(this).attr('data-transcript-id');
+    var currently_selected_transcript = $("#lightbox .selected-transcript").attr('data-current');
+
+    // Set hidden input value to new transcript. This will be sent to server when user submits form.
+    $("#lightbox .selected-transcript").val(new_transcript);
+
+    // Check whether user has chosen a different transcript, if so allow them to save changes.
+    if (new_transcript === currently_selected_transcript) {
+        $("#lightbox .js-update-transcript-form-submit").addClass('disabled')
+    } else {
+        $("#lightbox .js-update-transcript-form-submit").removeClass('disabled')
+    }
+
+    // Filter table of variants to show only those relevent to the new transcript
+    $("#lightbox .variant-row").hide().filter('[data-transcript-id="' + new_transcript + '"]').show()
+});
+
+// ===============
+// VARIANT COMMENT 
+// =============== 
+
+$(function () {
+
+    /* Functions */
+
+    var loadCommentForm = function () {
+        var btn = $(this);
+        $.ajax({
+            url: btn.attr("data-url"),
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+                $('.mini-tabs-content .js-update-create-comment').hide()
+                $('.mini-tabs-content .js-update-create-comment-active-header').show()
+            },
+            success: function (data) {
+                $('.mini-tabs-content #readonly-comment-form').hide()
+                $('.mini-tabs-content #comment-form').fadeIn()
+                $('.mini-tabs-content #comment-form').html(data.html_form);
+                $('.ui.dropdown').dropdown();
+            }
+        });
+    };
+
+    var saveCommentForm = function () {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    $('.mini-tabs-content #readonly-comment-form').html(data.html_comment_display)
+
+                    $('.mini-tabs-content .js-update-create-comment-active-header').hide()
+                    $('.mini-tabs-content .js-update-create-comment').show()
+
+                    $('.mini-tabs-content #comment-form').hide()
+                    $('.mini-tabs-content #readonly-comment-form').fadeIn()
+
+                    // Fade out existing classifcation, replace with new data from ajax data and fade back in. 
+                    $('.mini-tabs-content #variant-classification-container').fadeOut(function () {
+                        $('.mini-tabs-content #variant-classification-container').html(data.html_classification);
+                        $('.mini-tabs-content #variant-classification-container').fadeIn(function () {
+                            // Refresh variant classification popup
+                            $(".mini-tabs-content .variant-classification").popup({
+                                inline: false,
+                                hoverable: true
+                            })
+                        });
+                    })
+
+
+
+                }
+                else {
+                    $('.mini-tabs-content #comment-form').html(data.html_form);
+                }
+            }
+        });
+        return false;
+    };
+
+
+    /* Binding */
+
+    // Update transcript
+    $(".mini-tabs-content").on("click", ".js-update-create-comment", loadCommentForm);
+    $(".mini-tabs-content").on("submit", "#js-comment-update-create-form", saveCommentForm);
+
+});
+
+// Create cancel button to close comment form.
+$(".mini-tabs-content").on("click", ".js-comment-update-create-cancel", function () {
+    $('.mini-tabs-content .js-update-create-comment-active-header').hide()
+    $('.mini-tabs-content .js-update-create-comment').show()
+    $('.mini-tabs-content #comment-form').hide()
+    $('.mini-tabs-content #readonly-comment-form').fadeIn()
+});
+
+// Create shortcut button to alter pathogenicity classification.
+$(".mini-tabs-content").on("click", ".update-classification-button", function () {
+    $('.mini-tabs-content .variant-classification').popup('hide')
+    $('.mini-tabs-content .details-tabs .item')
+        .tab("change tab", 'evidence')
+        ;
+    $('.mini-tabs-content .js-update-create-comment').trigger('click');
+});
+
 
 // =========
 // MAIN TABS 
@@ -216,8 +687,6 @@ $('.view-in-browser').click(function () {
     // Trigger resize to force jbrowse to update width.
     window.dispatchEvent(new Event('resize'));
 
-    var loaded = True;
-
     // Reset position of browser to that of active variant. 
     var chr = $('.mini-tabs-link.active').attr('data-chr');
     var location = $('.mini-tabs-link.active').attr('data-location');
@@ -226,7 +695,8 @@ $('.view-in-browser').click(function () {
     var coords = chr + ":" + left + '..' + right;
 
     // Delay by 1s to ensure browser is loaded first.
-    setTimeout(function () { genomeView.view.navToLocString(coords); }, 1000);
+    const assemblyName = genomeView.state.assemblyManager.assemblies[0].name
+    setTimeout(function () { genomeView.view.navToLocString(coords, assemblyName); }, 1000);
 
 })
 
@@ -273,9 +743,9 @@ $(document).ready(function () {
     });
 
     // Set up custom search of both tables
-    $('#mySearch').on('keyup click', function () {
+    $('#mySearch').on('keyup click search', function () {
+        $('#gene-table tbody tr').children('td').removeClass('row-selected')
         cov_tables.tables().search($(this).val()).draw();
-
     });
 
     // Hide raw value columns by default
@@ -302,6 +772,22 @@ $(document).ready(function () {
         cov_tables.draw();
     });
 
+
+    // Search exon table when select gene
+    $('#gene-table tbody').on('click', 'tr', function (event) {
+        var row = cov_tables.tables(0).row(this);
+        var selected_gene = row.data()[0]
+
+        if ($(this).children('td').hasClass('row-selected')) {
+            $(this).children('td').removeClass('row-selected')
+            cov_tables.tables(1).search('').draw()
+        } else {
+            $('#gene-table tbody tr').children('td').removeClass('row-selected')
+            $(this).children('td').addClass('row-selected')
+            cov_tables.tables(1).search(selected_gene).draw()
+        }
+    });
+
 });
 
 $('#min-read-filter-input').hide()
@@ -324,6 +810,7 @@ $.fn.dataTable.ext.search.push(
         return false;
     }
 );
+
 
 
 // ==============
@@ -505,5 +992,5 @@ const genomeView = new JBrowseLinearGenomeView({
             "showCenterLine": true
         },
     },
-    location: '1'
+    location: ''
 })

@@ -1,0 +1,117 @@
+{% extends 'accounts-base.html' %}
+{% load static %}
+{% block content %}
+<div class="ui grid">
+    <div class="one wide column"></div>
+    <div class="fourteen wide column">
+        <h2 class="ui image header">
+            <i class="sign in alternate icon"></i>
+            <div class="content">
+                Register
+                <div class="sub header">
+                    <p>Fill in the form to create an account.</p>
+                </div>
+            </div>
+        </h2>
+        <form method="post" action="{% url 'register' %}" class="ui form">
+            {% csrf_token %}
+            {% if form.errors %}
+            <div class="ui negative message">
+                <i class="close icon"></i>
+                <div class="content">
+                    <div class="header">Error:</div>
+                    {% for field in form %}
+                    <ul class="list">
+                        {% for error in field.errors %}
+                        <li>{{field.label}}: {{error|escape}}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            <div class="ui stacked segment">
+                <h4 class="ui dividing header">Personal Information</h4>
+                <div class="required field">
+                    <label>Name</label>
+                    <div class="fields">
+                        <div class="seven wide field">
+                            {{form.first_name}}
+                        </div>
+                        <div class="nine wide field">
+                            {{form.last_name}}
+                        </div>
+                    </div>
+                </div>
+                <h4 class="ui dividing header">Role Information</h4>
+                <div class="fields">
+                    <div class="required seven wide field">
+                        {{form.role.label_tag}}
+                        {{form.role}}
+                    </div>
+                    <div class="required five wide field">
+                        {{form.hubs.label_tag}}
+                        {{form.hubs}}
+                    </div>
+                    <div class="required four wide field">
+                        {{form.band.label_tag}}
+                        {{form.band}}
+                    </div>
+                </div>
+                <h4 class="ui dividing header">Account Information</h4>
+                <div class="required field">
+                    <label>Username</label>
+                    <input type="text" name="{{form.username.html_name}}" placeholder="{{form.username.label}}"
+                        {%if form.errors %}value="{{form.username.value}}" {% endif %}></input>
+                </div>
+                <div class="required field">
+                    <label>Email</label>
+                    <input type="text" name="{{form.email.html_name}}" placeholder="{{form.email.label}}"
+                        {%if form.errors %}value="{{form.email.value}}" {% endif %}></input>
+                </div>
+                <div class="required field">
+                    <label>{{form.password1.label}}</label>
+                    <input type="password" name="{{form.password1.html_name}}"
+                        placeholder="{{form.password1.label}}"></input>
+                </div>
+                <div class="required field">
+                    <label>{{form.password2.label}}</label>
+                    <input type="password" name="{{form.password2.html_name}}"
+                        placeholder="{{form.password2.help_text}}"></input>
+                </div>
+                <input type="submit" class="ui fluid large blue submit button" value="Submit" />
+            </div>
+        </form>
+    </div>
+    <div class="one wide column"></div>
+</div>
+
+<script>
+
+    let $first_name_field = $('input[name="first_name"]');
+    let $last_name_field = $('input[name="last_name"]');
+
+
+    function createUsername() {
+        let first_name = $first_name_field.val()
+            .substring(0, 1)
+            .toLowerCase();
+        let last_name = $last_name_field.val()
+            .replace(' ', '')
+            .replace('\'', '')
+            .replace('-', '')
+            .toLowerCase();
+        let username = first_name + last_name;
+
+        $('input[name="username"]').val(username);
+    }
+
+    $first_name_field.on(
+        'change keyup keydown paste blur focus', createUsername
+    );
+
+    $last_name_field.on(
+        'change keyup keydown paste blur focus', createUsername
+    );
+</script>
+{% endblock %}

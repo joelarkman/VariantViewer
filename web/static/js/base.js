@@ -33,9 +33,6 @@ function onResize() {
 
         localStorage.setItem('sidebarState', 'collapse');
     }
-
-    // igv.visibilityChange();
-
 };
 
 
@@ -89,5 +86,11 @@ if (sidebarState === 'collapse') {
     $('.ui.sidenav').addClass('compact').addClass('icon');
     $('.ui.sidenav .item:has(.menu)').addClass('zero-padding');
 
+    onResize();
+} else {
+    $(this).removeClass('expand-menu').addClass('compact-menu');
+    $(this).find('.icon').removeClass('right').addClass('left');
+    $('.ui.sidenav').removeClass('compact').removeClass('icon');
+    $('.ui.sidenav .item:has(.menu)').removeClass('zero-padding');
     onResize();
 }

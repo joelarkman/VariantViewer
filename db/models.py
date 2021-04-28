@@ -1,6 +1,6 @@
 from django.db import models
 from django.dispatch import receiver
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.template.defaultfilters import slugify
 
 from db.utils.model_utils import BaseModel
@@ -16,6 +16,9 @@ class Pipeline(BaseModel):
 
 class Samplesheet(BaseModel):
     path = models.CharField(max_length=255)
+
+    latest_run = models.ForeignKey(
+        'Run', blank=True, null=True, on_delete=models.PROTECT, related_name='latest')
 
     def __str__(self):
         return f"{self.path}"
@@ -34,6 +37,13 @@ class PipelineVersion(BaseModel):
         related_name='updated_by'
     )
 
+    default_filter = models.ForeignKey(
+        'web.Filter',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
     def __str__(self):
         return f"{self.pipeline} {self.version}"
 
@@ -44,7 +54,8 @@ class Run(BaseModel):
     completed_at = models.DateTimeField()
     samplesheet = models.ForeignKey(
         Samplesheet,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        related_name='runs'
     )
     output_dir = models.CharField(max_length=255)
     fastq_dir = models.CharField(max_length=255)
@@ -68,17 +79,18 @@ class Run(BaseModel):
 
     # Method to retrieve all samples associated with a run
     def get_samples(self):
-        return Sample.objects.filter(samplesheets__run__id=self.id)
-
-    # Method to retrieve readable qc_status value
-    def get_qc_status(self):
-        try:
-            return self.Status.choices[int(self.qc_status)][1]
-        except:
-            return None
+        return SamplesheetSample.objects.filter(samplesheet__runs__id=self.id)
 
     def __str__(self):
         return f"{self.worksheet}"
+
+
+@receiver(post_save, sender=Run)
+def set_latest_run(sender, instance, *args, **kwargs):
+    # Ensure latest run is always set to the most recently completed run associated with a given samplesheet.
+    instance.samplesheet.latest_run = Run.objects.filter(
+        samplesheet=instance.samplesheet).order_by('-completed_at')[0]
+    instance.samplesheet.save()
 
 
 class BAM(PipelineOutputFileModel):
@@ -86,7 +98,24 @@ class BAM(PipelineOutputFileModel):
 
 
 class VCF(PipelineOutputFileModel):
-    pass
+    filters = models.ManyToManyField(
+        'web.Filter',
+        through="VCFFilter"
+    )
+
+
+class VCFFilter(BaseModel):
+    """
+    Representation of filter associated with a particular VCF file.
+    """
+    vcf = models.ForeignKey(
+        VCF,
+        on_delete=models.CASCADE
+    )
+    filter = models.ForeignKey(
+        'web.Filter',
+        on_delete=models.CASCADE
+    )
 
 
 class GenomeBuild(BaseModel):
@@ -126,6 +155,11 @@ class Patient(BaseModel):
 
 class Sample(BaseModel):
     slug = models.SlugField(max_length=50, unique=True)
+    patient = models.ForeignKey(
+        Patient,
+        on_delete=models.PROTECT,
+        related_name='samples'
+    )
     lab_no = models.CharField(max_length=50)
     samplesheets = models.ManyToManyField(
         Samplesheet,
@@ -140,6 +174,20 @@ class Sample(BaseModel):
         through="SampleVCF"
     )
 
+    def get_variants(self, run, pinned):
+
+        vcf = self.vcfs.get(run=run)
+
+        if pinned:
+            return SampleTranscriptVariant.objects.filter(sample_variant__sample=self,
+                                                          sample_variant__variant__variantreport__vcf=vcf,
+                                                          pinned=True).order_by('transcript__gene__hgnc_name')
+        else:
+            return SampleTranscriptVariant.objects.filter(sample_variant__sample=self,
+                                                          sample_variant__variant__variantreport__vcf=vcf,
+                                                          selected=True,
+                                                          pinned=False).order_by('transcript__gene__hgnc_name')
+
     def __str__(self):
         # return f"{self.samplesheet.run} {self.lab_no}"
 
@@ -152,13 +200,17 @@ class Sample(BaseModel):
 @receiver(pre_save, sender=Sample)
 def set_sample_slug(sender, instance, *args, **kwargs):
     if not instance.slug:
-        instance.slug = slugify(instance.sample_id)
+        instance.slug = slugify(instance.lab_no)
 
 
 class ExcelReport(PipelineOutputFileModel):
     """Excel report for a patient, can relate directly to sample."""
     sample = models.ForeignKey(
         Sample,
+        on_delete=models.CASCADE
+    )
+    run = models.ForeignKey(
+        Run,
         on_delete=models.CASCADE
     )
 
@@ -351,8 +403,28 @@ class SampleTranscriptVariant(BaseModel):
         SampleVariant,
         on_delete=models.PROTECT
     )
+
     selected = models.BooleanField()
+    pinned = models.BooleanField(default=False)
+
     effect = models.CharField(max_length=255)
+
+    def get_short_hgvs(self):
+        tv = TranscriptVariant.objects.get(
+            variant=self.sample_variant.variant, transcript=self.transcript)
+        long_hgvs = [i.partition(':')[2]
+                     for i in [tv.hgvs_c, tv.hgvs_p, tv.hgvs_g]]
+        return {'hgvs_c': long_hgvs[0], 'hgvs_p': long_hgvs[1], 'hgvs_g': long_hgvs[2]}
+
+    def get_long_hgvs(self):
+        tv = TranscriptVariant.objects.get(
+            variant=self.sample_variant.variant, transcript=self.transcript)
+        return {'hgvs_c': tv.hgvs_c, 'hgvs_p': tv.hgvs_p, 'hgvs_g': tv.hgvs_g}
+
+    def get_variant_report(self, run):
+        vcf = self.sample_variant.sample.vcfs.get(run=run)
+        variant = self.sample_variant.variant
+        return VariantReport.objects.get(vcf=vcf, variant=variant)
 
 
 class Exon(BaseModel):
@@ -402,6 +474,9 @@ class CoverageInfo(BaseModel):
     pct_40x = models.IntegerField()
     pct_50x = models.IntegerField()
     pct_100x = models.IntegerField()
+
+    def get_percentages(self):
+        return [self.pct_10x, self.pct_20x, self.pct_30x, self.pct_40x, self.pct_50x, self.pct_100x]
 
 
 class ExonReport(BaseModel):

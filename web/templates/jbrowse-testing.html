@@ -203,7 +203,8 @@
 
         var coords = chr + ":" + left + '..' + right;
 
-        genomeView.view.navToLocString(coords, 'hg19');
+        const assemblyName = genomeView.state.assemblyManager.assemblies[0].name
+        genomeView.view.navToLocString(coords, assemblyName);
 
     })
 
@@ -244,5 +245,38 @@
 </div>
 
 
+
+
+{% for gene in genes %}
+<div class="ui inverted segment" style="margin: 15px;">
+    <h2>Gene: {{gene.hgnc_name}} {{gene.hgnc_id}}</h2>
+
+    <h4>{% for alias in gene.genealias_set.all %} {{alias.name}} {% endfor %}</h4>
+    <hr>
+    <h3>Transcripts:</h3>
+
+    {% for transcript in gene.transcript_set.all %}
+
+    <div class="ui {% if transcript.canonical %}blue{% endif %} raised segment">
+        <h4>{{transcript.name}} | {{transcript.sequence.start_coord.chrom}} |
+            {{transcript.sequence.start_coord.pos}}-{{transcript.sequence.end_coord.pos}} |
+            {{transcript.sequence.start_coord.genome_build.name}} | {{transcript.canonical}}</h4>
+
+
+        <h5>Exons:</h5>
+        {% for exon in transcript.exon_set.all %}
+
+        <div class="ui segment">
+            <h5>{{exon.number}} | {{exon.sequence.first.start_coord.chrom}} |
+                {{exon.sequence.first.start_coord.pos}}-{{exon.sequence.first.end_coord.pos}} |
+                {{exon.sequence.first.start_coord.genome_build.name}}</h5>
+        </div>
+
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+</div>
+{%endfor%}
 
 {% endblock %}
