@@ -63,6 +63,11 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    filters = models.ManyToManyField(
+        'web.Filter',
+        through="UserFilter"
+    )
+
     # validate_hash = models.CharField(
     #     max_length=255,
     #     default=get_validate_hash
@@ -79,3 +84,17 @@ class User(AbstractUser):
             return f"https://avatars.dicebear.com/api/initials/" \
                    f"{self.first_name[0]}{self.last_name[0]}:.svg" \
                    f"?r=5&bold=1"
+
+
+class UserFilter(models.Model):
+    """
+    Representation of filter associated with a particular VCF file.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+    filter = models.ForeignKey(
+        'web.Filter',
+        on_delete=models.CASCADE
+    )

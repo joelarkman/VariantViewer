@@ -1,10 +1,54 @@
 import os
 from django.db import models
-from db.models import SampleTranscriptVariant
-from db.utils.model_utils import BaseModel
+from db.models import VCF, SampleTranscriptVariant
+from django.utils.translation import gettext_lazy as _
+
+
+@models.Field.register_lookup
+class NotEqual(models.Lookup):
+    # Create custom lookup to objects not equal (ne) to value.
+    lookup_name = 'ne'
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = lhs_params + rhs_params
+        return '%s <> %s' % (lhs, rhs), params
 
 
 # Create your models here.
+class Filter(models.Model):
+    # genekey = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=1000, blank=True,)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.id}"
+
+
+class FilterItem(models.Model):
+    filter = models.ForeignKey(
+        Filter, related_name='items', on_delete=models.CASCADE)
+    field = models.CharField(max_length=100)
+    value = models.CharField(max_length=100)
+
+    class FilterType(models.TextChoices):
+        IS = '__iexact', _('is')
+        # __ne is a custom lookup. See above.
+        IS_NOT = '__ne', _('is not')
+        CONTAINS = '__icontains', _('contains')
+        LESS_THAN = '__lt', _('<')
+        GREATER_THAN = '__gt', _('>')
+        LESS_THAN_OR_EQUAL_TO = '__lte', _('≤')
+        GREATER_THAN_OR_EQUAL_TO = '__gte', _('≥')
+
+    filter_type = models.CharField(
+        max_length=15,
+        choices=FilterType.choices,
+        default=FilterType.IS,
+    )
 
 
 class Document(models.Model):

@@ -37,6 +37,13 @@ class PipelineVersion(BaseModel):
         related_name='updated_by'
     )
 
+    default_filter = models.ForeignKey(
+        'web.Filter',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
     def __str__(self):
         return f"{self.pipeline} {self.version}"
 
@@ -87,15 +94,26 @@ def set_latest_run(sender, instance, *args, **kwargs):
 
 
 class BAM(PipelineOutputFileModel):
-    run = models.ForeignKey(
-        Run,
-        on_delete=models.CASCADE
-    )
+    pass
 
 
 class VCF(PipelineOutputFileModel):
-    run = models.ForeignKey(
-        Run,
+    filters = models.ManyToManyField(
+        'web.Filter',
+        through="VCFFilter"
+    )
+
+
+class VCFFilter(BaseModel):
+    """
+    Representation of filter associated with a particular VCF file.
+    """
+    vcf = models.ForeignKey(
+        VCF,
+        on_delete=models.CASCADE
+    )
+    filter = models.ForeignKey(
+        'web.Filter',
         on_delete=models.CASCADE
     )
 
@@ -170,13 +188,12 @@ class Sample(BaseModel):
                                                           selected=True,
                                                           pinned=False).order_by('transcript__gene__hgnc_name')
 
+    def __str__(self):
+        # return f"{self.samplesheet.run} {self.lab_no}"
 
-def __str__(self):
-    # return f"{self.samplesheet.run} {self.lab_no}"
-
-    # All samplesheets for this sample shown with comma seperating them.
-    # Original version caused an error as it assumed one samplesheet per sample.
-    return f"{', '.join([samplesheet.run.worksheet for samplesheet in self.samplesheets.all()])} {self.lab_no}"
+        # All samplesheets for this sample shown with comma seperating them.
+        # Original version caused an error as it assumed one samplesheet per sample.
+        return f"{', '.join([samplesheet.run.worksheet for samplesheet in self.samplesheets.all()])} {self.lab_no}"
 
 
 # Automatically populate empty slug field with sample_id before save.
