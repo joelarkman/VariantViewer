@@ -37,7 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'web.apps.WebConfig'
+    'web.apps.WebConfig',
+    'db.apps.DbConfig',
+    'django_extensions',
+    'accounts.apps.AccountsConfig'
 ]
 
 # Necessary for iframes to load.
@@ -80,10 +83,15 @@ WSGI_APPLICATION = 'VariantViewer.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'variant_viewer_test_db',
+        'USER': 'variant_viewer',
+        'PASSWORD': 'variant_viewer_pwd',
+        'HOST': '127.0.0.1',
+        'PORT': '',
     }
 }
+
 
 
 # Password validation
@@ -94,7 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+	'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -128,3 +136,10 @@ STATIC_DIR = STATIC_ROOT
 STATIC_URL = '/static/'
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
+
+SHELL_PLUS = 'ipython'
+NOTEBOOK_ARGUMENTS = ['--ip', '0.0.0.0', '--no-browser']
+
+
+# DB config
+AUTH_USER_MODEL = 'accounts.User'
