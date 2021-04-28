@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.db.models import Q
 
-from db.utils.filter_utils import filter_variants, get_filter
+from db.utils.filter_utils import filter_variants, get_filters
 
 from .models import Comment, Document, Filter, FilterItem
 
@@ -110,15 +110,15 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         context['run'] = run
         context['ss_sample'] = ss_sample
 
-        filter = get_filter(ss_sample.sample, run)
+        filters = get_filters(ss_sample.sample, run, user=self.request.user)
         filtered_variants = filter_variants(
-            ss_sample.sample, run, filter=filter)
+            ss_sample.sample, run, filter=filters.get('active_filter'))
 
         context['unpinned_variants'] = filtered_variants.get(
             'unpinned_variants')
         context['pinned_variants'] = filtered_variants.get('pinned_variants')
 
-        context['filter'] = filter
+        context['filters'] = filters
 
         context['excelreport'] = ExcelReport.objects.get(
             run=run, sample=ss_sample.sample)
@@ -149,7 +149,7 @@ def load_worksheet_details(request, pk):
 
 def modify_filters(request, run, ss_sample, filter=None):
     """
-    AJAX view to modify filters using formset.  
+    AJAX view to modify filters using formset.
     """
 
     data = dict()
@@ -166,11 +166,15 @@ def modify_filters(request, run, ss_sample, filter=None):
 
     def populate_field_choices(field, **kwargs):
         if field.name == 'field':
-            return forms.CharField(widget=forms.Select(choices=VRI_tags, attrs={'class': 'ui short search selection dropdown'}))
+            return forms.CharField(widget=forms.Select(choices=VRI_tags, attrs={'class': 'ui short search selection dropdown filter-dropdown'}))
         return field.formfield(**kwargs)
 
     FilterItemFormSet = forms.inlineformset_factory(Filter, FilterItem,
                                                     form=FilterItemForm, extra=0, can_delete=True, formfield_callback=populate_field_choices)
+
+    # Load all relevent filters to display as options in the form.
+    filters = get_filters(
+        ss_sample.sample, run, user=request.user)
 
     try:
         instance = Filter.objects.get(id=filter)
@@ -183,16 +187,35 @@ def modify_filters(request, run, ss_sample, filter=None):
         if form.is_valid():
             created_filter = form.save()
 
-            # Associate this filter with VCF if it hasnt before.
-            if not VCFFilter.objects.filter(vcf=vcf, filter=created_filter).exists():
-                vf1 = VCFFilter(vcf=vcf, filter=created_filter)
-                vf1.save()
+            # If applying pipeline preset
+            if created_filter == filters.get('pipeline_default_filter'):
+                # deselect all user presets
+                for userfilter in UserFilter.objects.filter(user=request.user, filter__vcf=vcf):
+                    userfilter.selected = False
+                    userfilter.save()
+            else:
+                # If applying a user preset.
 
-            # Associate this filter with logged in User if it hasnt before.
-            if not UserFilter.objects.filter(user=request.user, filter=created_filter).exists():
-                uf1 = UserFilter(user=request.user, filter=created_filter)
-                uf1.save()
+                # Associate this filter with VCF if it hasnt before.
+                if not VCFFilter.objects.filter(vcf=vcf, filter=created_filter).exists():
+                    vf1 = VCFFilter(vcf=vcf, filter=created_filter)
+                    vf1.save()
 
+                # Associate this filter with logged in User if it hasnt before.
+                if not UserFilter.objects.filter(user=request.user, filter=created_filter).exists():
+                    uf1 = UserFilter(user=request.user, filter=created_filter)
+                    uf1.save()
+
+                # Deselect all other user presets and select this one.
+                for userfilter in UserFilter.objects.filter(user=request.user, filter__vcf=vcf):
+                    if userfilter.filter == created_filter:
+                        userfilter.selected = True
+                        userfilter.save()
+                    else:
+                        userfilter.selected = False
+                        userfilter.save()
+
+            # Save any changes to the filter items
             formset = FilterItemFormSet(
                 request.POST, request.FILES, instance=created_filter)
 
@@ -201,30 +224,30 @@ def modify_filters(request, run, ss_sample, filter=None):
 
                 formset.save()
 
-                retrieved_filter = get_filter(ss_sample.sample, run)
+            filters = get_filters(
+                ss_sample.sample, run, user=request.user)
 
-                # Try and filter variants
-                try:
-                    filtered_variants = filter_variants(
-                        ss_sample.sample, run, filter=retrieved_filter)
+            # Try and filter variants
+            try:
+                filtered_variants = filter_variants(
+                    ss_sample.sample, run, filter=filters.get('active_filter'))
 
-                    data['form_is_valid'] = True
+                data['form_is_valid'] = True
 
-                    data['variant_list'] = render_to_string('includes/variant-list.html',
-                                                            {'run': run,
-                                                             'ss_sample': ss_sample,
-                                                             'unpinned_variants': filtered_variants.get('unpinned_variants'),
-                                                             'pinned_variants': filtered_variants.get('pinned_variants')},
-                                                            request=request)
+                data['variant_list'] = render_to_string('includes/variant-list.html',
+                                                        {'run': run,
+                                                            'ss_sample': ss_sample,
+                                                            'unpinned_variants': filtered_variants.get('unpinned_variants'),
+                                                            'pinned_variants': filtered_variants.get('pinned_variants')},
+                                                        request=request)
 
-                    data['active_filters'] = render_to_string('includes/active-filters.html',
-                                                              {'run': run,
-                                                               'ss_sample': ss_sample,
-                                                               'filter': retrieved_filter},
-                                                              request=request)
-                except:
-                    retrieved_filter.items.all().delete()
-                    data['form_is_valid'] = False
+                data['active_filters'] = render_to_string('includes/active-filters.html',
+                                                          {'run': run,
+                                                           'ss_sample': ss_sample,
+                                                           'filters': filters},
+                                                          request=request)
+            except:
+                data['form_is_valid'] = False
 
     else:
         form = FilterForm(instance=instance)
@@ -232,7 +255,8 @@ def modify_filters(request, run, ss_sample, filter=None):
 
     context = {'run': run,
                'ss_sample': ss_sample,
-               'filter': instance,
+               'filter_instance': instance,
+               'filters': filters,
                'form': form,
                'formset': formset}
 
@@ -281,10 +305,10 @@ def pin_variant(request, run, stv):
     ss_sample = SamplesheetSample.objects.get(
         sample=stv.sample_variant.sample.id)
 
-    retrieved_filter = get_filter(ss_sample.sample, run)
+    filters = get_filters(ss_sample.sample, run, user=request.user)
 
     filtered_variants = filter_variants(
-        ss_sample.sample, run, filter=retrieved_filter)
+        ss_sample.sample, run, filter=filters.get('active_filter'))
 
     ischecked = request.GET.get('ischecked')
 
@@ -314,10 +338,10 @@ def update_selected_transcript(request, run, ss_sample, transcript):
     ss_sample = SamplesheetSample.objects.get(
         id=ss_sample)
 
-    retrieved_filter = get_filter(ss_sample.sample, run)
+    filters = get_filters(ss_sample.sample, run, user=request.user)
 
     filtered_variants = filter_variants(
-        ss_sample.sample, run, filter=retrieved_filter)
+        ss_sample.sample, run, filter=filters.get('active_filter'))
 
     variant_containing_transcripts = SampleTranscriptVariant.objects.filter(sample_variant__sample=ss_sample.sample,
                                                                             sample_variant__variant__variantreport__vcf=ss_sample.sample.vcfs.get(

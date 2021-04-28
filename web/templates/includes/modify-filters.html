@@ -1,4 +1,5 @@
 {% load add_class %}
+{% load get_display_choice %}
 
 <div class="ui segments" style="display: flex;min-width: 75%;max-width: 90%;max-height: 90%;">
     <div class="ui left aligned clearing segment">
@@ -6,18 +7,126 @@
     </div>
 
     <div class="ui left aligned segment">
-        <div class="ui info message">
-            <b>Pipeline preset active</b>
+        <div id='status-message' class="ui message">
+            {% if filter_instance %}
+            {% if filter_instance == filters.blank_filter %}
+
+            <b>Disable all filters</b>
+
+            {% elif filter_instance == filters.pipeline_default_filter %}
+
+            <b>The default filtering preset for the {{run.pipeline_version.pipeline}} pipeline is selected.</b>
+            <span>Note: default filter items cannot be modified.</span>
+
+            {% else %}
+
+            <b>The custom filtering preset '{{filter_instance.name}}' is selected.</b>
+            <span>Note: custom filter items can be modified.</span>
+
+            {% endif %}
+
+            {%else%}
+
+            <b>Please define a custom set of filtering parameters.</b>
+
+            {%endif%}
         </div>
     </div>
 
     <div class="ui left aligned segment"
         style="display: flex;flex-direction: row;;overflow: hidden;padding: 0;min-height: 40vh;">
 
-        <div style="display: flex;flex: 1;flex-direction: column;margin-right: auto;overflow-y: auto;padding: 14px;">
+        <!-- Load readonly version of form if filter_instance is a default -->
+        {% if filter_instance == filters.pipeline_default_filter and filter_instance != None or filter_instance == filters.blank_filter %}
+
+        <div id='filter-instance-container'
+            style="display: flex;flex: 1;flex-direction: column;margin-right: auto;overflow-y: auto;padding: 14px;">
 
             <form class="ui form" id="js-modify-filter-form" method="post"
-                action="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filter %}">
+                action="{% if filter_instance.id %}{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filter_instance.id %}{%else%}{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter='None' %}{%endif%}">
+
+                {% csrf_token %}
+                {{form.non_field_errors}}
+                {{form.errors}}
+                <div class="ui fields" style="display: flex;align-items: flex-start;justify-content: space-between;">
+                    <div class="field" style="flex: 0 0 30%;">
+                        <label for="id_genekey">Name:</label>
+                        <div class="ui input">
+                            {{form.name|add_class:'hidden'}}
+                            <input readonly type="text"
+                                value="{% if filter_instance != filters.blank_filter %}{{form.name.value}}{%endif%}"
+                                placeholder="">
+                        </div>
+
+                    </div>
+
+                    <div class="field" style="flex: 1;">
+                        <label for="id_genekey">Description:</label>
+                        <div class="ui input">
+                            {{form.description|add_class:'hidden'}}
+                            <textarea readonly rows=4 type="text" value="{{form.description.value}}"
+                                placeholder="{% if filter_instance != filters.blank_filter %}No description available{%endif%}"
+                                style="resize: none;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <span style="font-size: 13px;font-weight: 700;">Filters:</span>
+
+                {{ formset.management_form }}
+                <div id="form-set" class="ui top attached raised tertiary segment"
+                    style="display: flex;gap: 15px;flex-direction: column;margin-top: 4px;padding: 10px;">
+
+                    <div class="title-row"
+                        style="display: flex; flex-direction: row;align-items: center;justify-content: space-between;flex-wrap: wrap; ">
+
+                        <span style="width: 196px;">Field:</span>
+                        <span style="width:196px">Filter type:</span>
+                        <span style="width: 177px;">Value:</span>
+                        <span style="width: 38.5156px;"></span>
+                    </div>
+
+                    {% for form in formset.forms %}
+                    {{form.non_field_errors}}
+                    <!-- {{form.errors}} -->
+                    <div class="ui form form-row"
+                        style="display: flex; flex-direction: row;align-items: center;justify-content: space-between; flex-wrap: wrap;">
+                        {{ form.id|add_class:'hidden' }}
+                        {{ form.field|add_class:'hidden'}}
+                        <div class="ui input" style="width: 196px;">
+                            <input readonly type="text" value="{{form.field.value}}">
+                        </div>
+                        {{ form.filter_type|add_class:'hidden'}}
+                        <div class="ui input" style="width:196px">
+                            <input readonly type="text"
+                                value="{{form.filter_type.field.choices|get_display_choice:form.filter_type.value}}">
+                        </div>
+                        {{ form.value|add_class:'hidden'}}
+                        <div class="ui input" style="width: 177px;">
+                            <input readonly type="text" value="{{form.value.value}}">
+                        </div>
+
+                        {{ form.DELETE|add_class:"hidden" }}
+                        <div class="ui disabled negative icon button remove-formset-button">
+                            <i class="trash icon"></i>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="ui bottom attached raised segment add-container" style="padding: 10px;">
+                    <div class='ui disabled fluid button' value="Add More" id="add_more"><i class="plus icon"></i></div>
+                </div>
+            </form>
+        </div>
+
+        {% else %}
+        <!-- Load Normal Form -->
+        <div id='filter-instance-container'
+            style="display: flex;flex: 1;flex-direction: column;margin-right: auto;overflow-y: auto;padding: 14px;">
+
+            <form class="ui form" id="js-modify-filter-form" method="post"
+                action="{% if filter_instance.id %}{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filter_instance.id %}{%else%}{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter='None' %}{%endif%}">
                 {% csrf_token %}
                 {{form.non_field_errors}}
                 {{form.errors}}
@@ -67,25 +176,17 @@
                             {{ form.value}}
                         </div>
 
-                        <!-- <div class="ui input">
-                            <input readonly type="text" value="{{form.value.value}}">
-                        </div> -->
-
                         {{ form.DELETE|add_class:"hidden" }}
                         <div class="ui negative icon button remove-formset-button">
                             <i class="trash icon"></i>
                         </div>
                     </div>
                     {% endfor %}
-
-
-
                 </div>
 
                 <div class="ui bottom attached raised segment add-container" style="padding: 10px;">
                     <div class='ui fluid button' value="Add More" id="add_more"><i class="plus icon"></i></div>
                 </div>
-
 
                 <div id="empty-form" style="display:none">
                     <div class="form-row"
@@ -104,12 +205,12 @@
                 </div>
             </form>
         </div>
-
+        {%endif%}
 
         <div class="ui attached segment"
             style="flex-direction: column;flex: 0 1 22%;padding: 0;height: 100%;margin: 0;border-top: none;border-bottom: none;overflow-y: auto;overflow-x: hidden;min-height: 285px;">
 
-            <div class="ui vertical attached menu" style="border: none;width: 100%;">
+            <div class="ui vertical attached menu" style="display: flex;border: none;width: 100%;height: 100%;">
 
                 <div class="ui attached segment"
                     style="padding-top: 9px;padding-bottom: 9px; padding-left: 12px;padding-right: 12px ;font-size: 12px; font-weight: 700; line-height: 12px;border-left: none;border-right: none;border-top: none; color: rgba(0,0,0,.6); background-color: #e8e8e8;">
@@ -117,12 +218,22 @@
                     PIPELINE DEFAULT
                 </div>
 
+                {% if filters.pipeline_default_filter %}
 
-                <a class="active primary item">
-                    TSMP v1
-                    <i class="check icon"></i>
+                <a class="item  {% if  filters.pipeline_default_filter == filters.active_filter %}active blue{% endif %} filter-preset-item"
+                    data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filters.pipeline_default_filter.id %}">
+                    {{filters.pipeline_default_filter.name}}
+                    <i
+                        class="{% if  filters.pipeline_default_filter == filters.active_filter %}check{% endif %} circle outline icon"></i>
                 </a>
 
+                {%else%}
+
+                <div style="margin-top:13px;margin-bottom: 13px;">
+                    <span style="margin-left: 16px;">None</span>
+                </div>
+
+                {%endif%}
 
                 <div class="ui attached segment"
                     style="padding-top: 9px;padding-bottom: 9px; padding-left: 12px;padding-right: 12px ;font-size: 12px; font-weight: 700; line-height: 12px;border-left: none;border-right: none;color: rgba(0,0,0,.6); background-color: #e8e8e8;">
@@ -130,96 +241,49 @@
                     CUSTOM FILTER
                 </div>
 
-                <a class=" item">
+                {% for filter in filters.user_filters %}
+
+                <a class="item  {% if filters.active_filter == filter %}active blue{% endif %} filter-preset-item"
+                    data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filter.id %}">
                     {{filter.name}}
-                    <i class="check icon"></i>
+                    <i class="{% if filters.active_filter == filter %}check{% endif %} circle outline icon"></i>
                 </a>
 
-                <div class="ui attached segment"
+                {% endfor %}
+
+                <a class="item {% if filters.active_filter == None %}active blue{% endif %} filter-preset-item "
+                    data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter='None' %}">
+                    Create custom filter
+                    <i class="plus icon"></i>
+                </a>
+
+                <!-- <div class="ui attached segment"
                     style="padding-top: 9px;padding-bottom: 9px; padding-left: 12px;padding-right: 12px ;font-size: 12px; font-weight: 700; line-height: 12px;border-left: none;border-right: none; color: rgba(0,0,0,.6); background-color: #e8e8e8;">
                     <i class="user icon" style="margin-right: 9px;width: 9px;"></i>
                     OTHER USER FILTERS
                 </div>
 
-                <div style="margin-top:13px">
-                    <span style="margin-left: 16px;">None</span>
-                </div>
+                <div style="margin-top:13px;margin-bottom: 13px;">
+                    <span style="margin-left: 16px">None</span>
+                </div> -->
 
-
+                {% if filters.user_filters or filters.pipeline_default_filter %}
+                <a class="item {% if filters.active_filter == filters.blank_filter %}active blue{% endif %} filter-preset-item "
+                    style="margin-top: auto;"
+                    data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filters.blank_filter.id %}">
+                    Disable all filters
+                    <i class="trash icon"></i>
+                </a>
+                {%endif%}
             </div>
-
-
         </div>
-
     </div>
 
     <div class="ui secondary left aligned clearing segment">
         <input type="submit" form="js-modify-filter-form"
             class="ui right floated primary button js-modify-filter-form-submit" data-stv='' style="margin-left: 10px;"
-            value="Save changes">
+            value="Apply">
         <div class="ui right floated button filter-settings-close">Cancel</div>
     </div>
 
 </div>
-
-<script type="text/javascript">
-    $(function () {
-        $('.ui.dropdown')
-            .dropdown({
-                direction: 'upward'
-            });
-
-        $('#add_more').click(function () {
-            var form_idx = $('#id_items-TOTAL_FORMS').val();
-            $('#form-set').append($('#empty-form').html().replace(/__prefix__/g, form_idx));
-            $('#id_items-TOTAL_FORMS').val(parseInt(form_idx) + 1);
-
-            $('.ui.dropdown')
-                .dropdown({
-                    direction: 'upward'
-                })
-                ;
-
-            $('.remove-formset-button').click(function () {
-                delete_form(this)
-            });
-
-            $('#form-set').show()
-            $('.add-container').addClass('bottom attached')
-        });
-
-        $('.remove-formset-button').click(function () {
-            delete_form(this)
-        });
-
-        function delete_form(button) {
-            $(button).siblings('[id*=DELETE]').prop('checked', true)
-            $(button).parents('.form-row').hide()
-            $('#form-set').toggle($('.form-row:visible').length != 0);
-            $('.add-container').toggleClass('bottom attached', $('.form-row:visible').length != 0);
-        }
-
-        // $('[id*=DELETE]').hide()
-        $('#form-set').toggle($('.form-row:visible').length != 0);
-        $('.add-container').toggleClass('bottom attached', $('.form-row:visible').length != 0);
-
-
-        // var propertyChangeUnbound = false;
-        // $("#js-modify-filter-form").children().bind("propertychange", function (e) {
-        //     if (e.originalEvent.propertyName == "value") {
-        //         $('.js-modify-filter-form-submit').removeClass('disabled')
-        //         //do other stuff
-        //     }
-        // });
-
-        // $("#js-modify-filter-form").children().bind("input click", function () {
-        //     if (!propertyChangeUnbound) {
-        //         $("#product_descriptioncontent").unbind("propertychange");
-        //         propertyChangeUnbound = true;
-        //     }
-        //     $('.js-modify-filter-form-submit').removeClass('disabled')
-        //     //do other stuff
-        // });
-    })
-
-</script>

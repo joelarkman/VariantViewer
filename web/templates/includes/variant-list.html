@@ -122,7 +122,7 @@
 
     {%endfor%}
 
-    <div id='no-results-notice' class="{% if not variant_list.exists %}hidden{% endif %}" style="padding-top: 15px;">
+    <div id='no-results-notice' class="{% if variant_list %}hidden{% endif %}" style="padding-top: 15px;">
         <span style="margin-left: 10px;">No matching results</span>
     </div>
 </div>

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models.fields import BooleanField
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -98,3 +99,4 @@ class UserFilter(models.Model):
         'web.Filter',
         on_delete=models.CASCADE
     )
+    selected = models.BooleanField(default=False)

@@ -30,6 +30,6 @@ class FilterItemForm(forms.ModelForm):
         model = FilterItem
         exclude = ()
         widgets = {
-            'filter_type': forms.Select(attrs={'class': 'ui short search selection dropdown'}),
+            'filter_type': forms.Select(attrs={'class': 'ui short search selection dropdown filter-dropdown'}),
             'value': forms.TextInput(attrs={'placeholder': 'Filter value'})
         }

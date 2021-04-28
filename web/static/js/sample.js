@@ -87,31 +87,45 @@ $(function () {
                 // Reset/Hide browser
                 ResetHideBrowser()
 
-                // Prevent mod_filter button from being selected.
-                $(btn).removeClass("selectable");
+                if ($(btn).hasClass('filter-preset-item')) {
+                    $("#lightbox .filter-preset-item").removeClass("active blue");
+                    $("#lightbox .filter-preset-item > i").removeClass("check");
+                    $(btn).addClass('active blue')
+                    $('> i', btn).addClass('check')
+                } else {
+                    // Prevent mod_filter button from being selected.
+                    $(btn).removeClass("selectable");
 
-                // remove popup
-                $("#mod_filter").popup('destroy')
+                    // remove popup
+                    $("#mod_filter").popup('destroy')
 
-                // Disable all elements in variant tab utility bar
-                $('#variants-tab #tab-utility-bar').find('*').addClass('disabled')
+                    // Disable all elements in variant tab utility bar
+                    $('#variants-tab #tab-utility-bar').find('*').addClass('disabled')
 
-                // Hide lightbox, replace its content with modal and then display it.
-                $('#lightbox').dimmer('hide');
+                    // Hide lightbox, replace its content with modal and then display it.
+                    $('#lightbox').dimmer('hide');
+                }
+
             },
             success: function (data) {
-                // Populate lightbox with modal featuring form.
-                $('#lightbox').html(data.html_form);
+                if ($(btn).hasClass('filter-preset-item')) {
+                    $('#lightbox #filter-instance-container').html($(data.html_form).find('#filter-instance-container').html())
+                    $('#lightbox #status-message').html($(data.html_form).find('#status-message').html())
+                } else {
+                    // Populate lightbox with modal featuring form.
+                    $('#lightbox').html(data.html_form);
 
-                // Store the currently active stv as an attribute of the filter submit button.
-                // This allows it to be set to active once again when variant lists are refreshed.
-                var active_stv = $("#variant-menu .mini-tabs-link.active").attr('data-id')
-                $('#lightbox .js-modify-filter-form-submit').attr('data-stv', active_stv)
+                    // Store the currently active stv as an attribute of the filter submit button.
+                    // This allows it to be set to active once again when variant lists are refreshed.
+                    var active_stv = $("#variant-menu .mini-tabs-link.active").attr('data-id')
+                    $('#lightbox .js-modify-filter-form-submit').attr('data-stv', active_stv)
 
-                // Show lightbox
-                $('#lightbox').dimmer({
-                    closable: false
-                }).dimmer('show');
+                    // Show lightbox
+                    $('#lightbox').dimmer({
+                        closable: false
+                    }).dimmer('show');
+                }
+                SetupFiltersForm()
             }
         });
     };
@@ -165,6 +179,7 @@ $(function () {
                 }
                 else {
                     $('#lightbox').html(data.html_form);
+                    SetupFiltersForm()
                 }
             }
         });
@@ -174,11 +189,77 @@ $(function () {
 
     /* Binding */
 
-    // Update transcript
+    // Modify Filter
     $("#variants-tab").on("click", '#mod_filter.selectable', loadFilterForm);
+    $("#lightbox").on("click", '.filter-preset-item', loadFilterForm);
     $("#lightbox").on("submit", "#js-modify-filter-form", saveFilterForm);
 
 });
+
+// Filter formset functionality
+function SetupFiltersForm() {
+    // Initiate dropdowns in form.
+    $('.filter-dropdown')
+        .dropdown({
+            direction: 'upward'
+        });
+
+    // Set all visible value fields to required. 
+    $('#form-set [id*=value]').prop('required', true)
+
+
+    // If click add button....
+    $('#add_more').click(function () {
+        // Retrieve current total number of forms.
+        var form_idx = $('#id_items-TOTAL_FORMS').val();
+        // Copy the empty form and paste it to end of form set. Replace __prefix__ with correct index.
+        $('#form-set').append($('#empty-form').html().replace(/__prefix__/g, form_idx));
+        // Add one to total forms.
+        $('#id_items-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+
+        // Reinitiate all dropdowns for new row.
+        $('.filter-dropdown')
+            .dropdown({
+                direction: 'upward'
+            })
+            ;
+
+        // Define activity for new delete button
+        $('.remove-formset-button').click(function () {
+            delete_form(this)
+        });
+
+        // Ensure all visible value field are required.
+        $('#form-set [id*=value]').prop('required', true)
+
+        // Ensure formset is visible and classed correctly.
+        $('#form-set').show()
+        $('.add-container').addClass('bottom attached')
+    });
+
+    // Define activity for delete button
+    $('.remove-formset-button').click(function () {
+        delete_form(this)
+    });
+
+    // If click delete...
+    function delete_form(button) {
+        // Find the hidden delete checkbox nearby and check it. (Checkbox placed automatically by django and identifies it should be deleted).
+        $(button).siblings('[id*=DELETE]').prop('checked', true)
+        // Remove requirment for deleted form to have a value.
+        $(button).siblings().find('[id*=value]').prop('required', false)
+        // Hide the form row.
+        $(button).parents('.form-row').hide()
+
+        // If there are no visible form rows left, hide its container.
+        $('#form-set').toggle($('.form-row:visible').length != 0);
+        $('.add-container').toggleClass('bottom attached', $('.form-row:visible').length != 0);
+    }
+
+    // If there is no visble form rows, hide its container. Othwerwise show.
+    $('#form-set').toggle($('.form-row:visible').length != 0);
+    $('.add-container').toggleClass('bottom attached', $('.form-row:visible').length != 0);
+}
 
 
 // Click close button inside lightbox modal.

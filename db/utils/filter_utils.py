@@ -1,13 +1,54 @@
+from accounts.models import UserFilter
 from db.models import SampleTranscriptVariant, VariantReport
 from web.models import Filter
-from django.db.models import Q
+from django.db.models import Q, Count
 from db.models import Sample, SampleTranscriptVariant
 
 
-def get_filter(sample, run, user=None):
+def get_filters(sample, run, user):
     vcf = sample.vcfs.get(run=run)
 
-    return Filter.objects.filter(vcf=vcf).last()
+    try:
+        blank_filter = Filter.objects.annotate(
+            c=Count('items')).get(description='7e5f04ff-1317-4224-a14e-f513bfdbc32f', c=0)
+    except:
+        blank_filter = Filter(
+            name='none', description='7e5f04ff-1317-4224-a14e-f513bfdbc32f')
+        blank_filter.save()
+
+    try:
+        pipeline_default_filter = Filter.objects.get(
+            pipelineversion=run.pipeline_version)
+    except:
+        pipeline_default_filter = None
+
+    if Filter.objects.filter(
+            vcf=vcf, userfilter__user=user).exists():
+        user_filters = Filter.objects.filter(
+            vcf=vcf, userfilter__user=user)
+    else:
+        user_filters = None
+
+    try:
+        user_selected_filter = user_filters.get(
+            vcf=vcf, userfilter__user=user, userfilter__selected=True)
+        if user_selected_filter != blank_filter and not user_selected_filter.items.exists():
+            user_selected_filter.delete()
+            user_selected_filter = None
+    except:
+        user_selected_filter = None
+
+    if user_selected_filter:
+        active_filter = user_selected_filter
+    elif pipeline_default_filter:
+        active_filter = pipeline_default_filter
+    else:
+        active_filter = None
+
+    if user_filters:
+        user_filters = user_filters.exclude(id=blank_filter.id)
+
+    return {'active_filter': active_filter, 'pipeline_default_filter': pipeline_default_filter, 'user_filters': user_filters, 'blank_filter': blank_filter}
 
 
 def filter_variants(sample, run, filter=None):
