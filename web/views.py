@@ -1,16 +1,20 @@
+from accounts.models import UserFilter
 from django.views.generic import TemplateView, ListView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
+from django import forms
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.db.models import Q
 
-from .models import Comment, Document
+from db.utils.filter_utils import filter_variants, get_filter
 
-from .forms import CommentForm, DocumentForm
+from .models import Comment, Document, Filter, FilterItem
 
+from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm
 
-from db.models import ExcelReport, Gene, Run, PipelineVersion, Sample, SamplesheetSample, SampleTranscriptVariant, Transcript
+from db.models import ExcelReport, Gene, Run, PipelineVersion, Sample, SamplesheetSample, SampleTranscriptVariant, Transcript, VCFFilter, VariantReportInfo
 
 
 class IndexView(ListView):
@@ -71,7 +75,7 @@ class IndexView(ListView):
         return super(IndexView, self).dispatch(request, *args, **kwargs)
 
 
-class SearchView(TemplateView):
+class SearchView(LoginRequiredMixin, TemplateView):
     """
     Template View to display search page.
     """
@@ -86,7 +90,7 @@ class SearchView(TemplateView):
         return context
 
 
-class SampleDetailsView(TemplateView):
+class SampleDetailsView(LoginRequiredMixin, TemplateView):
     """
     Template View to display sample page.
     """
@@ -106,11 +110,15 @@ class SampleDetailsView(TemplateView):
         context['run'] = run
         context['ss_sample'] = ss_sample
 
-        context['unpinned_variants'] = ss_sample.sample.get_variants(
-            run=run, pinned=False)
+        filter = get_filter(ss_sample.sample, run)
+        filtered_variants = filter_variants(
+            ss_sample.sample, run, filter=filter)
 
-        context['pinned_variants'] = ss_sample.sample.get_variants(
-            run=run, pinned=True)
+        context['unpinned_variants'] = filtered_variants.get(
+            'unpinned_variants')
+        context['pinned_variants'] = filtered_variants.get('pinned_variants')
+
+        context['filter'] = filter
 
         context['excelreport'] = ExcelReport.objects.get(
             run=run, sample=ss_sample.sample)
@@ -136,6 +144,101 @@ def load_worksheet_details(request, pk):
     data['html_form'] = render_to_string(
         'includes/worksheet-detail.html', context, request=request)
     # Send data as JsonResponse.
+    return JsonResponse(data)
+
+
+def modify_filters(request, run, ss_sample, filter=None):
+    """
+    AJAX view to modify filters using formset.  
+    """
+
+    data = dict()
+
+    run = Run.objects.get(id=run)
+    ss_sample = SamplesheetSample.objects.get(
+        id=ss_sample)
+    vcf = ss_sample.sample.vcfs.get(run=run)
+
+    VRI_tags = VariantReportInfo.objects.filter(
+        variant_report__vcf=vcf).values_list('tag', 'tag').distinct()
+
+    VRI_tags = [('qual', 'qual'), ('depth', 'depth')] + list(VRI_tags)
+
+    def populate_field_choices(field, **kwargs):
+        if field.name == 'field':
+            return forms.CharField(widget=forms.Select(choices=VRI_tags, attrs={'class': 'ui short search selection dropdown'}))
+        return field.formfield(**kwargs)
+
+    FilterItemFormSet = forms.inlineformset_factory(Filter, FilterItem,
+                                                    form=FilterItemForm, extra=0, can_delete=True, formfield_callback=populate_field_choices)
+
+    try:
+        instance = Filter.objects.get(id=filter)
+    except:
+        instance = None
+
+    if request.method == "POST":
+        form = FilterForm(request.POST, instance=instance)
+
+        if form.is_valid():
+            created_filter = form.save()
+
+            # Associate this filter with VCF if it hasnt before.
+            if not VCFFilter.objects.filter(vcf=vcf, filter=created_filter).exists():
+                vf1 = VCFFilter(vcf=vcf, filter=created_filter)
+                vf1.save()
+
+            # Associate this filter with logged in User if it hasnt before.
+            if not UserFilter.objects.filter(user=request.user, filter=created_filter).exists():
+                uf1 = UserFilter(user=request.user, filter=created_filter)
+                uf1.save()
+
+            formset = FilterItemFormSet(
+                request.POST, request.FILES, instance=created_filter)
+
+            if formset.is_valid():
+                created_filter.save()
+
+                formset.save()
+
+                retrieved_filter = get_filter(ss_sample.sample, run)
+
+                # Try and filter variants
+                try:
+                    filtered_variants = filter_variants(
+                        ss_sample.sample, run, filter=retrieved_filter)
+
+                    data['form_is_valid'] = True
+
+                    data['variant_list'] = render_to_string('includes/variant-list.html',
+                                                            {'run': run,
+                                                             'ss_sample': ss_sample,
+                                                             'unpinned_variants': filtered_variants.get('unpinned_variants'),
+                                                             'pinned_variants': filtered_variants.get('pinned_variants')},
+                                                            request=request)
+
+                    data['active_filters'] = render_to_string('includes/active-filters.html',
+                                                              {'run': run,
+                                                               'ss_sample': ss_sample,
+                                                               'filter': retrieved_filter},
+                                                              request=request)
+                except:
+                    retrieved_filter.items.all().delete()
+                    data['form_is_valid'] = False
+
+    else:
+        form = FilterForm(instance=instance)
+        formset = FilterItemFormSet(instance=instance)
+
+    context = {'run': run,
+               'ss_sample': ss_sample,
+               'filter': instance,
+               'form': form,
+               'formset': formset}
+
+    data['html_form'] = render_to_string('includes/modify-filters.html',
+                                         context,
+                                         request=request)
     return JsonResponse(data)
 
 
@@ -177,10 +280,11 @@ def pin_variant(request, run, stv):
     stv = SampleTranscriptVariant.objects.get(id=stv)
     ss_sample = SamplesheetSample.objects.get(
         sample=stv.sample_variant.sample.id)
-    unpinned_variants = stv.sample_variant.sample.get_variants(
-        run=run, pinned=False)
-    pinned_variants = stv.sample_variant.sample.get_variants(
-        run=run, pinned=True)
+
+    retrieved_filter = get_filter(ss_sample.sample, run)
+
+    filtered_variants = filter_variants(
+        ss_sample.sample, run, filter=retrieved_filter)
 
     ischecked = request.GET.get('ischecked')
 
@@ -194,8 +298,8 @@ def pin_variant(request, run, stv):
     data['variant_list'] = render_to_string('includes/variant-list.html',
                                             {'run': run,
                                              'ss_sample': ss_sample,
-                                             'unpinned_variants': unpinned_variants,
-                                             'pinned_variants': pinned_variants},
+                                             'unpinned_variants': filtered_variants.get('unpinned_variants'),
+                                             'pinned_variants': filtered_variants.get('pinned_variants')},
                                             request=request)
     return JsonResponse(data)
 
@@ -209,10 +313,12 @@ def update_selected_transcript(request, run, ss_sample, transcript):
     current_transcript = Transcript.objects.get(id=transcript)
     ss_sample = SamplesheetSample.objects.get(
         id=ss_sample)
-    unpinned_variants = ss_sample.sample.get_variants(
-        run=run, pinned=False)
-    pinned_variants = ss_sample.sample.get_variants(
-        run=run, pinned=True)
+
+    retrieved_filter = get_filter(ss_sample.sample, run)
+
+    filtered_variants = filter_variants(
+        ss_sample.sample, run, filter=retrieved_filter)
+
     variant_containing_transcripts = SampleTranscriptVariant.objects.filter(sample_variant__sample=ss_sample.sample,
                                                                             sample_variant__variant__variantreport__vcf=ss_sample.sample.vcfs.get(
                                                                                 run=run),
@@ -237,8 +343,8 @@ def update_selected_transcript(request, run, ss_sample, transcript):
         data['variant_list'] = render_to_string('includes/variant-list.html',
                                                 {'run': run,
                                                  'ss_sample': ss_sample,
-                                                 'unpinned_variants': unpinned_variants,
-                                                 'pinned_variants': pinned_variants},
+                                                 'unpinned_variants': filtered_variants.get('unpinned_variants'),
+                                                 'pinned_variants': filtered_variants.get('pinned_variants')},
                                                 request=request)
 
     context = {'run': run,

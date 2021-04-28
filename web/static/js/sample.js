@@ -73,31 +73,123 @@ $(function () {
 
 });
 
-$("#mod_filter").click(function () {
+$(function () {
 
-    // Reset/Hide browser
-    ResetHideBrowser()
+    /* Functions */
 
-    // Modify look of filter button and filter bar.
-    $(this).addClass("red");
-    // Disable all elements in variant tab utility bar
-    $('#variants-tab #tab-utility-bar').find('*').addClass('disabled')
+    var loadFilterForm = function () {
+        var btn = $(this);
+        $.ajax({
+            url: btn.attr("data-url"),
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+                // Reset/Hide browser
+                ResetHideBrowser()
 
-    // Hide lightbox, replace its content with modal and then display it.
-    $('#lightbox').dimmer('hide');
-    $('#lightbox').html($("#filter-settings").html());
+                // Prevent mod_filter button from being selected.
+                $(btn).removeClass("selectable");
 
-    $('#lightbox').dimmer({
-        closable: false
-    }).dimmer('show');
+                // remove popup
+                $("#mod_filter").popup('destroy')
+
+                // Disable all elements in variant tab utility bar
+                $('#variants-tab #tab-utility-bar').find('*').addClass('disabled')
+
+                // Hide lightbox, replace its content with modal and then display it.
+                $('#lightbox').dimmer('hide');
+            },
+            success: function (data) {
+                // Populate lightbox with modal featuring form.
+                $('#lightbox').html(data.html_form);
+
+                // Store the currently active stv as an attribute of the filter submit button.
+                // This allows it to be set to active once again when variant lists are refreshed.
+                var active_stv = $("#variant-menu .mini-tabs-link.active").attr('data-id')
+                $('#lightbox .js-modify-filter-form-submit').attr('data-stv', active_stv)
+
+                // Show lightbox
+                $('#lightbox').dimmer({
+                    closable: false
+                }).dimmer('show');
+            }
+        });
+    };
+
+    var saveFilterForm = function () {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.form_is_valid) {
+                    $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
+                    $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
+                    $('#variants-tab #tab-utility-bar .filters-sub-menu-container').html(data.active_filters)
+
+                    $("#mod_filter").addClass("selectable");
+                    // Enable all elements in variant tab utility bar
+                    $('#variants-tab #tab-utility-bar').find('*').removeClass('disabled')
+
+                    // Set the variant item that was active before filter was changed to being active
+                    // again now that the variant lists have been refreshed.
+                    stv = $('#lightbox .js-modify-filter-form-submit').attr('data-stv')
+                    $('#variant-menu').find(`[data-id='${stv}']`).addClass('active blue')
+
+                    if (!$("#variant-menu .mini-tabs-link.active")[0]) {
+                        // If no active item variant is now not available as choice.
+                        // Close variant details as it has been filtered out
+                        $('.mini-tabs-link').removeClass('active blue');
+                        $(".mini-tabs-content").hide();
+                        $("#variant-content-loader").removeClass('active');
+                        $(".basic_message").show();
+                    }
+
+                    // If no variants match filter, show notice message.
+                    if (!$("#variant-menu #unpinned-list .gene").is(':visible')) {
+                        $("#variant-menu #no-results-notice").removeClass('hidden')
+                    } else { // otherwise hide notice
+                        $("#variant-menu #no-results-notice").addClass('hidden')
+                    }
+
+                    // Refresh popups
+                    $("#variant-menu .js-update-transcript,.pinned-transcript-popup, #mod_filter.selectable").popup({
+                        inline: false
+                    })
+
+                    // Hide lightbox
+                    $('#lightbox').dimmer('hide');
+
+                }
+                else {
+                    $('#lightbox').html(data.html_form);
+                }
+            }
+        });
+        return false;
+    };
+
+
+    /* Binding */
+
+    // Update transcript
+    $("#variants-tab").on("click", '#mod_filter.selectable', loadFilterForm);
+    $("#lightbox").on("submit", "#js-modify-filter-form", saveFilterForm);
 
 });
+
 
 // Click close button inside lightbox modal.
 $("#lightbox").on("click", ".filter-settings-close", function () {
     // Reset look of filter button and filter bar
 
-    $("#mod_filter").removeClass("red");
+    $("#mod_filter").addClass("selectable");
+    $("#variant-menu .js-update-transcript,.pinned-transcript-popup, #mod_filter.selectable").popup({
+        inline: false
+    })
+
     // Enable all elements in variant tab utility bar
     $('#variants-tab #tab-utility-bar').find('*').removeClass('disabled')
 
@@ -148,7 +240,7 @@ function SetupVariantPinning() {
                         // Look at the stv id attribute from toggle and find the matching variant menu item and set its class to active.
                         // This will ensure that the menu item still appears selected once the variant lists have been updated.
                         stv = $('.mini-tabs-content #pin-variant-checkbox').attr('data-stv')
-                        $('#variant-menu').find(`[data-id='${stv}']`).addClass('active')
+                        $('#variant-menu').find(`[data-id='${stv}']`).addClass('active blue')
 
                         // If there is an active menu item (variant still available as a choice)
                         if ($("#variant-menu .mini-tabs-link.active")[0]) {
@@ -170,7 +262,7 @@ function SetupVariantPinning() {
                         } else {
                             // If no active item variant is now not available as choice.
                             // Close variant details
-                            $('.mini-tabs-link').removeClass('active');
+                            $('.mini-tabs-link').removeClass('active blue');
                             $(".mini-tabs-content").hide();
                             $("#variant-content-loader").removeClass('active');
                             $(".basic_message").show();
@@ -224,13 +316,13 @@ $(document).ready(function () {
         var coords = chr + ":" + left + '..' + right;
 
         if ($(this).hasClass('active')) {
-            $('.mini-tabs-link').removeClass('active');
+            $('.mini-tabs-link').removeClass('active blue');
             $(".mini-tabs-content").hide();
             $("#variant-content-loader").removeClass('active');
             $(".basic_message").show();
         } else {
-            $('.mini-tabs-link').removeClass('active');
-            $(this).addClass('active');
+            $('.mini-tabs-link').removeClass('active blue');
+            $(this).addClass('active blue');
 
             $(".basic_message").hide();
 
@@ -329,7 +421,7 @@ $("#variant-menu").on("keyup search", "#variant-search", apply_variant_search);
 // ==========================
 
 // Initialise pop-ups
-$("#variant-menu .js-update-transcript,.pinned-transcript-popup").popup({
+$("#variant-menu .js-update-transcript,.pinned-transcript-popup, #mod_filter.selectable").popup({
     inline: false
 })
 
@@ -386,7 +478,7 @@ $(function () {
                     $('#variants-tab #tab-utility-bar').find('*').removeClass('disabled')
 
                     // Close any open variants
-                    $('.mini-tabs-link').removeClass('active');
+                    $('.mini-tabs-link').removeClass('active blue');
                     $(".mini-tabs-content").hide();
                     $("#variant-content-loader").removeClass('active');
                     $(".basic_message").show();

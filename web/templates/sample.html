@@ -71,48 +71,8 @@
 
         <div class="item-divider"></div>
 
-        <div class="subtitle">FILTERS: (6 active)</div>
-
-        <!-- Scrollable filters display -->
-        <a id="left-button" class="ui circular icon label" style="margin-right: 5px;">
-            <i class="arrow alternate left icon"></i>
-        </a>
-
-        <!-- Make sure content has flex-shrink:0 -->
-        <div class="active-filters-container">
-            <div class="ui label" style="flex-shrink: 0;">
-                Param1
-                <div class="detail">val1</div>
-            </div>
-            <div class="ui label" style="flex-shrink: 0;">
-                Param2
-                <div class="detail">val2</div>
-            </div>
-            <div class="ui label" style="flex-shrink: 0;">
-                Param3
-                <div class="detail">val3</div>
-            </div>
-            <div class="ui label" style="flex-shrink: 0;">
-                Param4
-                <div class="detail">val4</div>
-            </div>
-            <div class="ui label" style="flex-shrink: 0;">
-                Param5
-                <div class="detail">val5</div>
-            </div>
-            <div class="ui label" style="flex-shrink: 0;">
-                Param6
-                <div class="detail">val6</div>
-            </div>
-        </div>
-
-        <a id="right-button" class="ui circular icon label" style="margin-left:5px">
-            <i class="arrow alternate right icon"></i>
-        </a>
-
-        <div id="mod_filter" class="ui small icon button" data-tooltip='Modify filters' data-position="bottom right"
-            style="margin-left: 15px;">
-            <i class="filter icon"></i>
+        <div class="filters-sub-menu-container" style="display:flex; align-items: center;flex: 1;">
+            {% include 'includes/active-filters.html' %}
         </div>
 
         <div class="right-float">
@@ -196,54 +156,6 @@
             </div>
 
         </div>
-
-        <!-- Filter settings content (this gets loaded into lightbox dimmer when activated) -->
-        <div id='filter-settings' style="display:none">
-
-            <div class="ui segments" style="display: flex;min-width: 60%;max-width: 90%;max-height: 90%;">
-                <div class="ui left aligned clearing segment">
-                    <h3 class="ui header" style="margin:0">Modify Filters</h3>
-                </div>
-                <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
-
-                    <div class="ui horizontal segments">
-                        <div class="ui segment">
-                            <p></p>
-                        </div>
-                        <div class="ui segment">
-                            <form class="ui form">
-                                <div class="field">
-                                    <label>First Name</label>
-                                    <input type="text" name="first-name" placeholder="First Name">
-                                </div>
-                                <div class="field">
-                                    <label>Last Name</label>
-                                    <input type="text" name="last-name" placeholder="Last Name">
-                                </div>
-                                <div class="field">
-                                    <div class="ui checkbox">
-                                        <input type="checkbox" tabindex="0" class="hidden">
-                                        <label>I agree to the Terms and Conditions</label>
-                                    </div>
-                                </div>
-                                <button class="ui button" type="submit">Submit</button>
-                            </form>
-                        </div>
-                        <div class="ui segment">
-                            <p></p>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="ui secondary left aligned clearing segment">
-                    <div class="ui right floated primary button" style="margin-left: 10px;">Save</div>
-                    <div class="ui right floated button filter-settings-close">Cancel</div>
-
-                </div>
-            </div>
-
-        </div>
-
 
         <!-- Lightbox dimmer populated with images/pdfs or filter settings via js. -->
         <div id="lightbox" class="ui light dimmer">

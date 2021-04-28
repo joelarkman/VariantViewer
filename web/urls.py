@@ -22,6 +22,9 @@ urlpatterns = [
     path('ajax/load_worksheet_details/<int:pk>',
          views.load_worksheet_details, name='load_worksheet_details'),
 
+    path('ajax/modify_filters/<int:run>/<int:ss_sample>/<filter>',
+         views.modify_filters, name='modify_filters'),
+
     path('ajax/update_selected_transcript/<int:run>/<int:ss_sample>/<int:transcript>',
          views.update_selected_transcript, name='update_selected_transcript'),
 

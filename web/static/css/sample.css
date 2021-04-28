@@ -117,6 +117,11 @@
     flex-grow: 1;
 }
 
+.gene .item.mini-tabs-link.active .variant-attribute{
+    background-color: #c3d7e6;
+}
+
+
 .transcript-choice.inverted{
     background: #2c2c2c !important
 }
@@ -214,6 +219,13 @@
     background-color: rgb(255, 167, 108) !important;
 }
 
+#mod_filter{
+    cursor: default;
+}
+
+#mod_filter.selectable{
+    cursor: pointer;
+}
 
 /* ==========
    OTHER TABS 
