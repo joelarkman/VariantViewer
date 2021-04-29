@@ -151,7 +151,9 @@ dmypy.json
 
 # End of https://www.toptal.com/developers/gitignore/api/django
 
+# Project-specific
 .DS_Store
 VariantViewer_nginx.conf
 VariantViewer_uwsgi.ini
 .vscode/settings.json
+VariantViewer/settings/local.py
