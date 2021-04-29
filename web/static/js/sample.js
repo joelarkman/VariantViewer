@@ -143,6 +143,9 @@ $(function () {
                     $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
                     $('#variants-tab #tab-utility-bar .filters-sub-menu-container').html(data.active_filters)
 
+                    // Apply searches to carry them over.
+                    apply_variant_search()
+
                     $("#mod_filter").addClass("selectable");
                     // Enable all elements in variant tab utility bar
                     $('#variants-tab #tab-utility-bar').find('*').removeClass('disabled')

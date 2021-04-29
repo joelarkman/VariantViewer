@@ -12,7 +12,7 @@
 
 <!-- Pinned Variants -->
 <div id="pinned-container">
-    {% if pinned_variants %}
+    {% if variants.pinned or variants.excluded_pinned_variants_count %}
     <div class="ui attached segment variant-sub-menu-header pinned">
         <i class="pin icon"></i>
         PINNED
@@ -23,8 +23,15 @@
 <div id='pinned-list' class="ui attached segment"
     style="display: flex;flex-direction: column;flex-shrink: 1;padding: 0;border-top: none;overflow-y: auto;overflow-x: hidden;max-height: 30vh;">
 
+    {%if variants.excluded_pinned_variants_count %}
+    <div style="padding-top: 15px;padding-bottom: 15px;">
+        <span style="margin-left: 10px;">{{variants.excluded_pinned_variants_count}} pinned variants excluded by current
+            filters</span>
+    </div>
+    {% endif %}
+
     <!-- Group list of variants by their transcript/gene -->
-    {% regroup pinned_variants by transcript as variant_list %}
+    {% regroup variants.pinned by transcript as variant_list %}
 
     {% for transcript in variant_list %}
 
@@ -79,7 +86,7 @@
 <div id="unpinned-list" style="position: relative;flex: 1;overflow-y: auto;overflow-x: hidden;">
 
     <!-- Group list of variants by their transcript/gene -->
-    {% regroup unpinned_variants by transcript as variant_list %}
+    {% regroup variants.unpinned by transcript as variant_list %}
 
     {% for transcript in variant_list %}
 

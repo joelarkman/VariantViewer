@@ -114,9 +114,7 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         filtered_variants = filter_variants(
             ss_sample.sample, run, filter=filters.get('active_filter'))
 
-        context['unpinned_variants'] = filtered_variants.get(
-            'unpinned_variants')
-        context['pinned_variants'] = filtered_variants.get('pinned_variants')
+        context['variants'] = filtered_variants
 
         context['filters'] = filters
 
@@ -237,8 +235,7 @@ def modify_filters(request, run, ss_sample, filter=None):
                 data['variant_list'] = render_to_string('includes/variant-list.html',
                                                         {'run': run,
                                                             'ss_sample': ss_sample,
-                                                            'unpinned_variants': filtered_variants.get('unpinned_variants'),
-                                                            'pinned_variants': filtered_variants.get('pinned_variants')},
+                                                            'variants': filtered_variants},
                                                         request=request)
 
                 data['active_filters'] = render_to_string('includes/active-filters.html',
@@ -322,8 +319,7 @@ def pin_variant(request, run, stv):
     data['variant_list'] = render_to_string('includes/variant-list.html',
                                             {'run': run,
                                              'ss_sample': ss_sample,
-                                             'unpinned_variants': filtered_variants.get('unpinned_variants'),
-                                             'pinned_variants': filtered_variants.get('pinned_variants')},
+                                             'variants': filtered_variants},
                                             request=request)
     return JsonResponse(data)
 
@@ -367,8 +363,7 @@ def update_selected_transcript(request, run, ss_sample, transcript):
         data['variant_list'] = render_to_string('includes/variant-list.html',
                                                 {'run': run,
                                                  'ss_sample': ss_sample,
-                                                 'unpinned_variants': filtered_variants.get('unpinned_variants'),
-                                                 'pinned_variants': filtered_variants.get('pinned_variants')},
+                                                 'variants': filtered_variants},
                                                 request=request)
 
     context = {'run': run,

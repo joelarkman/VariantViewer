@@ -92,8 +92,20 @@ def filter_variants(sample, run, filter=None):
         # As the variant filtering starts with a VCF linked to a particular run, all STVs are also linked to the run.
         STVs = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
                                                       sample_variant__variant__in=variant_ids).order_by('transcript__gene__hgnc_name')
+
+        # Retrieve the number of pinned variants for this sample/vcf regardless of filters.
+        unfiltered_pinned_count = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
+                                                                         sample_variant__variant__variantreport__vcf=vcf,
+                                                                         pinned=True).count()
+
+        # Retrieve count of how many pinned variants have been excluded by the active filter.
+        excluded_pinned_variants_count = unfiltered_pinned_count - \
+            STVs.filter(pinned=True).count()
+
     else:
         STVs = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
                                                       sample_variant__variant__variantreport__vcf=vcf).order_by('transcript__gene__hgnc_name')
 
-    return {'pinned_variants': STVs.filter(pinned=True), 'unpinned_variants': STVs.filter(selected=True, pinned=False)}
+        excluded_pinned_variants_count = None
+
+    return {'pinned': STVs.filter(pinned=True), 'excluded_pinned_variants_count': excluded_pinned_variants_count, 'unpinned': STVs.filter(selected=True, pinned=False)}
