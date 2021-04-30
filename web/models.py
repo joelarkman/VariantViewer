@@ -24,6 +24,16 @@ class Filter(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
+    class Match(models.TextChoices):
+        ALL = 'all', _('Match all of the above rules')
+        ANY = 'any', _('Match any of the above rules')
+
+    match = models.CharField(
+        max_length=15,
+        choices=Match.choices,
+        default=Match.ALL,
+    )
+
 
 class FilterItem(models.Model):
     filter = models.ForeignKey(

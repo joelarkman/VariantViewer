@@ -7,6 +7,7 @@ from django import forms
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.db.models import Q
+from django.db import transaction
 
 from db.utils.filter_utils import filter_variants, get_filters
 
@@ -151,6 +152,7 @@ def modify_filters(request, run, ss_sample, filter=None):
     """
 
     data = dict()
+    context = dict()
 
     run = Run.objects.get(id=run)
     ss_sample = SamplesheetSample.objects.get(
@@ -217,45 +219,45 @@ def modify_filters(request, run, ss_sample, filter=None):
             formset = FilterItemFormSet(
                 request.POST, request.FILES, instance=created_filter)
 
-            if formset.is_valid():
-                created_filter.save()
-
-                formset.save()
-
-            filters = get_filters(
-                ss_sample.sample, run, user=request.user)
-
-            # Try and filter variants
             try:
-                filtered_variants = filter_variants(
-                    ss_sample.sample, run, filter=filters.get('active_filter'))
+                # Try and filter variants using selected filter. If filter function fails then any changes to formset will be rolled back.
+                with transaction.atomic():
+                    if formset.is_valid():
+                        formset.save()
 
-                data['form_is_valid'] = True
+                    filters = get_filters(
+                        ss_sample.sample, run, user=request.user)
+                    filtered_variants = filter_variants(
+                        ss_sample.sample, run, filter=filters.get('active_filter'))
 
-                data['variant_list'] = render_to_string('includes/variant-list.html',
-                                                        {'run': run,
-                                                            'ss_sample': ss_sample,
-                                                            'variants': filtered_variants},
-                                                        request=request)
+                    data['form_is_valid'] = True
 
-                data['active_filters'] = render_to_string('includes/active-filters.html',
-                                                          {'run': run,
-                                                           'ss_sample': ss_sample,
-                                                           'filters': filters},
-                                                          request=request)
+                    data['variant_list'] = render_to_string('includes/variant-list.html',
+                                                            {'run': run,
+                                                                'ss_sample': ss_sample,
+                                                                'variants': filtered_variants},
+                                                            request=request)
+
+                    data['active_filters'] = render_to_string('includes/active-filters.html',
+                                                              {'run': run,
+                                                               'ss_sample': ss_sample,
+                                                               'filters': filters},
+                                                              request=request)
             except:
                 data['form_is_valid'] = False
+
+                context.update({'invalid_filters': True})
 
     else:
         form = FilterForm(instance=instance)
         formset = FilterItemFormSet(instance=instance)
 
-    context = {'run': run,
-               'ss_sample': ss_sample,
-               'filter_instance': instance,
-               'filters': filters,
-               'form': form,
-               'formset': formset}
+    context.update({'run': run,
+                    'ss_sample': ss_sample,
+                    'filter_instance': instance,
+                    'filters': filters,
+                    'form': form,
+                    'formset': formset})
 
     data['html_form'] = render_to_string('includes/modify-filters.html',
                                          context,

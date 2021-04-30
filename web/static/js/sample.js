@@ -216,7 +216,7 @@ function SetupFiltersForm() {
         // Retrieve current total number of forms.
         var form_idx = $('#id_items-TOTAL_FORMS').val();
         // Copy the empty form and paste it to end of form set. Replace __prefix__ with correct index.
-        $('#form-set').append($('#empty-form').html().replace(/__prefix__/g, form_idx));
+        $('#match-field').before($('#empty-form').html().replace(/__prefix__/g, form_idx));
         // Add one to total forms.
         $('#id_items-TOTAL_FORMS').val(parseInt(form_idx) + 1);
 
@@ -238,6 +238,7 @@ function SetupFiltersForm() {
         // Ensure formset is visible and classed correctly.
         $('#form-set').show()
         $('.add-container').addClass('bottom attached')
+        control_match_field_visibility()
     });
 
     // Define activity for delete button
@@ -257,11 +258,21 @@ function SetupFiltersForm() {
         // If there are no visible form rows left, hide its container.
         $('#form-set').toggle($('.form-row:visible').length != 0);
         $('.add-container').toggleClass('bottom attached', $('.form-row:visible').length != 0);
+        control_match_field_visibility()
+    }
+
+    function control_match_field_visibility() {
+        if ($('.form-row:visible').length > 1) {
+            $('#match-field').removeClass('hidden')
+        } else {
+            $('#match-field').addClass('hidden')
+        }
     }
 
     // If there is no visble form rows, hide its container. Othwerwise show.
     $('#form-set').toggle($('.form-row:visible').length != 0);
     $('.add-container').toggleClass('bottom attached', $('.form-row:visible').length != 0);
+    control_match_field_visibility()
 }
 
 

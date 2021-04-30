@@ -6,7 +6,7 @@
 <a class="ui red right  icon tag label selectable" id="mod_filter" data-position="bottom center"
     data-html="<span>Add filters</span>"
     data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filters.active_filter.id %}">
-    FILTERS DISABLED
+    ALL FILTERS DISABLED
     <i class="sliders horizontal icon"></i>
 </a>
 
@@ -25,6 +25,16 @@
         <div class="detail">{{item.get_filter_type_display}}</div>
         <div class="detail">{{item.value}}</div>
     </div>
+
+    {% if not forloop.last %}
+    <div class="ui grey circular label" style="margin-left: 3px;margin-right: 3px;">
+        {% if filters.active_filter.match == 'all' %}
+        &
+        {% else %}
+        or
+        {%endif%}
+    </div>
+    {%endif%}
     {% endfor %}
 </div>
 

@@ -476,7 +476,8 @@ def create_samplesheet():
                                                      'word'),
                                                  description=factory.Faker(
                                                      'words', nb=8),
-                                                 value=factory.Faker('random_number', digits=3))
+                                                 value=random.choice([factory.Faker('random_number', digits=3), factory.Faker(
+                                                     'word')]))
 
 
 def create_samplesheets(n):
