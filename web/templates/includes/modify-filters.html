@@ -63,9 +63,9 @@
                         <label for="id_genekey">Description:</label>
                         <div class="ui input">
                             {{form.description|add_class:'hidden'}}
-                            <textarea readonly rows=4 type="text" value="{{form.description.value}}"
+                            <textarea readonly rows=4 type="text"
                                 placeholder="{% if filter_instance != filters.blank_filter %}No description available{%endif%}"
-                                style="resize: none;"></textarea>
+                                style="resize: none;">{% if filter_instance != filters.blank_filter %}{{form.description.value}}{%endif%}</textarea>
                         </div>
                     </div>
                 </div>
