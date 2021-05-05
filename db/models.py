@@ -193,7 +193,7 @@ class Sample(BaseModel):
 
         # All samplesheets for this sample shown with comma seperating them.
         # Original version caused an error as it assumed one samplesheet per sample.
-        return f"{', '.join([samplesheet.run.worksheet for samplesheet in self.samplesheets.all()])} {self.lab_no}"
+        return f"{', '.join([samplesheet.latest_run.worksheet for samplesheet in self.samplesheets.all()])} {self.lab_no}"
 
 
 # Automatically populate empty slug field with sample_id before save.
