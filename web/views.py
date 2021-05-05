@@ -148,7 +148,7 @@ def load_worksheet_details(request, pk):
 
 def modify_filters(request, run, ss_sample, filter=None):
     """
-    AJAX view to modify filters using formset.
+    AJAX view to create, modify or switch between filter presets using formset and custom filter utility functions.
     """
 
     data = dict()
@@ -163,6 +163,8 @@ def modify_filters(request, run, ss_sample, filter=None):
         variant_report__vcf=vcf).values_list('tag', 'tag').distinct()
 
     VRI_tags = [('qual', 'qual'), ('depth', 'depth')] + list(VRI_tags)
+
+    VRI_tags.sort(key=lambda t: tuple(t[0].lower()))
 
     def populate_field_choices(field, **kwargs):
         if field.name == 'field':
@@ -185,10 +187,10 @@ def modify_filters(request, run, ss_sample, filter=None):
         form = FilterForm(request.POST, instance=instance)
 
         if form.is_valid():
-            created_filter = form.save()
+            applied_filter = form.save()
 
             # If applying pipeline preset
-            if created_filter == filters.get('pipeline_default_filter'):
+            if applied_filter == filters.get('pipeline_default_filter'):
                 # deselect all user presets
                 for userfilter in UserFilter.objects.filter(user=request.user, filter__vcf=vcf):
                     userfilter.selected = False
@@ -197,18 +199,18 @@ def modify_filters(request, run, ss_sample, filter=None):
                 # If applying a user preset.
 
                 # Associate this filter with VCF if it hasnt before.
-                if not VCFFilter.objects.filter(vcf=vcf, filter=created_filter).exists():
-                    vf1 = VCFFilter(vcf=vcf, filter=created_filter)
+                if not VCFFilter.objects.filter(vcf=vcf, filter=applied_filter).exists():
+                    vf1 = VCFFilter(vcf=vcf, filter=applied_filter)
                     vf1.save()
 
                 # Associate this filter with logged in User if it hasnt before.
-                if not UserFilter.objects.filter(user=request.user, filter=created_filter).exists():
-                    uf1 = UserFilter(user=request.user, filter=created_filter)
+                if not UserFilter.objects.filter(user=request.user, filter=applied_filter).exists():
+                    uf1 = UserFilter(user=request.user, filter=applied_filter)
                     uf1.save()
 
                 # Deselect all other user presets and select this one.
                 for userfilter in UserFilter.objects.filter(user=request.user, filter__vcf=vcf):
-                    if userfilter.filter == created_filter:
+                    if userfilter.filter == applied_filter:
                         userfilter.selected = True
                         userfilter.save()
                     else:
@@ -217,7 +219,7 @@ def modify_filters(request, run, ss_sample, filter=None):
 
             # Save any changes to the filter items
             formset = FilterItemFormSet(
-                request.POST, request.FILES, instance=created_filter)
+                request.POST, request.FILES, instance=applied_filter)
 
             try:
                 # Try and filter variants using selected filter. If filter function fails then any changes to formset will be rolled back.
@@ -234,8 +236,8 @@ def modify_filters(request, run, ss_sample, filter=None):
 
                     data['variant_list'] = render_to_string('includes/variant-list.html',
                                                             {'run': run,
-                                                                'ss_sample': ss_sample,
-                                                                'variants': filtered_variants},
+                                                             'ss_sample': ss_sample,
+                                                             'variants': filtered_variants},
                                                             request=request)
 
                     data['active_filters'] = render_to_string('includes/active-filters.html',
@@ -267,9 +269,9 @@ def modify_filters(request, run, ss_sample, filter=None):
 
 def load_variant_details(request, run, stv):
     """
-    AJAX view to load variant details. Database filtered for correct variant and its associated 
+    AJAX view to load variant details. Database filtered for correct variant and its associated
     evidence documents; data rendered using relevent template and sent back to sample page as
-    a JSON response. 
+    a JSON response.
     """
 
     data = dict()
@@ -295,7 +297,7 @@ def load_variant_details(request, run, stv):
 
 def pin_variant(request, run, stv):
     """
-    AJAX view to pin variant. 
+    AJAX view to pin variant.
     """
 
     data = dict()
@@ -420,7 +422,7 @@ def comment_update_or_create(request, stv):
 def save_evidence(request, stv):
     """
     AJAX view to facilitate jquery-file-upload save process. When recieve document from file uploader,
-    save the file and retreive an updated set of evidence files. Return refreshed set of evidence 
+    save the file and retreive an updated set of evidence files. Return refreshed set of evidence
     files to variant details page as a JSON response.
     """
 
