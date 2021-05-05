@@ -48,7 +48,7 @@ class GenomicCoordinateFactory(DjangoModelFactory):
         model = GenomicCoordinate
 
     chrom = factory.LazyFunction(
-        lambda: "chr{:d}".format(random.randint(1, 22)))
+        lambda: "{:d}".format(random.randint(1, 22)))
     pos = factory.Faker('numerify', text='%!!!!!!')
     genome_build = fuzzy.FuzzyChoice(GenomeBuild.objects.all())
 
@@ -139,7 +139,7 @@ class GeneFactory(DjangoModelFactory):
     transcripts = factory.RelatedFactoryList(
         TranscriptFactory,
         factory_related_name='gene',
-        size=lambda: random.randint(1, 3))
+        size=lambda: random.randint(2, 4))
 
     canonical = factory.RelatedFactory(
         TranscriptFactory,
@@ -470,14 +470,49 @@ def create_samplesheet():
                                              description='Total read depth at position',
                                              value=variantreport.depth)
 
-                    for info in range(random.randint(10, 25)):
-                        VariantReportInfoFactory(variant_report=variantreport,
-                                                 tag=factory.Faker(
-                                                     'word'),
-                                                 description=factory.Faker(
-                                                     'words', nb=8),
-                                                 value=random.choice([factory.Faker('random_number', digits=3), factory.Faker(
-                                                     'word')]))
+                    VariantReportInfoFactory(variant_report=variantreport,
+                                             tag='VAF',
+                                             description='Variant allele frequency',
+                                             value=random.choice([factory.Faker('randomize_nb_elements', number=50), factory.Faker('randomize_nb_elements', number=100)]))
+
+                    VariantReportInfoFactory(variant_report=variantreport,
+                                             tag='TCF',
+                                             description='Total forward strand coverage at this locus',
+                                             value=factory.Faker('random_number', digits=3))
+
+                    VariantReportInfoFactory(variant_report=variantreport,
+                                             tag='TCR',
+                                             description='Total reverse strand coverage at this locus',
+                                             value=factory.Faker('random_number', digits=3))
+
+                    VariantReportInfoFactory(variant_report=variantreport,
+                                             tag='NF',
+                                             description='Total number of forward reads containing this variant',
+                                             value=factory.Faker('random_number', digits=3))
+
+                    VariantReportInfoFactory(variant_report=variantreport,
+                                             tag='NR',
+                                             description='Total number of reverse reads containing this variant',
+                                             value=factory.Faker('random_number', digits=3))
+
+                    VariantReportInfoFactory(variant_report=variantreport,
+                                             tag='example_item1',
+                                             description='First example of an extra info field that has a text value',
+                                             value=factory.Faker('word'))
+
+                    VariantReportInfoFactory(variant_report=variantreport,
+                                             tag='example_item2',
+                                             description='Second example of an extra info field that has a text value',
+                                             value=factory.Faker('word'))
+
+                    # for info in range(random.randint(10, 25)):
+                    #     VariantReportInfoFactory(variant_report=variantreport,
+                    #                              tag=factory.Faker(
+                    #                                  'word'),
+                    #                              description=factory.Faker(
+                    #                                  'words', nb=8),
+                    #                              value=random.choice([factory.Faker('random_number', digits=3), factory.Faker(
+                    #                                  'word')]))
 
 
 def create_samplesheets(n):
