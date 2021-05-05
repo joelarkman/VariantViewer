@@ -1,8 +1,8 @@
 from pathlib import Path
 
 
-class Run:
-    """ Class to hold associations between run data (RAM) and db addition (MRA)
+class RunBuilder:
+    """ Class to  build run data (RAM) for db addition (MRA)
     
     This module contains the information pertinent to a single run. It also
     HAS-A dictionary of RunAttributeManager classes which are managed by the
@@ -11,7 +11,7 @@ class Run:
     
     Attributes:
     """
-    def __init__(self, commandline_usage_file):
+    def __init__(self, commandline_usage_file, *args, **kwargs):
         self.commandline_usage_file = commandline_usage_file
         self.commandline_usage = self.parse_commandline_usage()
         self.pipeline, self.worksheet, self.version = self.get_run_info()
@@ -79,3 +79,6 @@ class Run:
         samplesheet_index = -9
         return self.commandline_usage[samplesheet_index]
 
+    @property
+    def full_name(self):
+        return f"{self.pipeline}_{self.version}_{self.worksheet}"
