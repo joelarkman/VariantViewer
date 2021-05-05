@@ -20,7 +20,7 @@ function ResetHideBrowser() {
 // ============== 
 
 // Filters scroll
-$(function () {
+function SetupFilterScrolling() {
 
     // Make buttons scroll filters bar id the buttons are not disabled
     $('#right-button').click(function () {
@@ -45,12 +45,18 @@ $(function () {
     jQuery(function ($) {
         $('.active-filters-container').on('scroll', function () {
             if (($(this).scrollLeft() + $(this).innerWidth()) >= $(this)[0].scrollWidth - 0.5) { //when fully scrolled right
+                $('#right-ellipses').hide()
+                $('#left-ellipses').show()
                 $('#right-button').addClass('disabled');
                 $('#left-button').removeClass('disabled');
             } else if ($(this).scrollLeft() === 0) { // when fully scrolled left
+                $('#left-ellipses').hide()
+                $('#right-ellipses').show()
                 $('#left-button').addClass('disabled');
                 $('#right-button').removeClass('disabled');
             } else {
+                $('#right-ellipses').hide()
+                $('#left-ellipses').show()
                 $('#right-button').removeClass('disabled');
                 $('#left-button').removeClass('disabled');
             }
@@ -63,15 +69,21 @@ $(function () {
 
     $(window).on('resize', function () {
         if ($('.active-filters-container')[0].offsetWidth < $('.active-filters-container')[0].scrollWidth) {
+            $('#left-ellipses').hide()
+            $('#right-ellipses').show()
             $('#right-button').removeClass('disabled');
             $('#left-button').addClass('disabled');
         } else {
             $('#left-button').addClass('disabled');
             $('#right-button').addClass('disabled');
+            $('#right-ellipses').hide()
+            $('#left-ellipses').hide()
         }
     }).resize();
 
-});
+}
+
+SetupFilterScrolling()
 
 $(function () {
 
@@ -179,6 +191,7 @@ $(function () {
                     // Hide lightbox
                     $('#lightbox').dimmer('hide');
 
+                    SetupFilterScrolling()
                 }
                 else {
                     $('#lightbox').html(data.html_form);
@@ -486,10 +499,30 @@ jQuery.expr[':'].icontains = function (a, i, m) {
 
 function apply_variant_search() {
     var query = $("#variant-menu #variant-search").val()
-    $("#variant-menu #unpinned-list .gene")
-        .hide()
-        .filter(':icontains("' + query + '")')
-        .show();
+    // $("#variant-menu #unpinned-list .gene")
+    //     .hide()
+    //     .filter(':icontains("' + query + '")')
+    //     .show();
+
+    $("#variant-menu #unpinned-list .gene").show()
+    $("#variant-menu .mini-tabs-link").removeClass('hidden');
+    if ($('#variant-menu #unpinned-list .gene .title').is(':icontains("' + query + '")')) {
+        $("#variant-menu #unpinned-list .gene")
+            .hide()
+            .filter(':icontains("' + query + '")')
+            .show();
+    } else {
+        $("#variant-menu .mini-tabs-link")
+            .addClass('hidden')
+            .filter(':icontains("' + query + '")')
+            .removeClass('hidden');
+
+        $('#variant-menu #unpinned-list .gene').each(function () {
+            if ($(this).find('.mini-tabs-link:visible').length == 0) {
+                $(this).hide();
+            }
+        });
+    }
 
     // If no variants match query, show notice message.
     if (!$("#variant-menu #unpinned-list .gene").is(':visible')) {

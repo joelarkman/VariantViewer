@@ -17,6 +17,13 @@
     <i class="arrow alternate left icon"></i>
 </a>
 
+<div id='left-ellipses' style='display: inline-flex;align-items: center;position: relative;pointer-events: none;'>
+    <div
+        style="position: absolute;left: 2px;width: 60px;background-color: #5c5c5cde;text-align: center;color: white;border-radius: 5px;border: 1px white solid;">
+        <span style="font-size: smaller; font-weight: bold;">{{filters.active_filter.items.count}} items</span>
+    </div>
+</div>
+
 <!-- Make sure content has flex-shrink:0 -->
 <div class="active-filters-container">
     {% for item in filters.active_filter.items.all %}
@@ -36,6 +43,13 @@
     </div>
     {%endif%}
     {% endfor %}
+</div>
+
+<div id='right-ellipses' style='display: inline-flex;align-items: center;position: relative;pointer-events: none;'>
+    <div
+        style="position: absolute;right: 2px;width: 60px;background-color: #5c5c5cde;text-align: center;color: white;border-radius: 5px;border: 1px white solid;">
+        <span style="font-size: smaller; font-weight: bold;">{{filters.active_filter.items.count}} items</span>
+    </div>
 </div>
 
 <a id="right-button" class="ui circular icon label" style="margin-left:5px;margin-right: 15px;">
