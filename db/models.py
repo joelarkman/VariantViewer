@@ -49,6 +49,12 @@ class PipelineVersion(BaseModel):
 
 
 class Run(BaseModel):
+    # Choice field for run QC status
+    class Status(models.IntegerChoices):
+        PENDING = 0
+        PASS = 1
+        FAIL = 2
+
     worksheet = models.CharField(max_length=255)
     command_line_usage = models.CharField(max_length=255)
     completed_at = models.DateTimeField()
@@ -65,13 +71,6 @@ class Run(BaseModel):
         on_delete=models.PROTECT,
         related_name='pipeline_version'
     )
-
-    # Choice field for run QC status
-    class Status(models.IntegerChoices):
-        PENDING = 0
-        PASS = 1
-        FAIL = 2
-
     qc_status = models.IntegerField(
         choices=Status.choices,
         default=0,
@@ -157,6 +156,8 @@ class Sample(BaseModel):
     slug = models.SlugField(max_length=50, unique=True)
     patient = models.ForeignKey(
         Patient,
+        null=True,
+        blank=True,
         on_delete=models.PROTECT,
         related_name='samples'
     )
