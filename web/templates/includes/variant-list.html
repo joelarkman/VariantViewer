@@ -21,11 +21,12 @@
 </div>
 
 <div id='pinned-list' class="ui attached segment"
-    style="display: flex;flex-direction: column;flex-shrink: 1;padding: 0;border-top: none;overflow-y: auto;overflow-x: hidden;max-height: 30vh;">
+    style="display: flex;flex-direction: column;flex-shrink: 1;padding: 0;border-top: none;overflow-y: auto;overflow-x: hidden;max-height: 30%;">
 
     {%if variants.excluded_pinned_variants_count %}
     <div style="padding-top: 15px;padding-bottom: 15px;">
-        <span style="margin-left: 10px;">{{variants.excluded_pinned_variants_count}} pinned variants excluded by current
+        <span style="margin-left: 10px;">{{variants.excluded_pinned_variants_count}} pinned variant(s) excluded by
+            current
             filters</span>
     </div>
     {% endif %}

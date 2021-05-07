@@ -18,10 +18,11 @@ class CommentForm(forms.ModelForm):
 class FilterForm(forms.ModelForm):
     class Meta:
         model = Filter
-        fields = ('name', 'description')
+        fields = ('name', 'description', 'match')
         widgets = {
             'name': forms.TextInput(attrs={'placeholder': 'Enter filter name', 'required': 'required'}),
-            'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Description', 'style': 'resize:none;'})
+            'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter filter description (optional)', 'style': 'resize:none;'}),
+            'match': forms.Select(attrs={'class': 'ui mini selection dropdown filter-dropdown'})
         }
 
 
