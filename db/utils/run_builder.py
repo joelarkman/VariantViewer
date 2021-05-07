@@ -1,4 +1,9 @@
 from pathlib import Path
+from typing import TypedDict
+
+from django.db import models
+
+from db.utils.run_attribute_manager import RunAttributeManager
 
 
 class RunBuilder:
@@ -19,7 +24,7 @@ class RunBuilder:
         self.output_dir = self.get_output_dir()
         self.completed_at = self.get_completed_at()
         self.samplesheet = self.get_samplesheet()
-        self.attribute_managers = {}
+        self.attribute_managers = AttributesManagersDict()
 
     def parse_commandline_usage(self):
         """Take a commandline usage file and parse arguments as a list."""
@@ -82,3 +87,8 @@ class RunBuilder:
     @property
     def full_name(self):
         return f"{self.pipeline}_{self.version}_{self.worksheet}"
+
+
+class AttributesManagersDict(TypedDict):
+    # noinspection PyTypeHints
+    models.Model: RunAttributeManager

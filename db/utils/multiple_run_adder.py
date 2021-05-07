@@ -70,8 +70,8 @@ class MultipleRunAdder:
             # [1] whether that corresponding model has many instances per run
             (Pipeline, False),
             (PipelineVersion, False),
-            (Run, False),
             (Samplesheet, False),
+            (Run, False),
             (Patient, True),
             (Sample, True),
             (SamplesheetSample, True),
@@ -112,7 +112,7 @@ class MultipleRunAdder:
                 run.attribute_managers[model_type] = RunAttributeManager(
                     run=run,
                     model_type=model_type,
-                    objects=model_objects
+                    instances=model_objects
                 )
 
             # create a list of models to be created
@@ -157,4 +157,4 @@ class MultipleRunAdder:
         ]
 
         to_create = [model_type(**attrs) for attrs in attr_list]
-        model_type.objects.bulk_create(to_create)
+        model_type.instances.bulk_create(to_create)
