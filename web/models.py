@@ -1,7 +1,9 @@
 import os
+import json
 from django.db import models
 from db.models import VCF, SampleTranscriptVariant
 from django.utils.translation import gettext_lazy as _
+from easyaudit.models import CRUDEvent
 
 
 @models.Field.register_lookup
@@ -76,6 +78,13 @@ class Document(models.Model):
     def filename(self):
         return os.path.basename(self.document.name)
 
+    def get_user_created(self):
+        try:
+            crud = CRUDEvent.objects.filter(object_repr=self).first().user
+        except:
+            crud = None
+        return crud
+
 
 class Comment(models.Model):
     sample_transcript_variant = models.ForeignKey(
@@ -102,3 +111,44 @@ class Comment(models.Model):
 
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
+
+    def get_last_modified(self):
+        cruds = CRUDEvent.objects.filter(object_repr=self)
+
+        comment_events = []
+        classification_events = []
+        for crud in cruds:
+            if crud.event_type == CRUDEvent.CREATE:
+                data = json.loads(crud.object_json_repr)[0]
+                if data['fields']['comment']:
+                    comment_events.append(crud.id)
+                classification_events.append(crud.id)
+            elif crud.event_type == CRUDEvent.UPDATE:
+                data = json.loads(crud.changed_fields)
+                if data and 'comment' in data:
+                    comment_events.append(crud.id)
+                if data and 'classification' in data:
+                    classification_events.append(crud.id)
+
+        comment = CRUDEvent.objects.filter(id__in=comment_events).first()
+        classification = CRUDEvent.objects.filter(
+            id__in=classification_events).first()
+        return {'comment': comment, 'classification': classification}
+
+    def get_comment_history(self):
+        cruds = CRUDEvent.objects.filter(object_repr=self)
+
+        comment_events = []
+        for crud in cruds:
+            if crud.event_type == CRUDEvent.CREATE:
+                data = json.loads(crud.object_json_repr)[0]
+                if data['fields']['comment']:
+                    comment_events.append(
+                        {'type': 'create', 'user': crud.user, 'datetime': crud.datetime, 'value': data['fields']['comment']})
+            elif crud.event_type == CRUDEvent.UPDATE:
+                data = json.loads(crud.changed_fields)
+                if data and 'comment' in data:
+                    comment_events.append(
+                        {'type': 'update', 'user': crud.user, 'datetime': crud.datetime, 'value_previous': data['comment'][0], 'value': data['comment'][1]})
+
+        return comment_events
