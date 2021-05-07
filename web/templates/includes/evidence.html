@@ -39,13 +39,14 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="extra content" style="flex-shrink: 0;">
-                <span class="right floated">
-                    {{doc.date_created|naturaltime}}
+            <div class="extra content" style="display: flex;align-items: center;flex-shrink: 0;">
+
+                <span style="display: flex;align-items: center;flex: 1;word-wrap: break-word;margin-right: auto;">
+                    <i style="margin-top: -3px;margin-right: 7px;" class="user icon"></i>
+                    {{doc.get_user_created.first_name}} {{doc.get_user_created.last_name}}
                 </span>
-                <span>
-                    <i class="user icon"></i>
-                    JHLN
+                <span style="margin-left: 10px;">
+                    {{doc.date_created|naturaltime}}
                 </span>
             </div>
         </div>
