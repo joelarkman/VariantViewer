@@ -68,17 +68,20 @@ function SetupFilterScrolling() {
     });
 
     $(window).on('resize', function () {
-        if ($('.active-filters-container')[0].offsetWidth < $('.active-filters-container')[0].scrollWidth) {
-            $('#left-ellipses').hide()
-            $('#right-ellipses').show()
-            $('#right-button').removeClass('disabled');
-            $('#left-button').addClass('disabled');
-        } else {
-            $('#left-button').addClass('disabled');
-            $('#right-button').addClass('disabled');
-            $('#right-ellipses').hide()
-            $('#left-ellipses').hide()
+        if ($('.active-filters-container')[0]) {
+            if ($('.active-filters-container')[0].offsetWidth < $('.active-filters-container')[0].scrollWidth) {
+                $('#left-ellipses').hide()
+                $('#right-ellipses').show()
+                $('#right-button').removeClass('disabled');
+                $('#left-button').addClass('disabled');
+            } else {
+                $('#left-button').addClass('disabled');
+                $('#right-button').addClass('disabled');
+                $('#right-ellipses').hide()
+                $('#left-ellipses').hide()
+            }
         }
+
     }).resize();
 
 }
@@ -755,6 +758,23 @@ $(".mini-tabs-content").on("click", ".update-classification-button", function ()
     $('.mini-tabs-content .js-update-create-comment').trigger('click');
 });
 
+$(".mini-tabs-content").on("click", "#comment-history", function () {
+    $('#lightbox').dimmer('hide');
+    $('#lightbox').html($(".mini-tabs-content #comment-history-container").html())
+    $('#lightbox').dimmer({
+        closable: false
+    }).dimmer('show');
+
+    $('.fake-textarea').each(function (i, obj) {
+        var dmp = new diff_match_patch();
+        var text1 = $(this).attr('data-value-previous').trim()
+        var text2 = $(this).text().trim()
+        var d = dmp.diff_main(text1, text2);
+        dmp.diff_cleanupSemantic(d);
+        var ds = dmp.diff_prettyHtml(d);
+        $(this).html(ds)
+    });
+});
 
 // =========
 // MAIN TABS 
