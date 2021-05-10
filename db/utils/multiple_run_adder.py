@@ -14,6 +14,11 @@ class MultipleRunAdder:
     output directory and fetches relevant info for addition to tables. This is
     done in bulk by creating sets of complete data for each table in sequence
     according to an update order based on db dependencies.
+
+    TODO:
+    - make atomic transaction
+    - allow for binning
+    - skip already present files
     """
     def __init__(self, commandline_usage_list):
         self.commandline_usage_list = commandline_usage_list
