@@ -30,7 +30,8 @@ INSTALLED_APPS = [
     'web.apps.WebConfig',
     'db.apps.DbConfig',
     'django_extensions',
-    'accounts.apps.AccountsConfig'
+    'accounts.apps.AccountsConfig',
+    'easyaudit'
 ]
 
 # Necessary for iframes to load.
@@ -44,6 +45,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'easyaudit.middleware.easyaudit.EasyAuditMiddleware'
 ]
 
 ROOT_URLCONF = 'VariantViewer.urls'

@@ -9,10 +9,15 @@
 </div>
 
 <div class="ui popup" style="padding: 0;">
-    <div style="padding: 15px;padding-bottom: 10px;padding-top: 10px;">
-        <span style="font-size: smaller;">{% if stv.comments.last %}Last updated by JHDL
-            {{stv.comments.last.date_modified|naturaltime}}{%else%}No classification provided
-            yet{%endif%}</span>
+    <div style="padding: 15px;padding-bottom: 10px;padding-top: 10px;width:max-content;text-align: center;">
+        <span style="font-size: smaller;">{% if stv.comments.last %}Last modified
+            {{stv.comments.last.get_last_modified.classification.datetime|naturaltime}} by
+            {{stv.comments.last.get_last_modified.classification.user.first_name}}
+            {{stv.comments.last.get_last_modified.classification.user.last_name}}
+            {%else%}
+            No classification provided yet
+            {%endif%}
+        </span>
     </div>
     <div class="ui attached button update-classification-button"
         style="padding:15px;padding-top: 8px;padding-bottom: 8px;">
