@@ -16,9 +16,10 @@ class MultipleRunAdder:
     according to an update order based on db dependencies.
 
     TODO:
-    - make atomic transaction
-    - allow for binning
-    - skip already present files
+        - allow for binning
+        - skip already present files
+        - postprocess function: add pipeline version update checks
+        - postprocess function: create symlinks
     """
     def __init__(self, commandline_usage_list):
         self.commandline_usage_list = commandline_usage_list
