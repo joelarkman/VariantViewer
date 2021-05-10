@@ -1,4 +1,6 @@
-from typing import TypedDict
+import re
+
+from sample_sheet import SampleSheet
 
 from db.models import *
 from db.utils.run_builder import RunBuilder
@@ -81,11 +83,27 @@ class RunAttributeManager:
         )
 
 
-    def get_patient(self):
-        pass
-
     def get_sample(self):
-        pass
+        """Since there are many samples per run, we must return a list"""
+        samplesheet_file = self.run.samplesheet
+        samplesheet = SampleSheet(samplesheet_file)
+
+        # compile a regex search string for lab number
+        lab_no_pattern = re.compile(r'D\d{2}\.\d{5}')
+
+        samples = []
+        for sample in samplesheet.samples:
+            # ignore negative controls
+            if "Neg" in sample['Sample_Name']: continue
+            lab_no = lab_no_pattern.search(sample['Sample_Name'])
+            samples.append(
+                Sample(
+                    lab_no=lab_no,
+                    slug=slugify(lab_no)
+                )
+            )
+
+        return samples
 
     def get_samplesheet_sample(self):
         pass
