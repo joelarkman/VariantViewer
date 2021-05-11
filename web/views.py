@@ -18,54 +18,29 @@ from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm
 from db.models import ExcelReport, Gene, Run, PipelineVersion, Sample, SamplesheetSample, SampleTranscriptVariant, Transcript, VCFFilter, VariantReportInfo
 
 
-class IndexView(ListView):
-    """
-    Template View to display index page.
-    """
-    model = Run
+class RedirectView(TemplateView):
+
     template_name = 'index.html'
-    paginate_by = 5
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('accounts/login')
+        else:
+            return redirect('/')
 
-        pipeline = self.request.GET.get('pipeline')
-        if pipeline:
-            if pipeline == 'all':
-                pass
-            else:
-                queryset = queryset.filter(
-                    pipeline_version__pipeline__id=pipeline)
 
-        q = self.request.GET.get('q')
-        if q:
-            queryset = queryset.filter(
-                Q(worksheet__icontains=q)
-            )
-        return queryset.order_by('-completed_at')
+class HomeView(LoginRequiredMixin, TemplateView):
+    """
+    Template View to display search page.
+    """
+
+    template_name = 'home.html'
 
     def get_context_data(self, **kwargs):
-        context = super(IndexView, self).get_context_data()
+        context = super(HomeView, self).get_context_data()
         # base.html includes page_title by default
-        context['page_title'] = 'Index'
-
-        pipeline = self.request.GET.get('pipeline')
-        if pipeline:
-            pipeline = pipeline.replace(" ", "+")
-            context['pipeline'] = pipeline
-
-        q = self.request.GET.get('q')
-        if q:
-            q = q.replace(" ", "+")
-            context['searchq'] = q
-            context['runs'] = Run.objects.filter(
-                Q(worksheet__icontains=q)
-            ).order_by(
-                'pipeline_version__pipeline__name')
-        else:
-            context['runs'] = Run.objects.all().order_by(
-                'pipeline_version__pipeline__name')
-
+        context['page_title'] = 'Home'
+        context['pipelines'] = PipelineVersion.objects.all()
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -73,7 +48,7 @@ class IndexView(ListView):
             return redirect('accounts/login')
         # elif some-logic:
         #     return redirect('some-page') #needs defined as valid url
-        return super(IndexView, self).dispatch(request, *args, **kwargs)
+        return super(HomeView, self).dispatch(request, *args, **kwargs)
 
 
 class SearchView(LoginRequiredMixin, TemplateView):

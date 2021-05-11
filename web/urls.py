@@ -6,7 +6,9 @@ from . import views
 urlpatterns = [
     path('api/', include('web.routing')),
 
-    path('', views.IndexView.as_view(), name='index'),
+    path('redirect', views.RedirectView.as_view(), name='redirect'),
+
+    path('', views.HomeView.as_view(), name='home'),
 
     path('search/', views.SearchView.as_view(), name='search'),
 
