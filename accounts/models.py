@@ -4,6 +4,8 @@ from django.db import models
 from django.db.models.fields import BooleanField
 from django.utils.translation import ugettext_lazy as _
 
+from easyaudit.models import LoginEvent
+
 
 class UserManager(BaseUserManager):
     """Model manager for User model with no username field."""
@@ -75,6 +77,13 @@ class User(AbstractUser):
     # )
 
     objects = UserManager()
+
+    @property
+    def last_logged_in(self):
+        try:
+            return LoginEvent.objects.filter(user=self, login_type=0)[1].datetime
+        except:
+            return None
 
     @property
     def avatar_url(self):
