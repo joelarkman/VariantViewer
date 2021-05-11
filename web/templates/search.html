@@ -64,8 +64,8 @@
             var runs = '';
             //loop through all the row details to build output string
             var first_iteration = true;
-            for (var item in d.DT_Rowruns) {
-                var run = d.DT_Rowruns[item];
+            for (var item in d.runs) {
+                var run = d.runs[item];
                 var qc_status = run.qc_status_display
                 if (first_iteration) {
                     runs = runs + "<tr class='active'><td>" + run.worksheet + "</td><td>" + run.pipeline_name + "</td><td>" + run.completed_at + "</td><td>" + run.qc_status_display + "</td></tr>";
@@ -106,14 +106,14 @@
                 { 'data': 'sample_identifier' },
                 { 'data': 'lab_no', 'name': 'sample__lab_no' },
                 { 'data': 'gene_key' },
-                { 'data': 'DT_Rowruns.0.worksheet', 'name': 'samplesheet__latest_run__worksheet' },
-                { 'data': 'DT_Rowruns.0.pipeline_name', 'name': 'samplesheet__latest_run__pipeline_version__pipeline__name' },
-                { 'data': 'DT_Rowruns.0.completed_at', 'name': 'samplesheet__latest_run__completed_at' },
-                { 'data': 'DT_Rowruns.0.qc_status_display', 'name': 'samplesheet__latest_run__qc_status' },
+                { 'data': 'runs.0.worksheet', 'name': 'samplesheet__latest_run__worksheet' },
+                { 'data': 'runs.0.pipeline_name', 'name': 'samplesheet__latest_run__pipeline_version__pipeline__name' },
+                { 'data': 'runs.0.completed_at', 'name': 'samplesheet__latest_run__completed_at' },
+                { 'data': 'runs.0.qc_status_display', 'name': 'samplesheet__latest_run__qc_status' },
                 {
                     "data": null,
                     "render": function (data, type, row, meta) {
-                        run_number = row.DT_Rowruns.length
+                        run_number = row.runs.length
                         if (run_number == 1) {
                             data = "<div class='ui small compact disabled button' style='margin:0px;'>1</div>"
                         } else {
@@ -128,7 +128,7 @@
 
             ],
             createdRow: function (row, data, index) {
-                qc_status = data.DT_Rowruns[0].qc_status_display
+                qc_status = data.runs[0].qc_status_display
                 if (qc_status === 'Pass') {
                     $(row).addClass('positive');
                 } else if (qc_status === 'Pending') {
@@ -148,7 +148,7 @@
                 'loadingRecords': '&nbsp;',
                 'processing': 'Loading...'
             },
-            "order": [[6, 'desc']]
+            "order": [[8, 'desc']]
 
         });
 
@@ -165,7 +165,7 @@
                 // var sample = $(this).find("td").eq(1).text();
 
                 var row = sample_table.row(this);
-                window.location.href = "/results/" + row.data().DT_Rowruns[0].worksheet + "/" + row.data().sample_identifier;
+                window.location.href = "/results/" + row.data().runs[0].worksheet + "/" + row.data().sample_identifier;
             }
         });
 
@@ -273,7 +273,7 @@
                 <div class="ui mini button" style="margin-left: 5px;">Change</div>
             </div>
             <div class="ui large breadcrumb">
-                <a href="{% url 'index' %}" class="ui compact tiny grey basic inverted button">Rare disease</a>
+                <a href="{% url 'home' %}" class="ui compact tiny grey basic inverted button">Rare disease</a>
                 <i class="right chevron icon divider"></i>
                 <a class="ui compact tiny grey basic inverted disabled button">Search</a>
             </div>
@@ -291,7 +291,7 @@
     <div class="item-divider"></div>
 
     <div class="ui small icon input" style="width:100%;">
-        <input type="search" placeholder="Search" id="mySearch">
+        <input type="search" placeholder="Search samples..." id="mySearch">
         <i class="search icon"></i>
     </div>
 
