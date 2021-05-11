@@ -50,7 +50,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'VariantViewer.urls'
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'index'
+LOGIN_REDIRECT_URL = 'redirect'
 LOGOUT_REDIRECT_URL = 'logout_successful'
 
 TEMPLATES = [
