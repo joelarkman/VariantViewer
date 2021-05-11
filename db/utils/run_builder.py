@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Type
 from typing import TypedDict
 
 from django.db import models
@@ -105,5 +106,4 @@ class RunBuilder:
 
 
 class AttributesManagersDict(TypedDict):
-    # noinspection PyTypeHints
-    models.Model: RunAttributeManager
+    Type[models.Model]: RunAttributeManager

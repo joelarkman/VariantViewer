@@ -1,8 +1,13 @@
 import re
+from typing import Type
 
+from django.db.models import Model
 from sample_sheet import SampleSheet as IlluminaSampleSheet
+from typing import List
+import vcf as py_vcf
 
 from db.models import *
+from db.utils.multiple_run_adder import MultipleRunAdder
 from db.utils.run_builder import RunBuilder
 from db.utils.run_model import RunModel
 from db.utils.run_model import ManyRunModel
@@ -40,8 +45,18 @@ class RunAttributeManager:
 
         self.run_model = run_model
 
-    def get_related_instances(self, model_type, many=False, filters=None):
+    def get_related_instances(self, model_type: Type[Model], filters=None):
         """Fetch the run's nascent instance(s) of given model type"""
+        many = None
+        for update_model, update_many in MultipleRunAdder.update_order():
+            if model_type == update_model:
+                many=update_many
+                break
+        # cannot find the model type
+        if many is None:
+            raise ValueError(
+                f"{model_type.__name__} is not defined in the update order."
+            )
 
         if filters is None:
             filters = {}
@@ -62,30 +77,30 @@ class RunAttributeManager:
                 ]
             return filtered_entries
 
-    def get_all_instances(self, model_type):
+    def get_all_instances(self, model_type) -> List[Model]:
         """Fetch all current instances of a given model type"""
         attribute_manager = self.run.attribute_managers[model_type]
         return attribute_manager.instances
 
-    def get_pipeline(self):
+    def get_pipeline(self) -> Pipeline:
         return Pipeline(
             name=self.run.pipeline
         )
 
-    def get_pipeline_version(self):
+    def get_pipeline_version(self) -> PipelineVersion:
         # TODO: add checks for updated/updates at the end of MCA
         return PipelineVersion(
             version=self.run.version,
             pipeline=self.get_related_instances(Pipeline),
         )
 
-    def get_samplesheet(self):
+    def get_samplesheet(self) -> Samplesheet:
         # TODO: resolve latest_run issue
         return Samplesheet(
             path=self.run.samplesheet
         )
 
-    def get_run(self):
+    def get_run(self) -> Run:
         """Fetch info to populate a Run model instance"""
         return Run(
             worksheet=self.run.worksheet,
@@ -97,8 +112,7 @@ class RunAttributeManager:
             pipeline_version=self.get_related_instances(PipelineVersion)
         )
 
-
-    def get_sample(self):
+    def get_sample(self) -> List[Sample]:
         """Fetch info to populate a Sample model instance
 
         Since there are many samples per run, we must return a list
@@ -124,7 +138,7 @@ class RunAttributeManager:
 
         return samples
 
-    def get_samplesheet_sample(self):
+    def get_samplesheet_sample(self) -> List[SamplesheetSample]:
         db_samplesheet = self.get_related_instances(Samplesheet)
         db_samples = self.get_related_instances(Sample)
 
@@ -148,7 +162,7 @@ class RunAttributeManager:
             )
         return samplesheet_samples
 
-    def get_bam(self):
+    def get_bam(self) -> List[BAM]:
         bams = []
         for bam_file in self.run.bam_dir.glob('*.bam'):
             bam = BAM(
@@ -158,16 +172,17 @@ class RunAttributeManager:
             bams.append(bam)
         return bams
 
-    def get_sample_bam(self):
-        db_samples = self.get_related_instances(Sample, many=True)
+    def get_sample_bam(self) -> List[SampleBAM]:
+        db_samples = self.get_related_instances(Sample)
 
         sample_bams = []
         for db_sample in db_samples:
             # loop through all actual bam files marked with sample lab no
-            for bam_file in self.run.bam_dir.glob(f'*{db_sample.lab_no}*.bam'):
+            lab_no = db_sample.lab_no.replace('.', '-')
+            for bam_file in self.run.bam_dir.glob(f'*{lab_no}*.bam'):
                 f = {'path', bam_file.absolute()}
                 # extract the nascent instance with the matching path
-                db_bam = self.get_related_instances(BAM, many=True, filters=f)
+                db_bam = self.get_related_instances(BAM, filters=f)
                 sample_bam = SampleBAM(
                     sample=db_sample,
                     bam=db_bam
@@ -175,18 +190,46 @@ class RunAttributeManager:
                 sample_bams.append(sample_bam)
         return sample_bams
 
+    def get_vcf(self) -> List[VCF]:
+        vcfs = []
+        for vcf_file in self.run.vcf_dir.glob('*unified*.vcf.gz'):
+            vcf = VCF(
+                path=vcf_file.absolute(),
+                run=self.get_related_instances(Run)
+            )
+            vcfs.append(vcf)
+        return vcfs
 
-    def get_vcf(self):
-        pass
+    def get_sample_vcf(self) -> List[SampleVCF]:
+        db_samples = self.get_related_instances(Sample)
+        sample_vcfs = []
+        for db_sample in db_samples:
+            lab_no = db_sample.lab_no.replace('.', '-')
+            for vcf_file in self.run.vcf_dir.glob(f'*{lab_no}*.vcf.gz'):
+                f = {'path', vcf_file.absolute()}
+                db_vcf = self.get_related_instances(VCF, filters=f)
+                sample_vcf = SampleVCF(
+                    sample=db_sample,
+                    vcf=db_vcf
+                )
+                sample_vcfs.append(sample_vcf)
+        return sample_vcfs
 
-    def get_sample_vcf(self):
-        pass
-
-    def get_variant(self):
-        pass
+    def get_variant(self) -> List[Variant]:
+        variants = []
+        db_vcfs: List[VCF] = self.get_related_instances(VCF)
+        for db_vcf in db_vcfs:
+            vcf = db_vcf.path
+            variant = Variant(
+                ref=None,
+                alt=None
+            )
+            variants.append(variant)
+        return variants
 
     def get_sample_variant(self):
-        pass
+        db_samples: List[Sample] = self.get_related_instances(Sample)
+        db_variants: List[Variant] = self.get_related_instances(Variant)
 
     def get_gene(self):
         pass
