@@ -5,6 +5,21 @@ from django.template.defaultfilters import slugify
 
 from db.utils.model_utils import BaseModel
 from db.utils.model_utils import PipelineOutputFileModel
+from db.utils.model_utils import mode
+
+
+class Section(BaseModel):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=50, unique=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+@receiver(pre_save, sender=Section)
+def set_section_slug(sender, instance, *args, **kwargs):
+    if not instance.slug:
+        instance.slug = slugify(instance.name)
 
 
 class Pipeline(BaseModel):
@@ -12,6 +27,18 @@ class Pipeline(BaseModel):
 
     def __str__(self):
         return self.name
+
+
+class PipelineSection(BaseModel):
+    section = models.ForeignKey(
+        Section,
+        on_delete=models.CASCADE
+    )
+    pipeline = models.ForeignKey(
+        Pipeline,
+        on_delete=models.CASCADE
+    )
+    default = models.BooleanField(default=False)
 
 
 class Samplesheet(BaseModel):
@@ -75,6 +102,9 @@ class Run(BaseModel):
         choices=Status.choices,
         default=0,
     )
+
+    # whether run qc_status has been checked by a second user.
+    checked = models.BooleanField(default=False)
 
     # Method to retrieve all samples associated with a run
     def get_samples(self):
@@ -153,7 +183,13 @@ class Patient(BaseModel):
 
 
 class Sample(BaseModel):
-    slug = models.SlugField(max_length=50, unique=True)
+    section = models.ForeignKey(
+        Section,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='samples'
+    )
     patient = models.ForeignKey(
         Patient,
         null=True,
@@ -175,19 +211,38 @@ class Sample(BaseModel):
         through="SampleVCF"
     )
 
-    def get_variants(self, run, pinned):
+    @classmethod
+    def SetSampleSection(self, sample):
+        # Retrieve the set of pipelines associated with any of the sample's runs across any samplesheet the sample appears in.
+        sample_pipelines = [run.pipeline_version.pipeline for samplesheet in sample.samplesheets.all(
+        ) for run in samplesheet.runs.all()]
 
-        vcf = self.vcfs.get(run=run)
+        # Retrieve the sections that have been associated with these pipelines.
+        valid_pipeline_sections = PipelineSection.objects.filter(
+            pipeline__in=sample_pipelines)
 
-        if pinned:
-            return SampleTranscriptVariant.objects.filter(sample_variant__sample=self,
-                                                          sample_variant__variant__variantreport__vcf=vcf,
-                                                          pinned=True).order_by('transcript__gene__hgnc_name')
-        else:
-            return SampleTranscriptVariant.objects.filter(sample_variant__sample=self,
-                                                          sample_variant__variant__variantreport__vcf=vcf,
-                                                          selected=True,
-                                                          pinned=False).order_by('transcript__gene__hgnc_name')
+        if sample_pipelines and sample.section not in [pipeline_section.section for pipeline_section in valid_pipeline_sections]:
+            try:
+                # If only one pipeline associated with sample, find default section associated with it.
+                if len(sample_pipelines) == 1:
+                    default = valid_pipeline_sections.get(default=True).section
+                # If multiple pipelines associated with sample, use custom mode function to
+                # check if there is a mode and if so return default section associated with it.
+                elif mode(sample_pipelines):
+                    default = valid_pipeline_sections.get(
+                        pipeline=mode(sample_pipelines), default=True).section
+                # If multiple pipelines associated with sample, but no mode (e.g. each pipeline has been associated to sample an
+                # equal number of times), return default section associated with the pipeline of the most recent run.
+                else:
+                    latest_pipeline = Run.objects.filter(
+                        samplesheet__in=sample.samplesheets.all()).order_by('-completed_at')[0].pipeline_version.pipeline
+                    default = valid_pipeline_sections.get(
+                        pipeline=latest_pipeline, default=True).section
+                sample.section = default
+                sample.save()
+            except PipelineSection.DoesNotExist:
+                # If no default section for sample's pipeline, leave it blank.
+                pass
 
     def __str__(self):
         # return f"{self.samplesheet.run} {self.lab_no}"
@@ -197,11 +252,9 @@ class Sample(BaseModel):
         return f"{', '.join([samplesheet.latest_run.worksheet for samplesheet in self.samplesheets.all()])} {self.lab_no}"
 
 
-# Automatically populate empty slug field with sample_id before save.
-@receiver(pre_save, sender=Sample)
-def set_sample_slug(sender, instance, *args, **kwargs):
-    if not instance.slug:
-        instance.slug = slugify(instance.lab_no)
+@receiver(post_save, sender=Sample)
+def set_sample_section(sender, instance, *args, **kwargs):
+    Sample.SetSampleSection(instance)
 
 
 class ExcelReport(PipelineOutputFileModel):
