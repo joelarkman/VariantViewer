@@ -71,6 +71,14 @@ class User(AbstractUser):
         through="UserFilter"
     )
 
+    default_section = models.ForeignKey(
+        'db.Section',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='users'
+    )
+
     # validate_hash = models.CharField(
     #     max_length=255,
     #     default=get_validate_hash
