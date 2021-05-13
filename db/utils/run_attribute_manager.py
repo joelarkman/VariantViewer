@@ -1,6 +1,13 @@
-from typing import TypedDict
+import re
+from typing import Type
+
+from django.db.models import Model
+from sample_sheet import SampleSheet as IlluminaSampleSheet
+from typing import List
+import vcf as py_vcf
 
 from db.models import *
+from db.utils.multiple_run_adder import MultipleRunAdder
 from db.utils.run_builder import RunBuilder
 from db.utils.run_model import RunModel
 from db.utils.run_model import ManyRunModel
@@ -38,38 +45,63 @@ class RunAttributeManager:
 
         self.run_model = run_model
 
-    def get_related_instance(self, model_type, many=False):
+    def get_related_instances(self, model_type: Type[Model], filters=None):
         """Fetch the run's nascent instance(s) of given model type"""
+        many = None
+        for update_model, update_many in MultipleRunAdder.update_order():
+            if model_type == update_model:
+                many=update_many
+                break
+        # cannot find the model type
+        if many is None:
+            raise ValueError(
+                f"{model_type.__name__} is not defined in the update order."
+            )
+
+        if filters is None:
+            filters = {}
         attribute_manager = self.run.attribute_managers[model_type]
         if not many:
             return attribute_manager.run_model.entry
         else:
-            return attribute_manager.run_model.entry_list()
+            entry_list = attribute_manager.run_model.entry_list()
+            if not filters:
+                return entry_list
+            filtered_entries = entry_list
 
-    def get_all_instances(self, model_type):
+            for attr, value in filters.items():
+                # loop through desired filters to progressively filter entries
+                filtered_entries = [
+                    entry for entry in filtered_entries
+                    if getattr(entry, attr) == value
+                ]
+            return filtered_entries
+
+    def get_all_instances(self, model_type) -> List[Model]:
         """Fetch all current instances of a given model type"""
         attribute_manager = self.run.attribute_managers[model_type]
         return attribute_manager.instances
 
-    def get_pipeline(self):
+    def get_pipeline(self) -> Pipeline:
         return Pipeline(
             name=self.run.pipeline
         )
 
-    def get_pipeline_version(self):
+    def get_pipeline_version(self) -> PipelineVersion:
         # TODO: add checks for updated/updates at the end of MCA
         return PipelineVersion(
             version=self.run.version,
-            pipeline=self.get_related_instance(Pipeline),
+            pipeline=self.get_related_instances(Pipeline),
         )
 
-    def get_samplesheet(self):
+    def get_samplesheet(self) -> Samplesheet:
         # TODO: resolve latest_run issue
         return Samplesheet(
             path=self.run.samplesheet
         )
 
-    def get_run(self):
+    def get_run(self) -> Run:
+        """Fetch info to populate a Run model instance"""
         return Run(
             worksheet=self.run.worksheet,
             command_line_usage=self.run.commandline_usage,
@@ -77,36 +109,127 @@ class RunAttributeManager:
             output_dir=self.run.output_dir,
             fastq_dir=self.run.fastq_dir,
             interop_dir=self.run.interop_dir,
-            pipeline_version=self.get_related_instance(PipelineVersion)
+            pipeline_version=self.get_related_instances(PipelineVersion)
         )
 
+    def get_sample(self) -> List[Sample]:
+        """Fetch info to populate a Sample model instance
 
-    def get_patient(self):
-        pass
+        Since there are many samples per run, we must return a list
+        """
+        samplesheet_file = self.run.samplesheet
+        samplesheet = IlluminaSampleSheet(samplesheet_file)
 
-    def get_sample(self):
-        pass
+        # compile a regex search string for lab number
+        lab_no_pattern = re.compile(r'D\d{2}\.\d{5}')
 
-    def get_samplesheet_sample(self):
-        pass
+        samples = []
+        for sample in samplesheet.samples:
+            # ignore negative controls
+            sample_name = sample.Sample_Name
+            if "Neg" in sample_name: continue
+            lab_no = lab_no_pattern.search(sample_name)
+            samples.append(
+                Sample(
+                    lab_no=lab_no,
+                    slug=slugify(lab_no)
+                )
+            )
 
-    def get_bam(self):
-        pass
+        return samples
 
-    def get_sample_bam(self):
-        pass
+    def get_samplesheet_sample(self) -> List[SamplesheetSample]:
+        db_samplesheet = self.get_related_instances(Samplesheet)
+        db_samples = self.get_related_instances(Sample)
 
-    def get_vcf(self):
-        pass
+        samplesheet = IlluminaSampleSheet(self.run.samplesheet)
+        samples = samplesheet.samples
 
-    def get_sample_vcf(self):
-        pass
+        samplesheet_samples = []
+        for db_sample in db_samples:
+            sample = [sample for sample in samples
+                      if db_sample.lab_no in sample.Sample_Name][0]
+            samplesheet_samples.append(
+                SamplesheetSample(
+                    samplesheet=db_samplesheet,
+                    sample=db_sample,
+                    sample_identifier=sample.Sample_ID,
+                    index=sample.index,
+                    # values not present will return None using OOP-based access
+                    index2=sample.index2,
+                    gene_key=sample.Sample_Project
+                )
+            )
+        return samplesheet_samples
 
-    def get_variant(self):
-        pass
+    def get_bam(self) -> List[BAM]:
+        bams = []
+        for bam_file in self.run.bam_dir.glob('*.bam'):
+            bam = BAM(
+                path=bam_file.absolute(),
+                run=self.get_related_instances(Run)
+            )
+            bams.append(bam)
+        return bams
+
+    def get_sample_bam(self) -> List[SampleBAM]:
+        db_samples = self.get_related_instances(Sample)
+
+        sample_bams = []
+        for db_sample in db_samples:
+            # loop through all actual bam files marked with sample lab no
+            lab_no = db_sample.lab_no.replace('.', '-')
+            for bam_file in self.run.bam_dir.glob(f'*{lab_no}*.bam'):
+                f = {'path', bam_file.absolute()}
+                # extract the nascent instance with the matching path
+                db_bam = self.get_related_instances(BAM, filters=f)
+                sample_bam = SampleBAM(
+                    sample=db_sample,
+                    bam=db_bam
+                )
+                sample_bams.append(sample_bam)
+        return sample_bams
+
+    def get_vcf(self) -> List[VCF]:
+        vcfs = []
+        for vcf_file in self.run.vcf_dir.glob('*unified*.vcf.gz'):
+            vcf = VCF(
+                path=vcf_file.absolute(),
+                run=self.get_related_instances(Run)
+            )
+            vcfs.append(vcf)
+        return vcfs
+
+    def get_sample_vcf(self) -> List[SampleVCF]:
+        db_samples = self.get_related_instances(Sample)
+        sample_vcfs = []
+        for db_sample in db_samples:
+            lab_no = db_sample.lab_no.replace('.', '-')
+            for vcf_file in self.run.vcf_dir.glob(f'*{lab_no}*.vcf.gz'):
+                f = {'path', vcf_file.absolute()}
+                db_vcf = self.get_related_instances(VCF, filters=f)
+                sample_vcf = SampleVCF(
+                    sample=db_sample,
+                    vcf=db_vcf
+                )
+                sample_vcfs.append(sample_vcf)
+        return sample_vcfs
+
+    def get_variant(self) -> List[Variant]:
+        variants = []
+        db_vcfs: List[VCF] = self.get_related_instances(VCF)
+        for db_vcf in db_vcfs:
+            vcf = db_vcf.path
+            variant = Variant(
+                ref=None,
+                alt=None
+            )
+            variants.append(variant)
+        return variants
 
     def get_sample_variant(self):
-        pass
+        db_samples: List[Sample] = self.get_related_instances(Sample)
+        db_variants: List[Variant] = self.get_related_instances(Variant)
 
     def get_gene(self):
         pass

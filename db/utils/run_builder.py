@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Type
 from typing import TypedDict
 
 from django.db import models
@@ -88,7 +89,21 @@ class RunBuilder:
     def full_name(self):
         return f"{self.pipeline}_{self.version}_{self.worksheet}"
 
+    @property
+    def bam_dir(self):
+        # noinspection SpellCheckingInspection
+        bam_dirs = list(self.output_dir.glob('*[Aa]lignment*'))
+        assert len(list(bam_dirs)) < 2, f"Multiple BAM dirs for {self.full_name}"
+        assert len(list(bam_dirs)) != 0, f"No BAM dir for {self.full_name}"
+        return bam_dirs[0]
+
+    @property
+    def vcf_dir(self):
+        vcf_dirs = list(self.output_dir.glob('*[Vv][Cc][Ff]*'))
+        assert list(vcf_dirs) < 2, f"Multiple VCF dirs for {self.full_name}"
+        assert list(vcf_dirs) != 0, f"No VCF dir for {self.full_name}"
+        return vcf_dirs[0]
+
 
 class AttributesManagersDict(TypedDict):
-    # noinspection PyTypeHints
-    models.Model: RunAttributeManager
+    Type[models.Model]: RunAttributeManager

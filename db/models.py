@@ -282,7 +282,7 @@ class SamplesheetSample(BaseModel):
     )
     sample_identifier = models.CharField(max_length=50)
     index = models.CharField(max_length=50)
-    index2 = models.CharField(max_length=50)
+    index2 = models.CharField(max_length=50, null=True, blank=True)
     gene_key = models.CharField(max_length=50)
 
 

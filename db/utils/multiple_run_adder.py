@@ -14,6 +14,12 @@ class MultipleRunAdder:
     output directory and fetches relevant info for addition to tables. This is
     done in bulk by creating sets of complete data for each table in sequence
     according to an update order based on db dependencies.
+
+    TODO:
+        - allow for binning
+        - skip already present files
+        - postprocess function: add pipeline version update checks
+        - postprocess function: create symlinks
     """
     def __init__(self, commandline_usage_list):
         self.commandline_usage_list = commandline_usage_list
@@ -64,43 +70,7 @@ class MultipleRunAdder:
         just 1 per case.
         """
 
-        update_order = (
-            # create a tuple of tuples; each sub-tuple is:
-            # [0] a key to access an attribute manager for a case
-            # [1] whether that corresponding model has many instances per run
-            (Pipeline, False),
-            (PipelineVersion, False),
-            (Samplesheet, False),
-            (Run, False),
-            (Patient, True),
-            (Sample, True),
-            (SamplesheetSample, True),
-            (BAM, True),
-            (SampleBAM, True),
-            (VCF, True),
-            (SampleVCF, True),
-            (ExcelReport, True),
-            (Variant, True),
-            (SampleVariant, True),
-            (Gene, True),
-            (Transcript, True),
-            (Exon, True),
-            (CoverageInfo, True),
-            (ExonReport, True),
-            (GeneReport, True),
-            (GenomeBuild, True),
-            (GenomicCoordinate, True),
-            (Sequence, True),
-            (ExonSequence, True),
-            (VariantCoordinate, True),
-            (TranscriptVariant, True),
-            (SampleTranscriptVariant, True),
-            (VariantReport, True),
-            (VariantReportInfo, True),
-            (VariantReportFilter, True),
-        )
-
-        for model_type, many in update_order:
+        for model_type, many in self.update_order():
             # create a bulk set of all data for each model type in sequence
             for run in tqdm(runs, desc=f"parsing {model_type.__name__} to db"):
                 tqdm.write(run.full_name)
@@ -158,3 +128,41 @@ class MultipleRunAdder:
 
         to_create = [model_type(**attrs) for attrs in attr_list]
         model_type.instances.bulk_create(to_create)
+
+    @staticmethod
+    def update_order():
+        return (
+            # create a tuple of tuples; each sub-tuple is:
+            # [0] a key to access an attribute manager for a case
+            # [1] whether that corresponding model has many instances per run
+            (Pipeline, False),
+            (PipelineVersion, False),
+            (Samplesheet, False),
+            (Run, False),
+            (Patient, True),
+            (Sample, True),
+            (SamplesheetSample, True),
+            (BAM, True),
+            (SampleBAM, True),
+            (VCF, True),
+            (SampleVCF, True),
+            (ExcelReport, True),
+            (Variant, True),
+            (SampleVariant, True),
+            (Gene, True),
+            (Transcript, True),
+            (Exon, True),
+            (CoverageInfo, True),
+            (ExonReport, True),
+            (GeneReport, True),
+            (GenomeBuild, True),
+            (GenomicCoordinate, True),
+            (Sequence, True),
+            (ExonSequence, True),
+            (VariantCoordinate, True),
+            (TranscriptVariant, True),
+            (SampleTranscriptVariant, True),
+            (VariantReport, True),
+            (VariantReportInfo, True),
+            (VariantReportFilter, True),
+        )
