@@ -11,24 +11,26 @@
         })
         ;
 
-    function applySearches() {
-        awaiting_table = $('.awaiting-list-table').DataTable()
-        pending_table = $('.pending-list-table').DataTable()
-        search = $('#runSearch').val() // collect general search text
-        pipeline = $('#pipeline-selection').val() // collect pipeline selection
-        section = 'rare disease'
+    var applySearches = $.fn.dataTable.util.throttle(
+        function () {
+            awaiting_table = $('.awaiting-list-table').DataTable()
+            pending_table = $('.pending-list-table').DataTable()
+            search = $('#runSearch').val() // collect general search text
+            pipeline = $('#pipeline-selection').val() // collect pipeline selection
+            section = 'rare disease'
 
-        // connect all searches together and apply them.
-        awaiting_table.search(search).column(0).search(pipeline).draw();
-        pending_table.search(search).column(0).search(pipeline).draw();
-    }
+            awaiting_table.search(search).column(0).search(pipeline).draw();
+            pending_table.search(search).column(0).search(pipeline).draw();
+        },
+        300
+    );
 
     // Initiate sample table
     var awaiting_table = $('.awaiting-list-table').DataTable({
         'serverSide': true,
-        'ajax': '/api/runs_awaiting_first_check_list?format=datatables',
+        'ajax': '/api/' + $('.awaiting-list-table').attr('data-section') + '/runs_awaiting_first_check_list?format=datatables',
         "deferRender": true,
-        'processing': true,
+        'processing': false,
         'columns': [
             { 'data': 'pipeline_name', 'name': 'pipeline_version__pipeline__name' },
             { 'data': 'worksheet' },
@@ -52,7 +54,8 @@
         "language": {
             "emptyTable": "No relevent runs",
             'loadingRecords': '&nbsp;',
-            'processing': 'Loading...'
+            'processing': 'Loading...',
+            "zeroRecords": "No runs matching query",
         },
         "order": [[2, 'desc']]
 
@@ -60,9 +63,9 @@
 
     var pending_table = $('.pending-list-table').DataTable({
         'serverSide': true,
-        'ajax': '/api/runs_awaiting_second_check_list?format=datatables',
+        'ajax': '/api/' + $('.pending-list-table').attr('data-section') + '/runs_awaiting_second_check_list?format=datatables',
         "deferRender": true,
-        'processing': true,
+        'processing': false,
         'columns': [
             { 'data': 'pipeline_name', 'name': 'pipeline_version__pipeline__name' },
             { 'data': 'worksheet' },
@@ -87,7 +90,8 @@
         "language": {
             "emptyTable": "No relevent runs",
             'loadingRecords': '&nbsp;',
-            'processing': 'Loading...'
+            'processing': 'Loading...',
+            "zeroRecords": "No runs matching query",
         },
         "order": [[2, 'desc']]
 
@@ -178,12 +182,13 @@
                 <span class="divider">|</span>
                 <div class="small-text-column-container">
                     <span class="small-text-top">SECTION:</span>
-                    <span class="small-text-bottom">Rare Disease</span>
+                    <span class="small-text-bottom">{{section}}</span>
                 </div>
-                <div class="ui mini button" style="margin-left: 5px;">Change</div>
+                <a href="{% url 'change_section' %}" class="ui mini button" style="margin-left: 5px;">Change</a>
             </div>
             <div class="ui large breadcrumb">
-                <a href="{% url 'home' %}" class="ui compact tiny grey disabled basic inverted button">Rare disease</a>
+                <a href="{% url 'home' section=section.slug %}"
+                    class="ui compact tiny grey disabled basic inverted button">{{section}}</a>
             </div>
         </div>
 
@@ -214,16 +219,13 @@
 
 <div style="display: flex;align-items: center;flex: 0 0 25%;">
     <div class="ui four stretched raised link cards" style="padding: 20px;min-height: 85%;flex: 1;">
-        <a href="{% url 'search' %}" class="ui card" style="background-color: #00B5AD">
+        <a href="{% url 'search' section=section.slug %}" class="ui card" style="background-color: #00B5AD">
             <div class="content"
                 style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
                 <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"> <i
                         class="search icon"></i>Sample Search</div>
                 <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
                     Search for a rare disease sample by ID, pipeline, QC status, etc.
-                </div>
-                <div class="description">
-                    <p></p>
                 </div>
             </div>
         </a>
@@ -304,7 +306,7 @@
         <div class="ui attached segment"
             style="padding: 0;border: none;flex: 1;overflow-y: auto;overflow-x: hidden;background-color: #F8F8F8;">
 
-            <table class='ui awaiting-list-table selectable celled structured table '
+            <table class='ui awaiting-list-table selectable celled structured table ' data-section={{section.slug}}
                 style="width: 100%;table-layout: fixed;border: none;">
                 <thead>
                     <tr>
@@ -331,7 +333,7 @@
         <div class="ui attached segment"
             style="padding: 0;border-top: none;flex: 1;overflow-y: auto;overflow-x: hidden;background-color: #F8F8F8;">
 
-            <table class='ui pending-list-table selectable celled structured table '
+            <table class='ui pending-list-table selectable celled structured table ' data-section={{section.slug}}
                 style="width: 100%;table-layout: fixed;border: none;">
                 <thead>
                     <tr>

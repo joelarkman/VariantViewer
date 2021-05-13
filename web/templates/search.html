@@ -87,15 +87,14 @@
         // Initiate sample table
         var sample_table = $('.samples-list-table').DataTable({
             'serverSide': true,
-            'ajax': '/api/sample_list?format=datatables',
+            'ajax': '/api/' + $('.samples-list-table').attr('data-section') + '/sample_list?format=datatables',
             "deferRender": true,
             'processing': true,
             'columns': [
                 {
-                    "data": "slug", "name": 'sample__slug',
+                    "data": null,
                     "render": function (data, type, row, meta) {
-
-                        data = "<a href='/sample/" + data + "' class='ui small icon button' style='margin:0px;'><i class='external alternate icon'></i></a>"
+                        data = "<a href='/results/" + row.runs[0].worksheet + "/" + row.sample_identifier + "' class='ui small icon button' style='margin:0px;'><i class='external alternate icon'></i></a>"
                         return data;
                     },
                     "orderable": false,
@@ -146,7 +145,8 @@
             "language": {
                 "emptyTable": "No relevent samples",
                 'loadingRecords': '&nbsp;',
-                'processing': 'Loading...'
+                'processing': 'Loading...',
+                "zeroRecords": "No samples matching query",
             },
             "order": [[8, 'desc']]
 
@@ -268,12 +268,13 @@
                 <span class="divider">|</span>
                 <div class="small-text-column-container">
                     <span class="small-text-top">SECTION:</span>
-                    <span class="small-text-bottom">Rare Disease</span>
+                    <span class="small-text-bottom">{{section}}</span>
                 </div>
-                <div class="ui mini button" style="margin-left: 5px;">Change</div>
+                <a href="{% url 'change_section' %}" class="ui mini button" style="margin-left: 5px;">Change</a>
             </div>
             <div class="ui large breadcrumb">
-                <a href="{% url 'home' %}" class="ui compact tiny grey basic inverted button">Rare disease</a>
+                <a href="{% url 'home' section=section.slug %}"
+                    class="ui compact tiny grey basic inverted button">{{section}}</a>
                 <i class="right chevron icon divider"></i>
                 <a class="ui compact tiny grey basic inverted disabled button">Search</a>
             </div>
@@ -341,7 +342,7 @@
     <div class="ui attached segment"
         style="padding: 0;border-top: none;flex: 1;overflow-y: scroll;overflow-x: hidden;background-color: #F8F8F8;">
 
-        <table class='ui samples-list-table selectable celled structured table '
+        <table class='ui samples-list-table selectable celled structured table ' data-section={{section.slug}}
             style="width: 100%;table-layout: fixed;">
             <thead>
                 <tr>
