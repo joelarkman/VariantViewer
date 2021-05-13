@@ -6,11 +6,14 @@ from . import views
 urlpatterns = [
     path('api/', include('web.routing')),
 
-    path('redirect', views.RedirectView.as_view(), name='redirect'),
+    path('', views.RedirectView.as_view(), kwargs={
+         'update': False}, name='redirect'),
+    path('section-update', views.RedirectView.as_view(),
+         kwargs={'update': True}, name='change_section'),
 
-    path('', views.HomeView.as_view(), name='home'),
+    path('<slug:section>', views.HomeView.as_view(), name='home'),
 
-    path('search/', views.SearchView.as_view(), name='search'),
+    path('<slug:section>/search/', views.SearchView.as_view(), name='search'),
 
     path('results/<worksheet>/<sample>',
          views.SampleDetailsView.as_view(), name='sample_details'),
