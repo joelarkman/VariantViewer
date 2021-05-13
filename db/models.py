@@ -210,10 +210,6 @@ class ExcelReport(PipelineOutputFileModel):
         Sample,
         on_delete=models.CASCADE
     )
-    run = models.ForeignKey(
-        Run,
-        on_delete=models.CASCADE
-    )
 
 
 class SamplesheetSample(BaseModel):
@@ -268,6 +264,9 @@ class Variant(BaseModel):
     """
     ref = models.CharField(max_length=255)
     alt = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = ['ref', 'alt']
 
 
 class VariantCoordinate(BaseModel):
