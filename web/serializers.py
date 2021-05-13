@@ -27,7 +27,6 @@ class SampleListSerializer(serializers.ModelSerializer):
     first_name = serializers.SerializerMethodField()
     last_name = serializers.SerializerMethodField()
     lab_no = serializers.SerializerMethodField()
-    slug = serializers.SerializerMethodField()
 
     runs = serializers.SerializerMethodField()
 
@@ -39,9 +38,6 @@ class SampleListSerializer(serializers.ModelSerializer):
 
     def get_lab_no(self, samplesheetsample):
         return samplesheetsample.sample.lab_no
-
-    def get_slug(self, samplesheetsample):
-        return samplesheetsample.sample.slug
 
     def get_runs(self, samplesheetsample):
         return RunSerializer(samplesheetsample.samplesheet.runs.all().order_by('-completed_at'), many=True).data
