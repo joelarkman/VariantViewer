@@ -46,6 +46,8 @@ home            = $ROOT_PATH/../venv
 master          = true
 # maximum number of worker processes
 processes       = 10
+# buffer-size
+buffer-size=32768
 # the socket (use the full path to be safe)
 socket          = /tmp/mysite.sock
 # ... with appropriate permissions - may be needed
