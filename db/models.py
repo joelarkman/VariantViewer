@@ -362,10 +362,6 @@ class Transcript(BaseModel):
     refseq_id = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     canonical = models.BooleanField()
-    sequence = models.ForeignKey(
-        Sequence,
-        on_delete=models.PROTECT
-    )
 
 
 class TranscriptVariant(BaseModel):
