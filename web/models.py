@@ -1,6 +1,7 @@
 import os
 import json
 from django.db import models
+from web.utils.model_utils import BaseModel
 from db.models import VCF, SampleTranscriptVariant
 from django.utils.translation import gettext_lazy as _
 from easyaudit.models import CRUDEvent
@@ -19,12 +20,10 @@ class NotEqual(models.Lookup):
 
 
 # Create your models here.
-class Filter(models.Model):
+class Filter(BaseModel):
     # genekey = models.CharField(max_length=100)
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=1000, blank=True,)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
 
     class Match(models.TextChoices):
         ALL = 'all', _('Match all of the above rules')
@@ -37,7 +36,7 @@ class Filter(models.Model):
     )
 
 
-class FilterItem(models.Model):
+class FilterItem(BaseModel):
     filter = models.ForeignKey(
         Filter, related_name='items', on_delete=models.CASCADE)
     field = models.CharField(max_length=100)
@@ -60,7 +59,7 @@ class FilterItem(models.Model):
     )
 
 
-class Document(models.Model):
+class Document(BaseModel):
     sample_transcript_variant = models.ForeignKey(
         SampleTranscriptVariant,
         on_delete=models.CASCADE,
@@ -68,13 +67,13 @@ class Document(models.Model):
     )
     description = models.CharField(max_length=1000, blank=True,)
     document = models.FileField(upload_to='documents/%Y/%m/%d/',)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
 
+    @property
     def extension(self):
         name, extension = os.path.splitext(self.document.name)
         return extension
 
+    @property
     def filename(self):
         return os.path.basename(self.document.name)
 
@@ -86,7 +85,7 @@ class Document(models.Model):
         return crud
 
 
-class Comment(models.Model):
+class Comment(BaseModel):
     sample_transcript_variant = models.ForeignKey(
         SampleTranscriptVariant,
         on_delete=models.CASCADE,
@@ -108,9 +107,6 @@ class Comment(models.Model):
         choices=Classification.choices,
         default=0,
     )
-
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
 
     def get_last_modified(self):
         cruds = CRUDEvent.objects.filter(object_repr=self)
