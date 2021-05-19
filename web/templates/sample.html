@@ -81,7 +81,6 @@
         <div class="item-divider"></div>
 
         <div class="filters-sub-menu-container" style="display:flex; align-items: center;flex: 1;">
-            {% include 'includes/active-filters.html' %}
         </div>
 
         <div class="right-float">
@@ -111,8 +110,11 @@
     <!-- Main Variant Panel -->
     <div id="variants-main-panel">
 
-        <div class="ui vertical menu" id="variant-menu">
-            {% include 'includes/variant-list.html' %}
+        <div class="ui dimmable vertical menu" id="variant-menu"
+            data-url="{% url 'load_variant_list' run=run.id ss_sample=ss_sample.id %}">
+            <div id="variant-list-content-loader" class="ui inverted dimmer">
+                <div class="ui large fast loader"></div>
+            </div>
         </div>
 
 

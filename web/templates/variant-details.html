@@ -148,6 +148,9 @@
         <a class="item" data-tab="evidence">
             Evidence
         </a>
+        <a class="right item" data-tab="previous-classifications">
+            Previous classifications
+        </a>
     </div>
 
 </div>
@@ -370,13 +373,46 @@
         </div>
 
         <div id="evidence-container">
-            {% if documents %}
             {% include 'includes/evidence.html' %}
-            {% else %}
-            <span style="font-size:smaller;">No evidence files uploaded yet</span>
-            {% endif %}
         </div>
 
     </div>
 
+</div>
+
+<div class="ui tab" data-tab="previous-classifications">
+
+    <div class="ui top attached segment">
+        <h4>Previous classifications of this variant</h4>
+    </div>
+
+    <table class="ui selectable bottom attached compact celled table" style="background-color: #eeeeee;">
+        <thead>
+            <tr>
+                <th style="background-color: white !important;border-radius: 0;">First name</th>
+                <th style="background-color: white !important;">Last name</th>
+                <th style="background-color: white !important;border-radius: 0;">Lab no</th>
+                <th style="background-color: white !important;border-radius: 0;">Classification</th>
+                <th style="background-color: white !important;border-radius: 0;"># evidence files</th>
+                <th style="background-color: white !important;border-radius: 0;">comment</th>
+                <th style="background-color: white !important;border-radius: 0;">test</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stv in related_stvs %}
+            <tr>
+                <td>{{stv.sample_variant.sample.patient.first_name}}</td>
+                <td>{{stv.sample_variant.sample.patient.last_name}}</td>
+                <td>{{stv.sample_variant.sample.lab_no}}</td>
+                <td>{{stv.comments.last.get_classification_display}}</td>
+                <td>{{stv.evidence_files.all|length}}</td>
+                <td>{%if stv.comments.last.comment %} <i class="check circle icon"></i>{%else%}<i
+                        class="times circle icon"></i> {%endif%}</td>
+
+
+                <td>{{stv.variant_report}}</td>
+            </tr>
+            {%endfor%}
+        </tbody>
+    </table>
 </div>

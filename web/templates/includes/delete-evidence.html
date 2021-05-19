@@ -1,0 +1,21 @@
+<div class="ui segments" style="display: flex;min-width: 40%;max-width: 90%;max-height: 90%;">
+    <div class="ui left aligned clearing segment">
+        <h3 class="ui header" style="margin:0">Delete '{{document.filename }}'</h3>
+    </div>
+    <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
+        <form id='delete-evidence-form' method="post" action="{% url 'delete_evidence' document=document.id %}"
+            class="js-delete-evidence-form">
+
+            {% csrf_token %}
+
+        </form>
+        <span>Are you sure you want to remove this evidence file?</span>
+
+
+    </div>
+    <div class="ui secondary left aligned clearing segment">
+        <input type="submit" value="Delete" form="delete-evidence-form" class="ui right floated negative button"
+            style="margin-left: 10px;">
+        <div class="ui right floated button delete-evidence-close">Cancel</div>
+    </div>
+</div>
