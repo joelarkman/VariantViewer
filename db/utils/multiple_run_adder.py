@@ -21,6 +21,7 @@ class MultipleRunAdder:
         - skip already present files
         - postprocess function: add pipeline version update checks
         - postprocess function: create symlinks
+        - make into an atomic transaction
     """
     def __init__(self, commandline_usage_list):
         self.commandline_usage_list = commandline_usage_list
@@ -132,7 +133,7 @@ class MultipleRunAdder:
         ]
 
         to_create = [model_type(**attrs) for attrs in attr_list]
-        model_type.instances.bulk_create(to_create)
+        model_type.objects.bulk_create(to_create)
 
     @staticmethod
     def update_order():
