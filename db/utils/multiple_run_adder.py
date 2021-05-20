@@ -26,9 +26,10 @@ class MultipleRunAdder:
         self.commandline_usage_list = commandline_usage_list
         self.df = pd.DataFrame()
         self.variant_manager = VariantManager()
+        self.runs = []
 
     def update_database(self):
-        runs = [
+        self.runs = [
             # create a RunBuilder for each detected run
             RunBuilder(commandline_usage_file, self)
             for commandline_usage_file
@@ -41,7 +42,7 @@ class MultipleRunAdder:
             'fastq_dir', 'output_dir', 'completed_at', 'samplesheet'
         ]
         data = []
-        for run in runs:
+        for run in self.runs:
             data.append([
                 run.pipeline,
                 run.version,
