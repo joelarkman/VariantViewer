@@ -27,7 +27,7 @@ class RunAttributeManager:
         model_str = model_type._meta.verbose_name.replace(' ', '_')
 
         # create a delegate function for parsing the correct data for type
-        get_model_attrs = getattr(self, model_str)
+        get_model_attrs = getattr(self, f"get_{model_str}")
 
         # create a dictionary of data values from the model
         # model used purely for field validation, we need a dict for later

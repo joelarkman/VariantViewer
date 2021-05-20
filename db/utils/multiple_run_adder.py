@@ -100,6 +100,7 @@ class MultipleRunAdder:
                 ]
                 # flatten list of lists
                 model_list = [
+
                     model for model_list in model_lists for model in model_list
                 ]
 
