@@ -55,7 +55,8 @@ class MultipleRunAdder:
         self.df = pd.DataFrame(columns=columns, data=data)
 
         # begin the process of bulk adding info to the database
-        self.add_runs(runs)
+        # TODO: unleash the kraken
+        # self.add_runs(runs)
 
     def add_runs(self, runs):
         """The bulk update process.
