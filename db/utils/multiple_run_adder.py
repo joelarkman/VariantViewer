@@ -103,15 +103,13 @@ class MultipleRunAdder:
                 ]
                 # flatten list of lists
                 model_list = [
-
                     model for model_list in model_lists for model in model_list
                 ]
 
             # do the creation then refresh the attribute managers
             self.bulk_create_new(model_type, model_list)
             for model in model_list:
-                model_objects = model_type.objects.all()
-                model.check_found_in_db(model_objects)
+                model.check_found_in_db()
 
     @staticmethod
     def bulk_create_new(model_type, model_list: list) -> None:
