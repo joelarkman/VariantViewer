@@ -244,11 +244,10 @@ class RunAttributeManager:
         return excel_reports
 
     def get_gene(self) -> List[Gene]:
-        raise NotImplementedError("awaiting variant manager fix")
         genes = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        gene_df = variant_manager.df[["SYMBOL", "Gene"]].drop_duplicates()
-        for index, row in gene_df.iterrows():
+        gene_df = variant_manager.get_df_info(cols=["SYMBOL", "Gene"])
+        for index, row in gene_df.drop_duplicates().iterrows():
             if row.SYMBOL:
                 gene = Gene(
                     hgnc_name=row.SYMBOL,
@@ -258,13 +257,10 @@ class RunAttributeManager:
         return genes
 
     def get_transcript(self) -> List[Transcript]:
-        raise NotImplementedError("awaiting variant manager fix")
         transcripts = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        transcript_df = variant_manager.df[
-            ["Gene", "Feature_type", "Feature", "CANONICAL"]
-        ]
-        transcript_df = transcript_df.drop_duplicates()
+        cols = ["Gene", "Feature_type", "Feature", "CANONICAL"]
+        transcript_df = variant_manager.get_df_info(cols=cols)
         for index, row in transcript_df.iterrows():
             if row.Feature_type == "Transcript":
                 gene = self.get_related_instances(Gene, {'hgnc_id': row.Gene})
@@ -278,12 +274,10 @@ class RunAttributeManager:
         return transcripts
 
     def get_exon(self) -> List[Exon]:
-        raise NotImplementedError("awaiting variant manager fix")
         exons = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        transcript_df = variant_manager.df[
-            ["Gene", "Feature_type", "Feature", "CANONICAL", "EXON"]
-        ]
+        cols = ["Gene", "Feature_type", "Feature", "CANONICAL", "EXON"]
+        transcript_df = variant_manager.get_df_info(cols=cols)
         exon_df = transcript_df.drop_duplicates(subset=["Gene","Feature"])
         for index, row in exon_df.iterrows():
             if not row.Gene or row.Feature_type != "Transcript" or not row.EXON:
@@ -299,9 +293,11 @@ class RunAttributeManager:
         return exons
 
     def get_variant(self) -> List[Variant]:
-        raise NotImplementedError("awaiting variant manager fix")
         variants = []
         # create the models using vcf records added when VCFs had been added
+        variant_manager = self.run.multiple_run_adder.variant_manager
+        cols = ["REF", "ALT"]
+        variant_df = variant_manager.get_df_info(cols=cols).drop_duplicates()
         for record in self.run.multiple_run_adder.variant_manager.records:
             variant = Variant(
                 ref=record.REF,
@@ -311,7 +307,6 @@ class RunAttributeManager:
         return variants
 
     def get_sample_variant(self) -> List[SampleVariant]:
-        raise NotImplementedError("awaiting variant manager fix")
         sample_variants = []
         # look through all the variant reports in the variant manager
         for record in self.run.multiple_run_adder.variant_manager.records:
@@ -333,17 +328,17 @@ class RunAttributeManager:
         return sample_variants
 
     def get_transcript_variant(self) -> List[TranscriptVariant]:
-        raise NotImplementedError("awaiting variant manager fix")
-        transcript_variants = []
-        db_txs: List[Transcript] = self.get_related_instances(Transcript)
-        db_variants: List[Variant] = self.get_related_instances(Variant)
-        variants_df = self.run.multiple_run_adder.variant_manager.df
+        pass
 
-        for db_tx in db_txs:
-            transcript_variants_df = variants_df[
-                (variants_df.Feature == db_tx.refseq_id)
-            ]
-        return transcript_variants
+        # transcript_variants = []
+        # db_txs: List[Transcript] = self.get_related_instances(Transcript)
+        # db_variants: List[Variant] = self.get_related_instances(Variant)
+        # variants_df = self.run.multiple_run_adder.variant_manager.df
+        # for db_tx in db_txs:
+        #     transcript_variants_df = variants_df[
+        #         (variants_df.Feature == db_tx.refseq_id)
+        #     ]
+        # return transcript_variants
 
     def get_sample_transcript_variant(self):
         pass
