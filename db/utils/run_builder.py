@@ -22,7 +22,7 @@ class RunBuilder:
     
     Attributes:
     """
-    def __init__(self, commandline_usage_file, mra: MultipleRunAdder):
+    def __init__(self, commandline_usage_file, mra: "MultipleRunAdder"):
         self.commandline_usage_file = commandline_usage_file
         self.multiple_run_adder = mra
         self.commandline_usage = self.parse_commandline_usage()
@@ -120,4 +120,4 @@ class RunBuilder:
 
 
 class AttributesManagersDict(TypedDict):
-    Type[models.Model]: RunAttributeManager
+    Type[models.Model]: "RunAttributeManager"
