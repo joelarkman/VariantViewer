@@ -4,8 +4,11 @@ from typing import TypedDict
 
 from django.db import models
 
-from db.utils.multiple_run_adder import MultipleRunAdder
 from db.utils.run_attribute_manager import RunAttributeManager
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from db.utils.multiple_run_adder import MultipleRunAdder
 
 
 class RunBuilder:
