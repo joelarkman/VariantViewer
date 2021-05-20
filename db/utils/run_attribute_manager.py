@@ -77,6 +77,12 @@ class RunAttributeManager:
                 ]
             return filtered_entries
 
+    def get_related_instance(self, *args, **kwargs):
+        """As above but ensure unique"""
+        related_instances = self.get_related_instances(*args, **kwargs)
+        assert len(related_instances) == 1
+        return related_instances[0]
+
     def get_all_instances(self, model_type) -> List[Model]:
         """Fetch all current instances of a given model type"""
         attribute_manager = self.run.attribute_managers[model_type]
@@ -135,7 +141,6 @@ class RunAttributeManager:
                     slug=slugify(lab_no)
                 )
             )
-
         return samples
 
     def get_samplesheet_sample(self) -> List[SamplesheetSample]:
@@ -166,7 +171,7 @@ class RunAttributeManager:
         bams = []
         for bam_file in self.run.bam_dir.glob('*.bam'):
             bam = BAM(
-                path=bam_file.absolute(),
+                path=str(bam_file.resolve()),
                 run=self.get_related_instances(Run)
             )
             bams.append(bam)
@@ -180,7 +185,7 @@ class RunAttributeManager:
             # loop through all actual bam files marked with sample lab no
             lab_no = db_sample.lab_no.replace('.', '-')
             for bam_file in self.run.bam_dir.glob(f'*{lab_no}*.bam'):
-                f = {'path', bam_file.absolute()}
+                f = {'path', str(bam_file.resolve())}
                 # extract the nascent instance with the matching path
                 db_bam = self.get_related_instances(BAM, filters=f)
                 sample_bam = SampleBAM(
@@ -191,13 +196,24 @@ class RunAttributeManager:
         return sample_bams
 
     def get_vcf(self) -> List[VCF]:
+        variant_manager = self.run.multiple_run_adder.variant_manager
+
         vcfs = []
         for vcf_file in self.run.vcf_dir.glob('*unified*.vcf.gz'):
             vcf = VCF(
-                path=vcf_file.absolute(),
+                path=str(vcf_file.resolve()),
                 run=self.get_related_instances(Run)
             )
             vcfs.append(vcf)
+
+            # keep track of all variants found in these VCFs for later addition
+            reader = py_vcf.Reader(filename=vcf.path)
+            if not variant_manager.csq_keys:
+                # add variant record headers to the manager if not present
+                keys = reader.infos['CSQ'].desc.split('Format: ')[-1].split('|')
+                variant_manager.csq_keys = keys
+            for record in reader:
+                variant_manager.records.append(record)
         return vcfs
 
     def get_sample_vcf(self) -> List[SampleVCF]:
@@ -206,7 +222,7 @@ class RunAttributeManager:
         for db_sample in db_samples:
             lab_no = db_sample.lab_no.replace('.', '-')
             for vcf_file in self.run.vcf_dir.glob(f'*{lab_no}*.vcf.gz'):
-                f = {'path', vcf_file.absolute()}
+                f = {'path', str(vcf_file.resolve())}
                 db_vcf = self.get_related_instances(VCF, filters=f)
                 sample_vcf = SampleVCF(
                     sample=db_sample,
@@ -215,29 +231,132 @@ class RunAttributeManager:
                 sample_vcfs.append(sample_vcf)
         return sample_vcfs
 
+    def get_excel_report(self) -> List[ExcelReport]:
+        excel_reports = []
+        db_samples = self.get_related_instances(Sample)
+        for db_sample in db_samples:
+            lab_no = db_sample.lab_no.replace('.', '-')
+            for excel_file in self.run.excel_dir.glob(f'*{lab_no}*.xlsx'):
+                excel_report = ExcelReport(
+                    path=str(excel_file.resolve()),
+                    run=self.get_related_instances(Run),
+                    sample=db_sample,
+                )
+                excel_reports.append(excel_report)
+        return excel_reports
+
+    def get_gene(self) -> List[Gene]:
+        genes = []
+        variant_manager = self.run.multiple_run_adder.variant_manager
+        gene_df = variant_manager.df[["SYMBOL", "Gene"]].drop_duplicates()
+        for index, row in gene_df.iterrows():
+            if row.SYMBOL:
+                gene = Gene(
+                    hgnc_name=row.SYMBOL,
+                    hgnc_id=row.Gene
+                )
+                genes.append(gene)
+        return genes
+
+    def get_transcript(self) -> List[Transcript]:
+        transcripts = []
+        variant_manager = self.run.multiple_run_adder.variant_manager
+        transcript_df = variant_manager.df[
+            ["Gene", "Feature_type", "Feature", "CANONICAL"]
+        ]
+        transcript_df = transcript_df.drop_duplicates()
+        for index, row in transcript_df.iterrows():
+            if row.Feature_type == "Transcript":
+                gene = self.get_related_instances(Gene, {'hgnc_id': row.Gene})
+                transcript = Transcript(
+                    gene=gene,
+                    refseq_id=row.Feature,
+                    name=row.Feature,
+                    canonical=row.CANONICAL == "YES"
+                )
+                transcripts.append(transcript)
+        return transcripts
+
+    def get_exon(self) -> List[Exon]:
+        exons = []
+        variant_manager = self.run.multiple_run_adder.variant_manager
+        transcript_df = variant_manager.df[
+            ["Gene", "Feature_type", "Feature", "CANONICAL", "EXON"]
+        ]
+        exon_df = transcript_df.drop_duplicates(subset=["Gene","Feature"])
+        for index, row in exon_df.iterrows():
+            if not row.Gene or row.Feature_type != "Transcript" or not row.EXON:
+                continue
+            f = {'refseq_id': row.Feature}
+            db_transcript = self.get_related_instances(Transcript, f)
+            for i in range(row.EXON.split('/')[-1]):
+                exon = Exon(
+                    number=i+1,
+                    transcript=db_transcript,
+                )
+                exons.append(exon)
+        return exons
+
     def get_variant(self) -> List[Variant]:
         variants = []
-        db_vcfs: List[VCF] = self.get_related_instances(VCF)
-        for db_vcf in db_vcfs:
-            vcf = db_vcf.path
+        # create the models using vcf records added when VCFs had been added
+        for record in self.run.multiple_run_adder.variant_manager.records:
             variant = Variant(
-                ref=None,
-                alt=None
+                ref=record.REF,
+                alt=record.ALT
             )
             variants.append(variant)
         return variants
 
-    def get_sample_variant(self):
-        db_samples: List[Sample] = self.get_related_instances(Sample)
+    def get_sample_variant(self) -> List[SampleVariant]:
+        sample_variants = []
+        # look through all the variant reports in the variant manager
+        for record in self.run.multiple_run_adder.variant_manager.records:
+            # fetch the matching variant and sample from db
+            f = {'ref': record.ref, 'alt': record.alt}
+            db_variant: Variant = self.get_related_instance(Variant, filters=f)
+            sample = record.samples[0]
+            lab_no_re = r'D(\d{2})-(\d{5})'
+
+            # noinspection PyTypeChecker
+            lab_no = '.'.join(re.match(lab_no_re, sample.sample).groups([1,2]))
+            f = {'lab_no': lab_no}
+            db_sample: Sample = self.get_related_instance(Sample, filters=f)
+            sample_variant = SampleVariant(
+                sample=db_sample,
+                variant=db_variant
+            )
+            sample_variants.append(sample_variant)
+        return sample_variants
+
+    def get_transcript_variant(self) -> List[TranscriptVariant]:
+        transcript_variants = []
+        db_txs: List[Transcript] = self.get_related_instances(Transcript)
         db_variants: List[Variant] = self.get_related_instances(Variant)
+        variants_df = self.run.multiple_run_adder.variant_manager.df
 
-    def get_gene(self):
+        for db_tx in db_txs:
+            transcript_variants_df = variants_df[
+                (variants_df.Feature == db_tx.refseq_id)
+            ]
+        return transcript_variants
+
+    def get_sample_transcript_variant(self):
         pass
 
-    def get_transcript(self):
+    def get_genome_build(self):
         pass
 
-    def get_exon(self):
+    def get_genomic_coordinate(self):
+        pass
+
+    def get_variant_coordinate(self):
+        pass
+
+    def get_sequence(self):
+        pass
+
+    def get_exon_sequence(self):
         pass
 
     def get_coverage_info(self):
@@ -247,27 +366,6 @@ class RunAttributeManager:
         pass
 
     def get_gene_report(self):
-        pass
-
-    def get_genome_build(self):
-        pass
-
-    def get_genomic_coordinate(self):
-        pass
-
-    def get_sequence(self):
-        pass
-
-    def get_exon_sequence(self):
-        pass
-
-    def get_variant_coordinate(self):
-        pass
-
-    def get_transcript_variant(self):
-        pass
-
-    def get_sample_transcript_variant(self):
         pass
 
     def get_variant_report(self):

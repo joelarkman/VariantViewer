@@ -2,6 +2,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from db.models import *
+from db.utils.bio import VariantManager
 from db.utils.run_attribute_manager import RunAttributeManager
 from db.utils.run_builder import RunBuilder
 
@@ -24,11 +25,12 @@ class MultipleRunAdder:
     def __init__(self, commandline_usage_list):
         self.commandline_usage_list = commandline_usage_list
         self.df = pd.DataFrame()
+        self.variant_manager = VariantManager()
 
     def update_database(self):
         runs = [
             # create a RunBuilder for each detected run
-            RunBuilder(commandline_usage_file)
+            RunBuilder(commandline_usage_file, self)
             for commandline_usage_file
             in self.commandline_usage_list
         ]
@@ -131,14 +133,18 @@ class MultipleRunAdder:
 
     @staticmethod
     def update_order():
+        """create a tuple of tuples to inform the order of updating
+
+        each sub-tuple is:
+        [0] a key to access an attribute manager for a case
+        [1] whether that corresponding model has many instances per run
+        """
         return (
-            # create a tuple of tuples; each sub-tuple is:
-            # [0] a key to access an attribute manager for a case
-            # [1] whether that corresponding model has many instances per run
             (Pipeline, False),
             (PipelineVersion, False),
             (Samplesheet, False),
             (Run, False),
+            # patient info
             (Patient, True),
             (Sample, True),
             (SamplesheetSample, True),
@@ -147,22 +153,27 @@ class MultipleRunAdder:
             (VCF, True),
             (SampleVCF, True),
             (ExcelReport, True),
-            (Variant, True),
-            (SampleVariant, True),
+            # gene info
             (Gene, True),
             (Transcript, True),
             (Exon, True),
-            (CoverageInfo, True),
-            (ExonReport, True),
-            (GeneReport, True),
-            (GenomeBuild, True),
-            (GenomicCoordinate, True),
-            (Sequence, True),
-            (ExonSequence, True),
-            (VariantCoordinate, True),
+            # variant info
+            (Variant, True),
+            (SampleVariant, True),
             (TranscriptVariant, True),
             (SampleTranscriptVariant, True),
+            # coordinate info
+            (GenomeBuild, True),
+            (GenomicCoordinate, True),
+            (VariantCoordinate, True),
+            (Sequence, True),
+            (ExonSequence, True),
+            # vcf info
             (VariantReport, True),
             (VariantReportInfo, True),
             (VariantReportFilter, True),
+            # coverage info
+            (CoverageInfo, True),
+            (ExonReport, True),
+            (GeneReport, True),
         )

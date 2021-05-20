@@ -4,6 +4,7 @@ from typing import TypedDict
 
 from django.db import models
 
+from db.utils.multiple_run_adder import MultipleRunAdder
 from db.utils.run_attribute_manager import RunAttributeManager
 
 
@@ -17,8 +18,9 @@ class RunBuilder:
     
     Attributes:
     """
-    def __init__(self, commandline_usage_file, *args, **kwargs):
+    def __init__(self, commandline_usage_file, mra: MultipleRunAdder):
         self.commandline_usage_file = commandline_usage_file
+        self.multiple_run_adder = mra
         self.commandline_usage = self.parse_commandline_usage()
         self.pipeline, self.worksheet, self.version = self.get_run_info()
         self.interop_dir, self.fastq_dir = self.get_input_dirs()
@@ -103,6 +105,14 @@ class RunBuilder:
         assert list(vcf_dirs) < 2, f"Multiple VCF dirs for {self.full_name}"
         assert list(vcf_dirs) != 0, f"No VCF dir for {self.full_name}"
         return vcf_dirs[0]
+
+    @property
+    def excel_dir(self):
+        # noinspection SpellCheckingInspection
+        excel_dirs = list(self.output_dir.glob('*[Ee]xcel*'))
+        assert len(list(excel_dirs)) < 2, f"Multiple XL dir: {self.full_name}"
+        assert len(list(excel_dirs)) != 0, f"No XL dir for {self.full_name}"
+        return excel_dirs[0]
 
 
 class AttributesManagersDict(TypedDict):
