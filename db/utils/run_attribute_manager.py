@@ -199,21 +199,20 @@ class RunAttributeManager:
         variant_manager = self.run.multiple_run_adder.variant_manager
 
         vcfs = []
+        vcf_filenames = []
         for vcf_file in self.run.vcf_dir.glob('*unified*.vcf.gz'):
+            vcf_filename = vcf_file.resolve()
             vcf = VCF(
                 path=str(vcf_file.resolve()),
                 run=self.get_related_instances(Run)
             )
             vcfs.append(vcf)
+            vcf_filenames.append(vcf_filename)
 
-            # keep track of all variants found in these VCFs for later addition
-            reader = py_vcf.Reader(filename=vcf.path)
-            if not variant_manager.csq_keys:
-                # add variant record headers to the manager if not present
-                keys = reader.infos['CSQ'].desc.split('Format: ')[-1].split('|')
-                variant_manager.csq_keys = keys
-            for record in reader:
-                variant_manager.records.append(record)
+        # keep track of all variants found in these VCFs for later addition
+        for vcf_filename in vcf_filenames:
+            variant_manager.update_records(vcf_filename)
+
         return vcfs
 
     def get_sample_vcf(self) -> List[SampleVCF]:
@@ -246,6 +245,7 @@ class RunAttributeManager:
         return excel_reports
 
     def get_gene(self) -> List[Gene]:
+        raise NotImplementedError("awaiting variant manager fix")
         genes = []
         variant_manager = self.run.multiple_run_adder.variant_manager
         gene_df = variant_manager.df[["SYMBOL", "Gene"]].drop_duplicates()
@@ -259,6 +259,7 @@ class RunAttributeManager:
         return genes
 
     def get_transcript(self) -> List[Transcript]:
+        raise NotImplementedError("awaiting variant manager fix")
         transcripts = []
         variant_manager = self.run.multiple_run_adder.variant_manager
         transcript_df = variant_manager.df[
@@ -278,6 +279,7 @@ class RunAttributeManager:
         return transcripts
 
     def get_exon(self) -> List[Exon]:
+        raise NotImplementedError("awaiting variant manager fix")
         exons = []
         variant_manager = self.run.multiple_run_adder.variant_manager
         transcript_df = variant_manager.df[
@@ -298,6 +300,7 @@ class RunAttributeManager:
         return exons
 
     def get_variant(self) -> List[Variant]:
+        raise NotImplementedError("awaiting variant manager fix")
         variants = []
         # create the models using vcf records added when VCFs had been added
         for record in self.run.multiple_run_adder.variant_manager.records:
@@ -309,6 +312,7 @@ class RunAttributeManager:
         return variants
 
     def get_sample_variant(self) -> List[SampleVariant]:
+        raise NotImplementedError("awaiting variant manager fix")
         sample_variants = []
         # look through all the variant reports in the variant manager
         for record in self.run.multiple_run_adder.variant_manager.records:
@@ -330,6 +334,7 @@ class RunAttributeManager:
         return sample_variants
 
     def get_transcript_variant(self) -> List[TranscriptVariant]:
+        raise NotImplementedError("awaiting variant manager fix")
         transcript_variants = []
         db_txs: List[Transcript] = self.get_related_instances(Transcript)
         db_variants: List[Variant] = self.get_related_instances(Variant)

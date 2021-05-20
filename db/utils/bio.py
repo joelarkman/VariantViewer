@@ -1,4 +1,6 @@
+import csv
 import re
+import tempfile
 from typing import List
 
 import pandas as pd
@@ -6,36 +8,46 @@ import vcf as py_vcf
 
 
 class VariantManager:
-    """Holds collected information about all variants in a MRA operation.
+    """Collects information about all variants in a MRA operation into a csv.
 
-    Allows caching of information eg. sample, coordinates, of a variant whilst
+    Allows storing  of information eg. sample, coordinates, of a variant whilst
     the initial model is saved to then come back and save/relate this info at a
     later time.
-    """
-    def __init__(self, *args, **kwargs):
-        # noinspection PyProtectedMember,PyUnresolvedReferences
-        self.records: List[py_vcf.model._Record] = []
-        self.csq_keys: list = []
-        self._df: pd.DataFrame = pd.DataFrame()
 
-    def create_df(self):
-        self.csq_keys = ["Sample", "CHROM", "POS", "REF", "ALT"] + self.csq_keys
-        csq_values = []
-        for record in self.records:
-            pattern = re.compile(r'(D\d{2})-(\d{5})')
-            sample = '.'.join(pattern.search(record.samples[0].sample).groups())
+    the csv CANNOT BE LOADED in one, use pd.read_csv(use_cols=[]) arg to reduce
+    memory footprint
+    """
+    def __init__(self):
+        self.re_ln = re.compile('(D\d{2})-(\d{5})')
+
+        self.started_write = False
+        self.record_csv = tempfile.NamedTemporaryFile(delete=False)
+        self.record_csv.close()
+        print(self.record_csv.name)
+
+    def update_records(self, vcf_filename):
+        reader = py_vcf.Reader(filename=vcf_filename, encoding='utf-8')
+        if not self.started_write:
+            keys = reader.infos['CSQ'].desc.split('Format: ')[-1].split('|')
+            headers = ["Sample", "CHROM", "POS", "REF", "ALT"] + keys
+            with open(self.record_csv.name, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(headers)
+            self.started_write = True
+        vcf_values = []
+        for record in reader:
+            sample = '.'.join(self.re_ln.search(record.samples[0].sample).groups())
             chrom = record.CHROM
             pos = record.POS
             ref = record.REF
             alt = record.ALT
-
-            value_lists = [csq.split('|') for csq in record.INFO['CSQ']]
-            for value_list in value_lists:
-                csq_values.append([sample, chrom, pos, ref, alt] + value_list)
-        return pd.DataFrame(data=self.csq_keys, columns=csq_values)
-
-    @property
-    def df(self):
-        if self._df.empty:
-            self._df = self.create_df()
-        return self._df
+            variant_info = [sample, chrom, pos, ref, alt]
+            values = [csq.split('|') for csq in record.INFO['CSQ']]
+            vcf_values.extend(variant_info + values)
+            del record
+        with open(self.record_csv.name, 'a', newline='') as f:
+            writer = csv.writer(f)
+            for value in vcf_values:
+                writer.writerow(value)
+        # noinspection PyProtectedMember
+        reader._reader.close()
