@@ -25,6 +25,9 @@ class VariantManager:
         self.record_csv.close()
         print(self.record_csv.name)
 
+    def get_df_info(self, cols):
+        return pd.read_csv(self.record_csv.name, usecols=cols)
+
     def update_records(self, vcf_filename):
         reader = py_vcf.Reader(filename=vcf_filename, encoding='utf-8')
         if not self.started_write:

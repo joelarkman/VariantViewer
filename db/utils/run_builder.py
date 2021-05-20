@@ -102,8 +102,8 @@ class RunBuilder:
     @property
     def vcf_dir(self):
         vcf_dirs = list(self.output_dir.glob('*[Vv][Cc][Ff]*'))
-        assert list(vcf_dirs) < 2, f"Multiple VCF dirs for {self.full_name}"
-        assert list(vcf_dirs) != 0, f"No VCF dir for {self.full_name}"
+        assert len(list(vcf_dirs)) < 2, f"Multiple VCF dir for {self.full_name}"
+        assert len(list(vcf_dirs)) != 0, f"No VCF dir for {self.full_name}"
         return vcf_dirs[0]
 
     @property
