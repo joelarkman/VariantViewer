@@ -4,10 +4,8 @@ from typing import Type
 from django.db.models import Model
 from sample_sheet import SampleSheet as IlluminaSampleSheet
 from typing import List
-import vcf as py_vcf
 
 from db.models import *
-from db.utils.multiple_run_adder import MultipleRunAdder
 from db.utils.run_builder import RunBuilder
 from db.utils.run_model import RunModel
 from db.utils.run_model import ManyRunModel
@@ -48,7 +46,8 @@ class RunAttributeManager:
     def get_related_instances(self, model_type: Type[Model], filters=None):
         """Fetch the run's nascent instance(s) of given model type"""
         many = None
-        for update_model, update_many in MultipleRunAdder.update_order():
+        update_order = self.run.multiple_run_adder.update_order()
+        for update_model, update_many in update_order:
             if model_type == update_model:
                 many=update_many
                 break
