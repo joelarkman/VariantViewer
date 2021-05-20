@@ -19,8 +19,7 @@ class RunModel:
         elif len(entries) == 0:
             entry = False
         else:
-            print(entries)
-            raise ValueError("Multiple entries found for the same object!")
+            raise ValueError(f"Multiple of same object: {entries}")
 
         self.entry = entry
         return entry

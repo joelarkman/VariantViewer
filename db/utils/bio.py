@@ -23,7 +23,6 @@ class VariantManager:
         self.started_write = False
         self.record_csv = tempfile.NamedTemporaryFile(delete=False)
         self.record_csv.close()
-        print(self.record_csv.name)
 
     def get_df_info(self, cols):
         return pd.read_csv(self.record_csv.name, usecols=cols)
