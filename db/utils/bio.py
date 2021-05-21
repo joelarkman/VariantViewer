@@ -36,6 +36,7 @@ class VariantManager:
                 writer = csv.writer(f)
                 writer.writerow(headers)
             self.started_write = True
+        vcf_values = []
         for record in reader:
             sample = '.'.join(self.re_ln.search(record.samples[0].sample).groups())
             chrom = record.CHROM
@@ -44,9 +45,10 @@ class VariantManager:
             alt = record.ALT
             variant_info = [sample, chrom, pos, ref, alt]
             values = [csq.split('|') for csq in record.INFO['CSQ']]
-            with open(self.record_csv.name, 'a', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(variant_info + values)
             del record
+        with open(self.record_csv.name, 'a+', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(vcf_values)
+
         # noinspection PyProtectedMember
         reader._reader.close()
