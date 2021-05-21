@@ -51,6 +51,9 @@ urlpatterns = [
     path('ajax/delete_evidence/<int:document>',
          views.delete_evidence, name='delete_evidence'),
 
+    path('ajax/load_previous_evidence/<int:current_stv>/<int:previous_stv>',
+         views.load_previous_evidence, name='load_previous_evidence'),
+
     # Temporary to explore jbrowse during development
     path('jbrowse-testing', views.JbrowseTestingView.as_view(),
          name='jbrowse-testing')

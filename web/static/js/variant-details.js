@@ -3,7 +3,14 @@
 // Initiate tabs
 
 $('.details-tabs .item')
-    .tab()
+    .tab({
+        'onVisible': function () {
+            $.fn.dataTable
+                .tables({ visible: true, api: true })
+                .columns.adjust()
+                .draw();
+        }
+    })
     ;
 
 // Initiate dropdowns

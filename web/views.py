@@ -318,8 +318,6 @@ def load_variant_details(request, run, stv):
     stv = SampleTranscriptVariant.objects.get(id=stv)
     variant_report = stv.get_variant_report(run=run)
     documents = stv.evidence_files.order_by('-date_created')
-    related_stvs = SampleTranscriptVariant.objects.filter(
-        sample_variant__variant=stv.sample_variant.variant, comments__classification=0)
 
     form = DocumentForm()
 
@@ -327,8 +325,7 @@ def load_variant_details(request, run, stv):
                'stv': stv,
                'variant_report': variant_report,
                'form': form,
-               'documents': documents,
-               'related_stvs': related_stvs}
+               'documents': documents}
 
     data['variant_details'] = render_to_string('variant-details.html',
                                                context,
@@ -510,6 +507,38 @@ def delete_evidence(request, document):
     else:
         context = {'document': document}
         data['html_form'] = render_to_string('includes/delete-evidence.html',
+                                             context,
+                                             request=request
+                                             )
+    return JsonResponse(data)
+
+
+def load_previous_evidence(request, current_stv, previous_stv):
+    """
+    AJAX view to facilitate the view of previous evidence
+    """
+
+    data = dict()
+    current_stv = SampleTranscriptVariant.objects.get(id=current_stv)
+    previous_stv = SampleTranscriptVariant.objects.get(id=previous_stv)
+
+    if request.method == 'POST':
+        for document in request.POST.getlist('documents'):
+
+            document = Document.objects.get(id=document)
+
+            Document.objects.get_or_create(sample_transcript_variant=current_stv,
+                                           document=document.document,
+                                           description=document.description)
+
+        documents = current_stv.evidence_files.order_by('-date_created')
+        data['is_valid'] = True
+        data['documents'] = render_to_string('includes/evidence.html',
+                                             {'documents': documents},
+                                             request=request)
+    else:
+        context = {'current_stv': current_stv, 'previous_stv': previous_stv}
+        data['html_form'] = render_to_string('includes/previous-evidence.html',
                                              context,
                                              request=request
                                              )
