@@ -7,8 +7,6 @@ from typing import TypedDict
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.utils import timezone
-import pytz
 
 
 if TYPE_CHECKING:
@@ -88,8 +86,7 @@ class RunBuilder:
         """Leverage PathLib to determine the pipeline complete time"""
         complete_file = self.output_dir / 'pipeline-complete.txt'
         assert complete_file.exists(), f"No such file: {complete_file}"
-        completed_at = datetime.fromtimestamp(complete_file.stat().st_mtime)
-        completed_at = pytz.timezone().localize(completed_at)
+        completed_at = datetime.utcfromtimestamp(complete_file.stat().st_mtime)
         return completed_at
 
     def get_samplesheet(self):
