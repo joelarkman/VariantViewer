@@ -144,6 +144,7 @@ class RunAttributeManager:
             samples.append({
                 'lab_no': lab_no,
             })
+        samplesheet_samples.close()
         return samples
 
     def get_samplesheet_sample(self) -> List[Dict[str, Any]]:
@@ -155,6 +156,7 @@ class RunAttributeManager:
         samplesheet = IlluminaSampleSheet(self.run.samplesheet)
         samples = samplesheet.samples
 
+        db_samples = tqdm(db_samples, leave=False)
         for db_sample in db_samples:
             # check through the samplesheet again for the sample added to db
             sample = None
@@ -175,15 +177,18 @@ class RunAttributeManager:
                 "index2": sample.index2,
                 "gene_key": sample.Sample_Project
             })
+        db_samples.close()
         return samplesheet_samples
 
     def get_bam(self) -> List[Dict[str, Any]]:
         bams = []
-        for bam_file in self.run.bam_dir.glob('*.bam'):
+        bam_files = tqdm(list(self.run.bam_dir.glob('*.bam')))
+        for bam_file in bam_files:
             bams.append({
                 "path": str(bam_file.resolve()),
                 "run": self.get_related_instances(Run)
             })
+        bam_files.close()
         return bams
 
     def get_sample_bam(self) -> List[Dict[str, Any]]:

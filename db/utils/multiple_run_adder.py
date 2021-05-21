@@ -97,6 +97,7 @@ class MultipleRunAdder:
                     instances=model_objects,
                     many=many
                 )
+            runs.close()
 
             # create a list of models to be created
             if not many:
@@ -118,6 +119,7 @@ class MultipleRunAdder:
             self.bulk_create_new(model_type, model_list)
             for model in model_list:
                 model.check_found_in_db()
+        to_update.close()
 
     @staticmethod
     def bulk_create_new(model_type, model_list: list) -> None:
