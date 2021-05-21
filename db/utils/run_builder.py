@@ -1,10 +1,11 @@
 from __future__ import annotations
+
+from datetime import datetime
 from pathlib import Path
 from typing import Type
 from typing import TypedDict
 
 from django.db import models
-
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -84,7 +85,8 @@ class RunBuilder:
         """Leverage PathLib to determine the pipeline complete time"""
         complete_file = self.output_dir / 'pipeline-complete.txt'
         assert complete_file.exists(), f"No such file: {complete_file}"
-        return complete_file.stat().st_mtime
+        completed_at = datetime.fromtimestamp(complete_file.stat().st_mtime)
+        return completed_at
 
     def get_samplesheet(self):
         """Get the filepath to the samplesheet used for this run."""
