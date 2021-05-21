@@ -1,0 +1,112 @@
+{% extends 'accounts-base.html' %}
+{% load static %}
+{% block page_title %}{{page_title}}{% endblock %}
+
+{% block stylesheet %}
+<style>
+    .default-option.active {
+        pointer-events: none;
+        background-color: #bdbdbd73 !important
+    }
+</style>
+{% endblock %}
+
+
+{% block javascript %}
+<script>
+    $('.section-choice').click(function () {
+
+        $('#section').val($(this).attr('data-section'))
+
+        $("#section-select-form").submit();
+
+    })
+
+    $('.default-option').click(function () {
+
+        $('.default-option').removeClass('active')
+        $('.default-option i').removeClass('check')
+        $(this).addClass('active')
+        $('i', this).addClass('check')
+
+        $('#default-choice').val($(this).attr('data-option'))
+    })
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="ui middle aligned center aligned grid">
+    <div class="column" style="max-width: 600px;">
+        <div class="ui top attached raised inverted segment logo-segment">
+            <i class="huge dna icon" style="margin: 0;color:#005EB8"></i>
+
+            <div class="text-title" style="margin: 0;margin-top: 5px;">
+                <span style="font-weight: bold;font-size:x-large;">VARIANT</span>
+                <span style="font-weight: lighter;font-size: x-large;color:#9aa4ac">VIEWER</span>
+            </div>
+
+        </div>
+
+        <div class="ui raised inverted attached segment form-segment">
+
+            <div class="ui two inverted stretched raised link cards" style="min-height: 18vh;flex: 1;">
+                <div class="ui card section-choice" data-section='cancer' style="background-color: #00A9CE;">
+                    <div class="content"
+                        style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+                        <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);">Cancer</div>
+                    </div>
+                </div>
+
+                <div class="ui card section-choice" data-section='rare-disease' style="background-color: #00A499;">
+                    <div class="content"
+                        style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+                        <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);">Rare disease</div>
+                    </div>
+                </div>
+            </div>
+
+            <form id="section-select-form" action="" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="section" name="section" value="">
+                <input type="hidden" id="default-choice" name="default-choice"
+                    value="{% if user.default_section %}set-default{% else %}ask{%endif%}">
+            </form>
+
+        </div>
+
+        <div class="ui bottom attached raised inverted segment footer-segment">
+
+            {% if user.default_section %}
+
+            <div style="margin-left: auto;" class="ui inverted tiny basic buttons">
+                <div class="ui button default-option" data-option='ask'>
+                    <span style="margin-right: 5px;">Ask every time</span>
+                    <i style="margin: 0" class="circle outline icon"></i>
+                </div>
+                <div class="ui button default-option active" data-option='set-default'>
+                    <span style="margin-right: 5px;">Update default</span>
+                    <i style="margin: 0;" class="check circle outline icon"></i>
+                </div>
+            </div>
+
+            {% else %}
+            <div style="margin-left: auto;" class="ui inverted tiny basic buttons">
+                <div class="ui button default-option active" data-option='ask'>
+                    <span style="margin-right: 5px;">Ask every time</span>
+                    <i style="margin: 0" class="check circle outline icon"></i>
+                </div>
+                <div class="ui button default-option" data-option='set-default'>
+                    <span style="margin-right: 5px;">Set default</span>
+                    <i style="margin: 0;" class="circle outline icon"></i>
+                </div>
+            </div>
+
+            {%endif%}
+
+        </div>
+
+
+    </div>
+</div>
+
+{% endblock %}

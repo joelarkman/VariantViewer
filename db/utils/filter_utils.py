@@ -296,10 +296,3 @@ def filter_variants(sample, run, filter=None):
         STVs.filter(pinned=True).count()
 
     return {'pinned': STVs.filter(pinned=True), 'excluded_pinned_variants_count': excluded_pinned_variants_count, 'unpinned': STVs.filter(selected=True, pinned=False)}
-
-
-# VariantReportInfo.objects.filter(**{'variant_report__vcf':vcf,'tag': 'TCR'}).annotate(number_value=ExtractInteger(F('value'))).filter(**{'number_value__lt':10})
-
-# VariantReport.objects.filter(**{'variantreportinfo__tag': 'TCR'}).annotate(number_value=ExtractInteger(F('variantreportinfo__value'))).filter(**{'number_value__lt':5})
-
-# vcf.variantreport_set.filter(**{'variantreportinfo__tag': 'TCR'}).annotate(number_value=ExtractInteger(F('variantreportinfo__value'))).filter(**{'number_value__lt':5})

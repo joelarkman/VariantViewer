@@ -1,5 +1,5 @@
 from accounts.models import UserFilter
-from django.views.generic import TemplateView, ListView, DetailView
+from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
@@ -11,69 +11,66 @@ from django.db import transaction
 
 from db.utils.filter_utils import filter_variants, get_filters
 
-from .models import Comment, Document, Filter, FilterItem
+from .models import Filter, FilterItem
 
 from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm
 
-from db.models import ExcelReport, Gene, Run, PipelineVersion, Sample, SamplesheetSample, SampleTranscriptVariant, Transcript, VCFFilter, VariantReportInfo
+from db.models import ExcelReport, Gene, Run, PipelineVersion, SamplesheetSample, SampleTranscriptVariant, Section, Transcript, VCFFilter, VariantReportInfo
 
 
-class IndexView(ListView):
-    """
-    Template View to display index page.
-    """
-    model = Run
-    template_name = 'index.html'
-    paginate_by = 5
+class RedirectView(TemplateView):
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-
-        pipeline = self.request.GET.get('pipeline')
-        if pipeline:
-            if pipeline == 'all':
-                pass
-            else:
-                queryset = queryset.filter(
-                    pipeline_version__pipeline__id=pipeline)
-
-        q = self.request.GET.get('q')
-        if q:
-            queryset = queryset.filter(
-                Q(worksheet__icontains=q)
-            )
-        return queryset.order_by('-completed_at')
+    template_name = 'section-select.html'
 
     def get_context_data(self, **kwargs):
-        context = super(IndexView, self).get_context_data()
+        context = super(RedirectView, self).get_context_data()
         # base.html includes page_title by default
-        context['page_title'] = 'Index'
-
-        pipeline = self.request.GET.get('pipeline')
-        if pipeline:
-            pipeline = pipeline.replace(" ", "+")
-            context['pipeline'] = pipeline
-
-        q = self.request.GET.get('q')
-        if q:
-            q = q.replace(" ", "+")
-            context['searchq'] = q
-            context['runs'] = Run.objects.filter(
-                Q(worksheet__icontains=q)
-            ).order_by(
-                'pipeline_version__pipeline__name')
-        else:
-            context['runs'] = Run.objects.all().order_by(
-                'pipeline_version__pipeline__name')
-
+        section = Section.objects.all()
+        context['page_title'] = 'Section select'
+        context['section'] = section
         return context
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return redirect('accounts/login')
-        # elif some-logic:
-        #     return redirect('some-page') #needs defined as valid url
-        return super(IndexView, self).dispatch(request, *args, **kwargs)
+            return redirect('login')
+        elif self.kwargs['update'] or not request.user.default_section:
+            return super(RedirectView, self).dispatch(request, *args, **kwargs)
+        else:
+            section = request.user.default_section.slug
+            return redirect('home', section=section)
+
+    def post(self, request, **kwargs):
+        section = request.POST.get('section')
+        default_choice = request.POST.get('default-choice')
+        user = request.user
+
+        if default_choice == 'set-default':
+            user.default_section = Section.objects.get(slug=section)
+            user.save()
+        else:
+            user.default_section = None
+            user.save()
+
+        return redirect('home', section=section)
+
+
+class HomeView(LoginRequiredMixin, TemplateView):
+    """
+    Template View to display search page.
+    """
+
+    template_name = 'home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(HomeView, self).get_context_data()
+        # base.html includes page_title by default
+        section = Section.objects.get(slug=self.kwargs['section'])
+        context['page_title'] = 'Home'
+        context['section'] = section
+        context['pipelines'] = PipelineVersion.objects.filter(
+            pipeline__pipelinesection__section=section, pipeline__pipelinesection__default=True)
+
+        return context
 
 
 class SearchView(LoginRequiredMixin, TemplateView):
@@ -86,8 +83,11 @@ class SearchView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(SearchView, self).get_context_data()
         # base.html includes page_title by default
+        section = Section.objects.get(slug=self.kwargs['section'])
         context['page_title'] = 'Search'
-        context['pipelines'] = PipelineVersion.objects.all()
+        context['section'] = section
+        context['pipelines'] = PipelineVersion.objects.filter(
+            pipeline__pipelinesection__section=section, pipeline__pipelinesection__default=True)
         return context
 
 
@@ -101,13 +101,15 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(SampleDetailsView, self).get_context_data()
         # base.html includes page_title by default
-
         ss_sample = SamplesheetSample.objects.get(
             sample_identifier=self.kwargs['sample'])
+
+        section = ss_sample.sample.section
 
         run = Run.objects.get(worksheet=self.kwargs['worksheet'])
 
         context['page_title'] = f"{ss_sample.sample_identifier} ({ss_sample.sample.lab_no})"
+        context['section'] = section
         context['run'] = run
         context['ss_sample'] = ss_sample
 
@@ -128,6 +130,12 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
 
         context['bam'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.bwa.drm.realn.sorted.bam'
         context['bai'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.bwa.drm.realn.sorted.bam.bai'
+
+        # Exome test
+        # context['vcf'] = 'example.nosync/exome.vcf.gz'
+        # context['tbi'] = 'example.nosync/exome_vcf.tbi'
+        # context['bam'] = 'example.nosync/exome.bam'
+        # context['bai'] = 'example.nosync/exome.bai'
 
         return context
 

@@ -1006,6 +1006,31 @@ const genomeView = new JBrowseLinearGenomeView({
     },
     tracks: [
         {
+            "type": 'FeatureTrack',
+            "trackId":
+                'ncbi_gff_hg19',
+            "name": 'NCBI RefSeq (GFF3Tabix)',
+            "category": ['Genes'],
+            "assemblyNames": ['hg19'],
+            "adapter": {
+                "type": 'Gff3TabixAdapter',
+                "gffGzLocation": {
+                    "uri":
+                        'https://s3.amazonaws.com/jbrowse.org/genomes/hg19/ncbi_refseq/GRCh37_latest_genomic.sort.gff.gz',
+                },
+                "index": {
+                    "location": {
+                        'uri':
+                            'https://s3.amazonaws.com/jbrowse.org/genomes/hg19/ncbi_refseq/GRCh37_latest_genomic.sort.gff.gz.tbi',
+                    },
+                    "indexType": 'TBI',
+                },
+            },
+            "renderer": {
+                "type": 'SvgFeatureRenderer',
+            },
+        },
+        {
             "type": "AlignmentsTrack",
             "trackId": "alignment_test",
             "name": bam,

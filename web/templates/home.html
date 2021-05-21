@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block javascript %}
+<script>
+    $('.pipeline-choice-popup')
+        .popup({
+            hoverable: true,
+            position: 'bottom left',
+        })
+        ;
+
+    var applySearches = $.fn.dataTable.util.throttle(
+        function () {
+            awaiting_table = $('.awaiting-list-table').DataTable()
+            pending_table = $('.pending-list-table').DataTable()
+            search = $('#runSearch').val() // collect general search text
+            pipeline = $('#pipeline-selection').val() // collect pipeline selection
+            section = 'rare disease'
+
+            awaiting_table.search(search).column(0).search(pipeline).draw();
+            pending_table.search(search).column(0).search(pipeline).draw();
+        },
+        300
+    );
+
+    // Initiate sample table
+    var awaiting_table = $('.awaiting-list-table').DataTable({
+        'serverSide': true,
+        'ajax': '/api/' + $('.awaiting-list-table').attr('data-section') + '/runs_awaiting_first_check_list?format=datatables',
+        "deferRender": true,
+        'processing': false,
+        'columns': [
+            { 'data': 'pipeline_name', 'name': 'pipeline_version__pipeline__name' },
+            { 'data': 'worksheet' },
+            { 'data': 'completed_at' },
+        ],
+        createdRow: function (row, data, index) {
+            qc_status = data.qc_status_display
+            if (qc_status === 'Pass') {
+                $(row).addClass('positive');
+            } else if (qc_status === 'Pending') {
+                $(row).addClass('warning');
+            } else if (qc_status === 'Fail') {
+                $(row).addClass('negative');
+            }
+        },
+        "ordering": true,
+        "scrollCollapse": true,
+        "paging": false,
+        "footer": false,
+        "dom": '<"top">rt<"bottom"><"clear">',
+        "language": {
+            "emptyTable": "No relevent runs",
+            'loadingRecords': '&nbsp;',
+            'processing': 'Loading...',
+            "zeroRecords": "No runs matching query",
+        },
+        "order": [[2, 'desc']]
+
+    });
+
+    var pending_table = $('.pending-list-table').DataTable({
+        'serverSide': true,
+        'ajax': '/api/' + $('.pending-list-table').attr('data-section') + '/runs_awaiting_second_check_list?format=datatables',
+        "deferRender": true,
+        'processing': false,
+        'columns': [
+            { 'data': 'pipeline_name', 'name': 'pipeline_version__pipeline__name' },
+            { 'data': 'worksheet' },
+            { 'data': 'completed_at' },
+            { 'data': 'qc_status_display', 'name': 'qc_status' },
+        ],
+        createdRow: function (row, data, index) {
+            qc_status = data.qc_status_display
+            if (qc_status === 'Pass') {
+                $(row).addClass('positive');
+            } else if (qc_status === 'Pending') {
+                $(row).addClass('warning');
+            } else if (qc_status === 'Fail') {
+                $(row).addClass('negative');
+            }
+        },
+        "ordering": true,
+        "scrollCollapse": true,
+        "paging": false,
+        "footer": false,
+        "dom": '<"top">rt<"bottom"><"clear">',
+        "language": {
+            "emptyTable": "No relevent runs",
+            'loadingRecords': '&nbsp;',
+            'processing': 'Loading...',
+            "zeroRecords": "No runs matching query",
+        },
+        "order": [[2, 'desc']]
+
+    });
+
+    applySearches()
+
+    // Update pipeline-selection field when update filter options
+    $('.pipeline-choice').on('click', function () {
+        $('.pipeline-choice').removeClass('active')
+        $(this).addClass('active')
+
+        if ($(this).text() == 'All') {
+            $('#pipeline-selection').val('')
+        } else {
+            $('#pipeline-selection').val($(this).text())
+        }
+
+        // Reapply searches using latest values
+        applySearches()
+    });
+
+    $('#runSearch').on('keyup click search', function () {
+        // Reapply searches using latest values
+        applySearches()
+    });
+
+    // Load worksheet details
+    $(function () {
+        $('#awaiting-list tbody').on('click', 'tr', function (event) {
+            var row = awaiting_table.row(this);
+            $.ajax({
+                url: 'ajax/load_worksheet_details/' + row.data().id,
+                type: 'get',
+                dataType: 'json',
+                beforeSend: function () {
+                    $('#worksheet-detail')
+                        .dimmer('show')
+                        ;
+                },
+                success: function (data) {
+                    $("#worksheet-detail").html(data.html_form);
+
+                    $('#worksheet-detail .worksheet-detail-close').click(function () {
+                        $('#worksheet-detail')
+                            .dimmer('hide')
+                            ;
+                    })
+                }
+            });
+        })
+
+
+        $("#worksheet-detail").on("submit", ".js-worksheet-detail-form", function () {
+            alert('guohrqg')
+            var form = $(this);
+            $.ajax({
+                url: form.attr("action"),
+                data: form.serialize(),
+                type: form.attr("method"),
+                dataType: 'json',
+                success: function (data) {
+                    if (data.form_is_valid) {
+                        $('#worksheet-detail').dimmer("hide");
+                    }
+                    else {
+                        $("#worksheet-detail").html(data.html_form);
+                    }
+                }
+            });
+            return false;
+        });
+
+    });
+</script>
+{%endblock%}
+
+{% block content %}
+
+<!-- Page Header -->
+<div id="page-header" class="ui inverted vertical masthead left aligned segment">
+    <img id="page-header-background" src="{% static 'header-background.jpeg' %}">
+
+    <div id='page-header-title'>
+        <div id="page-header-title-leftstack">
+            <div id="page-header-title-text">
+                <span class="large-text">Home</span>
+                <span class="divider">|</span>
+                <div class="small-text-column-container">
+                    <span class="small-text-top">SECTION:</span>
+                    <span class="small-text-bottom">{{section}}</span>
+                </div>
+                <a href="{% url 'change_section' %}" class="ui mini button" style="margin-left: 5px;">Change</a>
+            </div>
+            <div class="ui large breadcrumb">
+                <a href="{% url 'home' section=section.slug %}"
+                    class="ui compact tiny grey disabled basic inverted button">{{section}}</a>
+            </div>
+        </div>
+
+        <!-- <div class="ui message info applied-filters" style="margin: 0;margin-left: auto;"></div> -->
+    </div>
+</div>
+
+<!-- Tab Utility Bar -->
+<div id="tab-utility-bar" class="ui attached segment">
+
+    <span class="title">WELCOME</span>
+
+    <div class="item-divider"></div>
+
+    <div class="ui image label">
+        <img src="{{user.avatar_url}}">
+        {{user.first_name}} {{user.last_name}}
+        <div class="detail">Previous login: {{user.last_logged_in|naturaltime}}</div>
+    </div>
+
+    <div class="right-float"></div>
+
+    <div class="item-divider"></div>
+
+    <span class="subtitle">QUICK LINKS</span>
+
+</div>
+
+<div style="display: flex;align-items: center;flex: 0 0 25%;">
+    <div class="ui four stretched raised link cards" style="padding: 20px;min-height: 85%;flex: 1;">
+        <a href="{% url 'search' section=section.slug %}" class="ui card" style="background-color: #00B5AD">
+            <div class="content"
+                style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+                <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"> <i
+                        class="search icon"></i>Sample Search</div>
+                <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
+                    Search for a rare disease sample by ID, pipeline, QC status, etc.
+                </div>
+            </div>
+        </a>
+        <div class="ui card" style="background-color: #F14668;">
+            <div class="content"
+                style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+                <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"><i class="user icon"></i>
+                    Account settings</div>
+                <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
+                    View/Edit settings associated with your Variant Viewer account.
+                </div>
+                <div class="description">
+                    <p></p>
+                </div>
+            </div>
+        </div>
+        <div class="ui card" style="background-color: #48C774;">
+            <div class="content"
+                style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+                <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"><i class="info icon"></i>
+                    Info</div>
+                <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
+                    Access SOP and other app information via the about page.
+                </div>
+                <div class="description">
+                    <p></p>
+                </div>
+            </div>
+        </div>
+        <div class="ui card" style="background-color: #F2711C;">
+            <div class="content"
+                style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+                <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"><i
+                        class="envelope icon"></i>
+                    Contact BI team</div>
+                <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
+                    Request assistance or report an issue to the WMRGL Bioinformatics Team
+                </div>
+                <div class="description">
+                    <p></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="tab-utility-bar" class="ui attached segment">
+    <span class="subtitle">SEARCH:</span>
+    <div class="ui small icon input">
+        <input type="search" placeholder="Search runs..." id="runSearch">
+        <i class="search icon"></i>
+    </div>
+
+    <div class="ui small icon button pipeline-choice-popup" style="margin-left: 15px;">
+        <i class="filter icon"></i>
+    </div>
+    <div class="ui popup bottom center">
+        <h4 style="text-align: center;">Pipeline</h4>
+        <div class="ui small buttons">
+            <button class="ui active button pipeline-choice">All</button>
+
+            {% for pipeline in pipelines %}
+            <button class="ui button pipeline-choice">{{ pipeline.pipeline.name }}</button>
+            {% endfor %}
+
+        </div>
+        <input type="hidden" id="pipeline-selection" value="">
+    </div>
+    <div class="right-float"></div>
+    <div class="item-divider"></div>
+    <span class="subtitle">RUN QC</span>
+</div>
+
+<div style="display: flex;flex-direction: row;height: 100%;overflow: hidden;">
+    <div id="awaiting-list" style="flex: 2;display: flex;;flex-direction: column;">
+
+        <div class="ui attached segment"
+            style="padding: 0;border: none;flex: 1;overflow-y: auto;overflow-x: hidden;background-color: #F8F8F8;">
+
+            <table class='ui awaiting-list-table selectable celled structured table ' data-section={{section.slug}}
+                style="width: 100%;table-layout: fixed;border: none;">
+                <thead>
+                    <tr>
+                        <th colspan="3">Runs awaiting QC checks</th>
+                    </tr>
+                    <tr>
+                        <th> Pipeline </th>
+                        <th> Worksheet </th>
+                        <th> Completed </th>
+                    </tr>
+                </thead>
+
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <div style="height: 100%;width: 1px;background-color: #D4D4D5;"></div>
+
+    <div id="pending-list" style="flex: 2;display: flex;flex-direction: column;">
+
+        <div class="ui attached segment"
+            style="padding: 0;border-top: none;flex: 1;overflow-y: auto;overflow-x: hidden;background-color: #F8F8F8;">
+
+            <table class='ui pending-list-table selectable celled structured table ' data-section={{section.slug}}
+                style="width: 100%;table-layout: fixed;border: none;">
+                <thead>
+                    <tr>
+                        <th colspan="4">Runs pending second check</th>
+                    </tr>
+                    <tr>
+                        <th> Pipeline </th>
+                        <th> Worksheet </th>
+                        <th> Completed </th>
+                        <th> QC Status </th>
+                    </tr>
+                </thead>
+
+
+            </table>
+
+        </div>
+
+
+
+    </div>
+</div>
+
+<div id="worksheet-detail" class="ui light dimmer">
+</div>
+
+{% endblock %}
