@@ -1,10 +1,18 @@
+from __future__ import annotations
+
+from datetime import datetime
 from pathlib import Path
 from typing import Type
 from typing import TypedDict
+from typing import TYPE_CHECKING
 
+import pytz
 from django.db import models
 
-from db.utils.run_attribute_manager import RunAttributeManager
+
+if TYPE_CHECKING:
+    from db.utils.multiple_run_adder import MultipleRunAdder
+    from db.utils.run_attribute_manager import RunAttributeManager
 
 
 class RunBuilder:
@@ -17,8 +25,9 @@ class RunBuilder:
     
     Attributes:
     """
-    def __init__(self, commandline_usage_file, *args, **kwargs):
+    def __init__(self, commandline_usage_file, mra: "MultipleRunAdder"):
         self.commandline_usage_file = commandline_usage_file
+        self.multiple_run_adder = mra
         self.commandline_usage = self.parse_commandline_usage()
         self.pipeline, self.worksheet, self.version = self.get_run_info()
         self.interop_dir, self.fastq_dir = self.get_input_dirs()
@@ -78,7 +87,10 @@ class RunBuilder:
         """Leverage PathLib to determine the pipeline complete time"""
         complete_file = self.output_dir / 'pipeline-complete.txt'
         assert complete_file.exists(), f"No such file: {complete_file}"
-        return complete_file.stat().st_mtime
+        completed_at = pytz.utc.localize(
+            datetime.utcfromtimestamp(complete_file.stat().st_mtime)
+        )
+        return completed_at
 
     def get_samplesheet(self):
         """Get the filepath to the samplesheet used for this run."""
@@ -100,10 +112,18 @@ class RunBuilder:
     @property
     def vcf_dir(self):
         vcf_dirs = list(self.output_dir.glob('*[Vv][Cc][Ff]*'))
-        assert list(vcf_dirs) < 2, f"Multiple VCF dirs for {self.full_name}"
-        assert list(vcf_dirs) != 0, f"No VCF dir for {self.full_name}"
+        assert len(list(vcf_dirs)) < 2, f"Multiple VCF dir for {self.full_name}"
+        assert len(list(vcf_dirs)) != 0, f"No VCF dir for {self.full_name}"
         return vcf_dirs[0]
+
+    @property
+    def excel_dir(self):
+        # noinspection SpellCheckingInspection
+        excel_dirs = list(self.output_dir.glob('*[Ee]xcel*'))
+        assert len(list(excel_dirs)) < 2, f"Multiple XL dir: {self.full_name}"
+        assert len(list(excel_dirs)) != 0, f"No XL dir for {self.full_name}"
+        return excel_dirs[0]
 
 
 class AttributesManagersDict(TypedDict):
-    Type[models.Model]: RunAttributeManager
+    Type[models.Model]: "RunAttributeManager"

@@ -1,7 +1,12 @@
 import pandas as pd
-from tqdm import tqdm
+from VariantViewer.utils.notebook import is_notebook
+if is_notebook():
+    from tqdm.notebook import tqdm
+else:
+    from tqdm import tqdm
 
 from db.models import *
+from db.utils.bio import VariantManager
 from db.utils.run_attribute_manager import RunAttributeManager
 from db.utils.run_builder import RunBuilder
 
@@ -20,15 +25,18 @@ class MultipleRunAdder:
         - skip already present files
         - postprocess function: add pipeline version update checks
         - postprocess function: create symlinks
+        - make into an atomic transaction
     """
     def __init__(self, commandline_usage_list):
         self.commandline_usage_list = commandline_usage_list
         self.df = pd.DataFrame()
+        self.variant_manager = VariantManager()
+        self.runs = []
 
     def update_database(self):
-        runs = [
+        self.runs = [
             # create a RunBuilder for each detected run
-            RunBuilder(commandline_usage_file)
+            RunBuilder(commandline_usage_file, self)
             for commandline_usage_file
             in self.commandline_usage_list
         ]
@@ -39,7 +47,7 @@ class MultipleRunAdder:
             'fastq_dir', 'output_dir', 'completed_at', 'samplesheet'
         ]
         data = []
-        for run in runs:
+        for run in self.runs:
             data.append([
                 run.pipeline,
                 run.version,
@@ -53,7 +61,7 @@ class MultipleRunAdder:
         self.df = pd.DataFrame(columns=columns, data=data)
 
         # begin the process of bulk adding info to the database
-        self.add_runs(runs)
+        self.add_runs(self.runs)
 
     def add_runs(self, runs):
         """The bulk update process.
@@ -69,21 +77,27 @@ class MultipleRunAdder:
         some models in which there are MANY INSTANCES to be created, rather than
         just 1 per case.
         """
+        to_update = tqdm(self.update_order(), desc="Updating...", leave=False)
 
-        for model_type, many in self.update_order():
+        for update_t in to_update:
+            model_type, many = update_t
+            # noinspection PyProtectedMember
+            to_update.set_description(f"Parsing {model_type._meta.model_name}")
             # create a bulk set of all data for each model type in sequence
-            for run in tqdm(runs, desc=f"parsing {model_type.__name__} to db"):
-                tqdm.write(run.full_name)
+            runs = tqdm(runs, desc=f"Run...", leave=False)
+            for run in runs:
+                runs.set_description(f"{run.full_name}")
 
                 # fetch the data from this run for this particular model type
                 model_objects = model_type.objects.all()
-
                 # create attribute managers corresponding to the current model
                 run.attribute_managers[model_type] = RunAttributeManager(
                     run=run,
                     model_type=model_type,
-                    instances=model_objects
+                    instances=model_objects,
+                    many=many
                 )
+            runs.close()
 
             # create a list of models to be created
             if not many:
@@ -104,8 +118,8 @@ class MultipleRunAdder:
             # do the creation then refresh the attribute managers
             self.bulk_create_new(model_type, model_list)
             for model in model_list:
-                model_objects = model_type.objects.all()
-                model.check_found_in_db(model_objects)
+                model.check_found_in_db()
+        to_update.close()
 
     @staticmethod
     def bulk_create_new(model_type, model_list: list) -> None:
@@ -127,19 +141,23 @@ class MultipleRunAdder:
         ]
 
         to_create = [model_type(**attrs) for attrs in attr_list]
-        model_type.instances.bulk_create(to_create)
+        model_type.objects.bulk_create(to_create)
 
     @staticmethod
     def update_order():
+        """create a tuple of tuples to inform the order of updating
+
+        each sub-tuple is:
+        [0] a key to access an attribute manager for a case
+        [1] whether that corresponding model has many instances per run
+        """
         return (
-            # create a tuple of tuples; each sub-tuple is:
-            # [0] a key to access an attribute manager for a case
-            # [1] whether that corresponding model has many instances per run
             (Pipeline, False),
             (PipelineVersion, False),
             (Samplesheet, False),
             (Run, False),
-            (Patient, True),
+            # patient info
+            # (Patient, True),
             (Sample, True),
             (SamplesheetSample, True),
             (BAM, True),
@@ -147,22 +165,27 @@ class MultipleRunAdder:
             (VCF, True),
             (SampleVCF, True),
             (ExcelReport, True),
-            (Variant, True),
-            (SampleVariant, True),
+            # gene info
             (Gene, True),
             (Transcript, True),
             (Exon, True),
-            (CoverageInfo, True),
-            (ExonReport, True),
-            (GeneReport, True),
-            (GenomeBuild, True),
-            (GenomicCoordinate, True),
-            (Sequence, True),
-            (ExonSequence, True),
-            (VariantCoordinate, True),
+            # variant info
+            (Variant, True),
+            (SampleVariant, True),
             (TranscriptVariant, True),
             (SampleTranscriptVariant, True),
+            # coordinate info
+            (GenomeBuild, True),
+            (GenomicCoordinate, True),
+            (VariantCoordinate, True),
+            (Sequence, True),
+            (ExonSequence, True),
+            # vcf info
             (VariantReport, True),
             (VariantReportInfo, True),
             (VariantReportFilter, True),
+            # coverage info
+            (CoverageInfo, True),
+            (ExonReport, True),
+            (GeneReport, True),
         )

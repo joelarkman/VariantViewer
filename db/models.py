@@ -23,7 +23,7 @@ def set_section_slug(sender, instance, *args, **kwargs):
 
 
 class Pipeline(BaseModel):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.name
@@ -42,13 +42,17 @@ class PipelineSection(BaseModel):
 
 
 class Samplesheet(BaseModel):
-    path = models.CharField(max_length=255)
+    path = models.CharField(max_length=255, unique=True)
 
     latest_run = models.ForeignKey(
-        'Run', blank=True, null=True, on_delete=models.PROTECT, related_name='latest')
+        'Run',
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name='latest')
 
     def __str__(self):
-        return f"{self.path}"
+        return self.path
 
 
 class PipelineVersion(BaseModel):
@@ -74,6 +78,9 @@ class PipelineVersion(BaseModel):
     def __str__(self):
         return f"{self.pipeline} {self.version}"
 
+    class Meta:
+        unique_together = ['version', 'pipeline']
+
 
 class Run(BaseModel):
     # Choice field for run QC status
@@ -83,7 +90,7 @@ class Run(BaseModel):
         FAIL = 2
 
     worksheet = models.CharField(max_length=255)
-    command_line_usage = models.CharField(max_length=255)
+    command_line_usage = models.TextField()
     completed_at = models.DateTimeField()
     samplesheet = models.ForeignKey(
         Samplesheet,
@@ -114,6 +121,7 @@ class Run(BaseModel):
         return f"{self.worksheet}"
 
 
+# noinspection PyUnusedLocal
 @receiver(post_save, sender=Run)
 def set_latest_run(sender, instance, *args, **kwargs):
     # Ensure latest run is always set to the most recently completed run associated with a given samplesheet.
@@ -122,10 +130,12 @@ def set_latest_run(sender, instance, *args, **kwargs):
     instance.samplesheet.save()
 
 
+# noinspection PyAbstractClass
 class BAM(PipelineOutputFileModel):
     pass
 
 
+# noinspection PyAbstractClass
 class VCF(PipelineOutputFileModel):
     filters = models.ManyToManyField(
         'web.Filter',
@@ -149,8 +159,11 @@ class VCFFilter(BaseModel):
 
 class GenomeBuild(BaseModel):
     name = models.CharField(max_length=255)
-    path = models.TextField()
+    path = models.TextField(unique=True)
     url = models.URLField()
+
+    def __str__(self):
+        return self.name
 
 
 class GenomicCoordinate(BaseModel):
@@ -160,6 +173,15 @@ class GenomicCoordinate(BaseModel):
         GenomeBuild,
         on_delete=models.PROTECT
     )
+
+    def __str__(self):
+        return f"{self.chrom}:{self.pos} ({self.genome_build})"
+
+    class Meta:
+        unique_together = ['chrom', 'pos']
+        indexes = [
+            models.Index(fields=['chrom', 'pos'])
+        ]
 
 
 class Sequence(BaseModel):
@@ -176,13 +198,29 @@ class Sequence(BaseModel):
     )
     sequence = models.TextField(null=True, blank=True)
 
+    class Meta:
+        unique_together = ['strand', 'start_coord', 'end_coord']
+        indexes = [
+            models.Index(fields=['start_coord']),
+            models.Index(fields=['end_coord'])
+        ]
+
+    def __str__(self):
+        return f"{self.start_coord.chrom}" \
+               f":{self.start_coord.pos}" \
+               f"->{self.end_coord}"
+
 
 class Patient(BaseModel):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
 
+    def __str__(self):
+        return f"{self.last_name}, {self.first_name}"
+
 
 class Sample(BaseModel):
+    lab_no = models.CharField(max_length=50, unique=True)
     section = models.ForeignKey(
         Section,
         null=True,
@@ -197,7 +235,6 @@ class Sample(BaseModel):
         on_delete=models.PROTECT,
         related_name='samples'
     )
-    lab_no = models.CharField(max_length=50)
     samplesheets = models.ManyToManyField(
         Samplesheet,
         through="SamplesheetSample"
@@ -210,6 +247,25 @@ class Sample(BaseModel):
         VCF,
         through="SampleVCF"
     )
+
+
+    def get_variants(self, run, pinned):
+
+        vcf = self.vcfs.get(run=run)
+
+        if pinned:
+            return SampleTranscriptVariant.objects.filter(
+                sample_variant__sample=self,
+                sample_variant__variant__variantreport__vcf=vcf,
+                pinned=True
+            ).order_by('transcript__gene__hgnc_name')
+        else:
+            return SampleTranscriptVariant.objects.filter(
+                sample_variant__sample=self,
+                sample_variant__variant__variantreport__vcf=vcf,
+                selected=True,
+                pinned=False
+            ).order_by('transcript__gene__hgnc_name')
 
     @classmethod
     def SetSampleSection(self, sample):
@@ -247,24 +303,37 @@ class Sample(BaseModel):
     def __str__(self):
         # return f"{self.samplesheet.run} {self.lab_no}"
 
-        # All samplesheets for this sample shown with comma seperating them.
-        # Original version caused an error as it assumed one samplesheet per sample.
-        return f"{', '.join([samplesheet.latest_run.worksheet for samplesheet in self.samplesheets.all()])} {self.lab_no}"
+        # All samplesheets for this sample shown with comma separating them.
+        # Original version caused an error as it assumed one samplesheet per
+        # sample.
+        latest_worksheets = [
+            samplesheet.latest_run.worksheet
+            for samplesheet in self.samplesheets.all()
+        ]
+        return f"{', '.join(latest_worksheets)} {self.lab_no}"
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['lab_no'])
+        ]
 
 @receiver(post_save, sender=Sample)
 def set_sample_section(sender, instance, *args, **kwargs):
     Sample.SetSampleSection(instance)
 
+# noinspection PyUnusedLocal
+@receiver(pre_save, sender=Sample)
+def set_sample_slug(sender, instance, *args, **kwargs):
+    # Automatically populate empty slug field with sample_id before save.
+    if not instance.slug:
+        instance.slug = slugify(instance.lab_no)
 
+
+# noinspection PyAbstractClass
 class ExcelReport(PipelineOutputFileModel):
     """Excel report for a patient, can relate directly to sample."""
     sample = models.ForeignKey(
         Sample,
-        on_delete=models.CASCADE
-    )
-    run = models.ForeignKey(
-        Run,
         on_delete=models.CASCADE
     )
 
@@ -285,6 +354,9 @@ class SamplesheetSample(BaseModel):
     index2 = models.CharField(max_length=50, null=True, blank=True)
     gene_key = models.CharField(max_length=50)
 
+    def __str__(self):
+        return f"{self.samplesheet} {self.sample_identifier}"
+
 
 class SampleBAM(BaseModel):
     """
@@ -298,6 +370,9 @@ class SampleBAM(BaseModel):
         BAM,
         on_delete=models.CASCADE
     )
+
+    def __str__(self):
+        return f"{self.sample.lab_no} BAM: {self.bam.path.split('/')[-1]}"
 
 
 class SampleVCF(BaseModel):
@@ -313,6 +388,9 @@ class SampleVCF(BaseModel):
         on_delete=models.CASCADE
     )
 
+    def __str__(self):
+        return f"{self.sample.lab_no} VCF: {self.vcf.path.split('/')[-1]}"
+
 
 class Variant(BaseModel):
     """
@@ -321,6 +399,12 @@ class Variant(BaseModel):
     """
     ref = models.CharField(max_length=255)
     alt = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.ref}>{self.alt}"
+
+    class Meta:
+        unique_together = ['ref', 'alt']
 
 
 class VariantCoordinate(BaseModel):
@@ -336,6 +420,15 @@ class VariantCoordinate(BaseModel):
         on_delete=models.PROTECT
     )
 
+    def __str__(self):
+        return f"{self.coordinate.chrom}:{self.coordinate.pos}{self.variant}"
+
+    class Meta:
+        unique_together = ['variant', 'coordinate']
+        indexes = [
+            models.Index(fields=['variant', 'coordinate'])
+        ]
+
 
 class SampleVariant(BaseModel):
     """
@@ -349,6 +442,14 @@ class SampleVariant(BaseModel):
         Variant,
         on_delete=models.PROTECT,
     )
+
+    def __str__(self):
+        coords = self.variant.variantcoordinate_set
+        variant_coordinates = f"({', '.join(list(map(str, coords)))})"
+        return f"{self.sample.lab_no} variant: {variant_coordinates}"
+
+    class Meta:
+        unique_together = ['sample', 'variant']
 
 
 class VariantReport(BaseModel):
@@ -368,6 +469,14 @@ class VariantReport(BaseModel):
     filter_pass = models.BooleanField(null=True)
     depth = models.IntegerField()
 
+    def __str__(self):
+        coords = self.variant.variantcoordinate_set
+        variant_coordinates = f"({', '.join(list(map(str, coords)))})"
+        return f"{variant_coordinates} record: {self.vcf.path}"
+
+    class Meta:
+        unique_together = ['variant', 'vcf']
+
 
 class VariantReportInfo(BaseModel):
     """
@@ -380,6 +489,9 @@ class VariantReportInfo(BaseModel):
     tag = models.CharField(max_length=50)
     description = models.TextField()
     value = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.variant_report} INFO: {self.tag}={self.value}"
 
 
 class VariantReportFilter(BaseModel):
@@ -394,11 +506,16 @@ class VariantReportFilter(BaseModel):
     description = models.TextField()
     value = models.CharField(max_length=255)
 
+    def __str__(self):
+        return f"{self.variant_report} FILTER: {self.tag}={self.value}"
+
 
 class Gene(BaseModel):
-    hgnc_id = models.CharField(max_length=255)
+    hgnc_id = models.CharField(max_length=255, unique=True)
     hgnc_name = models.CharField(max_length=255)
 
+    def __str__(self):
+        return f"{self.hgnc_name} (HGNC:{self.hgnc_id})"
 
 class GeneAlias(BaseModel):
     name = models.CharField(max_length=255)
@@ -407,19 +524,21 @@ class GeneAlias(BaseModel):
         on_delete=models.CASCADE
     )
 
+    def __str__(self):
+        return f"{self.name} ({self.gene.hgnc_name}, HGNC:{self.gene.hgnc_id})"
+
 
 class Transcript(BaseModel):
     gene = models.ForeignKey(
         Gene,
         on_delete=models.PROTECT
     )
-    refseq_id = models.CharField(max_length=255)
+    refseq_id = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     canonical = models.BooleanField()
-    sequence = models.ForeignKey(
-        Sequence,
-        on_delete=models.PROTECT
-    )
+
+    def __str__(self):
+        return f"{self.refseq_id} ({self.gene})"
 
 
 class TranscriptVariant(BaseModel):
@@ -440,6 +559,15 @@ class TranscriptVariant(BaseModel):
     hgvs_c = models.TextField()
     hgvs_p = models.TextField()
     hgvs_g = models.TextField()
+
+    def __str__(self):
+        return self.hgvs_c
+
+    class Meta:
+        unique_together = ['transcript', 'variant']
+        indexes = [
+            models.Index(fields=['transcript', 'variant'])
+        ]
 
 
 class SampleTranscriptVariant(BaseModel):
@@ -468,7 +596,12 @@ class SampleTranscriptVariant(BaseModel):
             variant=self.sample_variant.variant, transcript=self.transcript)
         long_hgvs = [i.partition(':')[2]
                      for i in [tv.hgvs_c, tv.hgvs_p, tv.hgvs_g]]
-        return {'hgvs_c': long_hgvs[0], 'hgvs_p': long_hgvs[1], 'hgvs_g': long_hgvs[2]}
+        short_hgvs = {
+            'hgvs_c': long_hgvs[0],
+            'hgvs_p': long_hgvs[1],
+            'hgvs_g': long_hgvs[2]
+        }
+        return short_hgvs
 
     def get_long_hgvs(self):
         tv = TranscriptVariant.objects.get(
@@ -479,6 +612,15 @@ class SampleTranscriptVariant(BaseModel):
         vcf = self.sample_variant.sample.vcfs.get(run=run)
         variant = self.sample_variant.variant
         return VariantReport.objects.get(vcf=vcf, variant=variant)
+
+    def __str__(self):
+        return f"{self.sample_variant} {self.transcript}"
+
+    class Meta:
+        unique_together = ['transcript', 'sample_variant']
+        indexes = [
+            models.Index(fields=['transcript', 'sample_variant'])
+        ]
 
 
 class Exon(BaseModel):
@@ -495,6 +637,12 @@ class Exon(BaseModel):
         through="ExonSequence"
     )
 
+    def __str__(self):
+        return f"{self.transcript} exon {self.number}"
+
+    class Meta:
+        unique_together = ['transcript', 'number']
+
 
 class ExonSequence(BaseModel):
     """
@@ -508,6 +656,12 @@ class ExonSequence(BaseModel):
         Sequence,
         on_delete=models.PROTECT
     )
+
+    def __str__(self):
+        return f"{self.exon} sequence"
+
+    class Meta:
+        unique_together = ['exon', 'sequence']
 
 
 class CoverageInfo(BaseModel):
@@ -530,7 +684,9 @@ class CoverageInfo(BaseModel):
     pct_100x = models.IntegerField()
 
     def get_percentages(self):
-        return [self.pct_10x, self.pct_20x, self.pct_30x, self.pct_40x, self.pct_50x, self.pct_100x]
+        pct_attributes = [attr for attr in dir(self) if attr.startswith('pct')]
+        pct_attribute_values = map(lambda x: getattr(self, x), pct_attributes)
+        return list(pct_attribute_values)
 
 
 class ExonReport(BaseModel):
@@ -547,6 +703,12 @@ class ExonReport(BaseModel):
         on_delete=models.PROTECT
     )
 
+    def __str__(self):
+        return f"{self.exon} report: {self.excel_report}"
+
+    class Meta:
+        unique_together = ['excel_report', 'exon']
+
 
 class GeneReport(BaseModel):
     excel_report = models.ForeignKey(
@@ -561,3 +723,9 @@ class GeneReport(BaseModel):
         CoverageInfo,
         on_delete=models.PROTECT
     )
+
+    def __str__(self):
+        return f"{self.gene} report: {self.excel_report}"
+
+    class Meta:
+        unique_together = ['excel_report', 'gene']
