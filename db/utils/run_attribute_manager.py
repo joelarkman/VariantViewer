@@ -143,7 +143,6 @@ class RunAttributeManager:
             lab_no = LABNO_PATTERN.search(sample_name).string.replace('-', '.')
             samples.append({
                 'lab_no': lab_no,
-                'slug': slugify(lab_no)
             })
         return samples
 
