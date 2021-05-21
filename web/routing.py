@@ -12,6 +12,8 @@ router.register('(?P<section>.+)/runs_awaiting_first_check_list',
                 endpoints.RunsAwaitingFirstCheckListView, basename='Run')
 router.register('(?P<section>.+)/runs_awaiting_second_check_list',
                 endpoints.RunsAwaitingSecondCheckListView, basename='Run')
+router.register('(?P<stv>\d+)/previous_classifications_list',
+                endpoints.PreviousClassificationsListView, basename='SampleTranscriptVariant')
 
 urlpatterns = [
     path('', include(router.urls)),
