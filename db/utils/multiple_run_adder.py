@@ -93,7 +93,8 @@ class MultipleRunAdder:
                 run.attribute_managers[model_type] = RunAttributeManager(
                     run=run,
                     model_type=model_type,
-                    instances=model_objects
+                    instances=model_objects,
+                    many=many
                 )
 
             # create a list of models to be created
