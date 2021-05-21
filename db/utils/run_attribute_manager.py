@@ -222,11 +222,9 @@ class RunAttributeManager:
                 "run": self.get_related_instance(Run)
             })
             vcf_filenames.append(vcf_filename)
-        vcf_files.close()
-
-        # keep track of all variants found in these VCFs for later addition
-        for vcf_filename in vcf_filenames:
+            # keep track of all variants found in these VCFs for later addition
             variant_manager.update_records(vcf_filename)
+        vcf_files.close()
         return vcfs
 
     def get_sample_vcf(self) -> List[Dict[str, Any]]:
