@@ -51,8 +51,17 @@ class PipelineOutputFileModel(BaseModel):
         """
         raise NotImplementedError()
 
+    def __str__(self):
+        return self.path
+
     class Meta(BaseModel.Meta):
         abstract = True
+        indexes = [
+            models.Index(fields=['path'])
+        ]
+        indexes = [
+            models.Index(fields=['path'])
+        ]
 
 
 def mode(array):

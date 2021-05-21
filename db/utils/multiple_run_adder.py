@@ -1,5 +1,9 @@
 import pandas as pd
-from tqdm import tqdm
+from VariantViewer.utils.notebook import is_notebook
+if is_notebook():
+    from tqdm.notebook import tqdm
+else:
+    from tqdm import tqdm
 
 from db.models import *
 from db.utils.bio import VariantManager

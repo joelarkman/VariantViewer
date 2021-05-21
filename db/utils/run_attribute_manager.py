@@ -45,6 +45,7 @@ class RunAttributeManager:
 
     def get_related_instances(self, model_type: Type[Model], filters=None):
         """Fetch the run's nascent instance(s) of given model type"""
+        # TODO: fix issue where returning false for pipeline
         many = None
         update_order = self.run.multiple_run_adder.update_order()
         for update_model, update_many in update_order:
@@ -298,10 +299,10 @@ class RunAttributeManager:
         variant_manager = self.run.multiple_run_adder.variant_manager
         cols = ["REF", "ALT"]
         variant_df = variant_manager.get_df_info(cols=cols).drop_duplicates()
-        for record in self.run.multiple_run_adder.variant_manager.records:
+        for index, row in variant_df.iterrows():
             variant = Variant(
-                ref=record.REF,
-                alt=record.ALT
+                ref=row.REF,
+                alt=row.ALT
             )
             variants.append(variant)
         return variants
