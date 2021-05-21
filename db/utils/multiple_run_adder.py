@@ -153,7 +153,7 @@ class MultipleRunAdder:
             (Samplesheet, False),
             (Run, False),
             # patient info
-            (Patient, True),
+            # (Patient, True),
             (Sample, True),
             (SamplesheetSample, True),
             (BAM, True),
