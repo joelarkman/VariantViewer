@@ -78,15 +78,18 @@ class MultipleRunAdder:
         some models in which there are MANY INSTANCES to be created, rather than
         just 1 per case.
         """
+        to_update = tqdm(self.update_order(), desc="Updating...", leave=False)
 
-        for model_type, many in self.update_order():
+        for update_t in to_update:
+            model_type, many = update_t
+            to_update.set_description(f"Parsing {model_type}")
             # create a bulk set of all data for each model type in sequence
-            for run in tqdm(runs, desc=f"parsing {model_type.__name__} to db"):
-                tqdm.set_description(run.full_name)
+            runs = tqdm(runs, desc=f"Run...", leave=False)
+            for run in runs:
+                runs.set_description(f"{run.full_name}")
 
                 # fetch the data from this run for this particular model type
                 model_objects = model_type.objects.all()
-
                 # create attribute managers corresponding to the current model
                 run.attribute_managers[model_type] = RunAttributeManager(
                     run=run,

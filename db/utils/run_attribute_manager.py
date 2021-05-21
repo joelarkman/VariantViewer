@@ -6,6 +6,11 @@ from typing import Type
 from django.db.models import Model
 from sample_sheet import SampleSheet as IlluminaSampleSheet
 from typing import List
+from VariantViewer.utils.notebook import is_notebook
+if is_notebook():
+    from tqdm.notebook import tqdm
+else:
+    from tqdm import tqdm
 
 from db.models import *
 from db.utils.run_builder import RunBuilder
@@ -129,7 +134,8 @@ class RunAttributeManager:
         samplesheet_file = self.run.samplesheet
         samplesheet = IlluminaSampleSheet(samplesheet_file)
 
-        for sample in samplesheet.samples:
+        samples = tqdm(samplesheet.samples, desc="Samples", leave=False)
+        for sample in samples:
             # ignore negative controls
             sample_name = sample.Sample_Name
             if "Neg" in sample_name: continue
