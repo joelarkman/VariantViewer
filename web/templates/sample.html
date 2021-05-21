@@ -9,8 +9,10 @@
 {% block javascript %}
 <script src="{% static 'dependencies/jbrowse/jbrowse-linear-genome-view.js' %}"></script>
 <script src="{% static 'dependencies/diff_match_patch/diff_match_patch.js' %} "></script>
+<script src="{% static 'dependencies/jquery-panzoom/panzoom.min.js' %}"></script>
 
 <script src="{% static 'js/sample.js' %}"></script>
+
 {% endblock %}
 
 {% block content %}
@@ -46,6 +48,11 @@
                     <span class="small-text-top">PIPELINE:</span>
                     <span class="small-text-bottom">{{run.pipeline_version.pipeline}}
                         (v.{{run.pipeline_version.version}}) </span>
+                </div>
+                <span class="divider">|</span>
+                <div class="small-text-column-container">
+                    <span class="small-text-top">GENE KEY:</span>
+                    <span class="small-text-bottom">{{ss_sample.gene_key}} </span>
                 </div>
             </div>
 
