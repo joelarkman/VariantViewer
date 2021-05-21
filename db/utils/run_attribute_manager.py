@@ -214,7 +214,10 @@ class RunAttributeManager:
 
         vcfs = []
         vcf_filenames = []
-        vcf_files = tqdm(self.run.vcf_dir.glob('*unified*.vcf.gz'), leave=False)
+        vcf_files = tqdm(
+            list(self.run.vcf_dir.glob('*unified*.vcf.gz')),
+            leave=False
+        )
         for vcf_file in vcf_files:
             vcf_filename = str(vcf_file.resolve())
             vcfs.append({
