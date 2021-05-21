@@ -17,7 +17,7 @@ from db.utils.run_builder import RunBuilder
 from db.utils.run_model import RunModel
 from db.utils.run_model import ManyRunModel
 
-LABNO_PATTERN = re.compile(r'[Dd]\d{2}[.-]\d{5}')
+LABNO_PATTERN = re.compile(r'([Dd]\d{2}[.-]\d{5})')
 
 
 class RunAttributeManager:
@@ -140,7 +140,7 @@ class RunAttributeManager:
             # ignore negative controls
             sample_name = sample.Sample_Name
             if "Neg" in sample_name: continue
-            lab_no = LABNO_PATTERN.search(sample_name).string.replace('-', '.')
+            lab_no = LABNO_PATTERN.search(sample_name).group().replace('-', '.')
             samples.append({
                 'lab_no': lab_no,
             })
@@ -160,7 +160,7 @@ class RunAttributeManager:
             sample = None
             for ss_sample in samples:
                 labno = ss_sample.Sample_Name
-                labno = LABNO_PATTERN.search(labno).string.replace('-', '.')
+                labno = LABNO_PATTERN.search(labno).group().replace('-', '.')
                 if labno == db_sample.lab_no:
                     sample = ss_sample
                     break
