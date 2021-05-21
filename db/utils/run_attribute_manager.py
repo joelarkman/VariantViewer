@@ -134,8 +134,8 @@ class RunAttributeManager:
         samplesheet_file = self.run.samplesheet
         samplesheet = IlluminaSampleSheet(samplesheet_file)
 
-        samples = tqdm(samplesheet.samples, desc="Samples", leave=False)
-        for sample in samples:
+        samplesheet_samples = tqdm(samplesheet.samples, leave=False)
+        for sample in samplesheet_samples:
             # ignore negative controls
             sample_name = sample.Sample_Name
             if "Neg" in sample_name: continue

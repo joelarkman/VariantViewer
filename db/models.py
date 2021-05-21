@@ -90,7 +90,7 @@ class Run(BaseModel):
         FAIL = 2
 
     worksheet = models.CharField(max_length=255)
-    command_line_usage = models.CharField(max_length=255)
+    command_line_usage = models.TextField()
     completed_at = models.DateTimeField()
     samplesheet = models.ForeignKey(
         Samplesheet,
