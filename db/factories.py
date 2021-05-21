@@ -280,7 +280,8 @@ class SamplesheetFactory(DjangoModelFactory):
         factory_related_name='samplesheet',
         size=lambda: random.randint(1, 2),
         qc_status=factory.Faker(
-            'random_element', elements=(0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2)))
+            'random_element', elements=(1, 1, 1, 1, 1, 1, 1, 2, 2, 2)),
+        checked=True)
 
 
 class PatientFactory(DjangoModelFactory):
@@ -417,6 +418,20 @@ def create_genes(n):
         GeneFactory()
 
 
+def create_variants():
+    for gene in Gene.objects.all():
+        for transcript in Transcript.objects.filter(
+                gene=gene):
+            for variant in range(10):
+                variantcoordinate = VariantCoordinateFactory(coordinate__chrom=transcript.sequence.start_coord.chrom,
+                                                             coordinate__genome_build=transcript.sequence.start_coord.genome_build,
+                                                             coordinate__pos=random.randint(transcript.sequence.start_coord.pos, transcript.sequence.end_coord.pos))
+
+                # Create a transcriptvariant
+                transcriptvariant = TranscriptVariantFactory(
+                    transcript=transcript, variant=variantcoordinate.variant)
+
+
 def create_samplesheet():
     # Create a samplesheet with four samples on it, generate between 1-3 runs for this samplesheet.
     samplesheet = SamplesheetWith4Samples()
@@ -465,30 +480,37 @@ def create_samplesheet():
             for transcript in all_transcripts:
                 for variant in range(random.randint(0, 3)):
 
-                    # Create a variant with a coordiante that falls within current transctipt (same chrom, build and position overlapping sequence)
-                    variantcoordinate = VariantCoordinateFactory(coordinate__chrom=transcript.sequence.start_coord.chrom,
-                                                                 coordinate__genome_build=transcript.sequence.start_coord.genome_build,
-                                                                 coordinate__pos=random.randint(transcript.sequence.start_coord.pos, transcript.sequence.end_coord.pos))
+                    # # Create a variant with a coordiante that falls within current transctipt (same chrom, build and position overlapping sequence)
+                    # variantcoordinate = VariantCoordinateFactory(coordinate__chrom=transcript.sequence.start_coord.chrom,
+                    #                                              coordinate__genome_build=transcript.sequence.start_coord.genome_build,
+                    #                                              coordinate__pos=random.randint(transcript.sequence.start_coord.pos, transcript.sequence.end_coord.pos))
+
+                    potential_variants = TranscriptVariant.objects.filter(
+                        transcript=transcript).values_list('variant', flat=True)
+
+                    variant = Variant.objects.filter(id__in=potential_variants).exclude(
+                        id__in=SampleTranscriptVariant.objects.filter(
+                            sample_variant__sample=sample).values_list('sample_variant__variant', flat=True)).order_by('?')[0]
 
                     if transcript.canonical:
                         SampleTranscriptVariantFactory(
                             sample_variant__sample=sample,
-                            sample_variant__variant=variantcoordinate.variant,
+                            sample_variant__variant=variant,
                             transcript=transcript,
                             selected=True)
                     else:
                         SampleTranscriptVariantFactory(
                             sample_variant__sample=sample,
-                            sample_variant__variant=variantcoordinate.variant,
+                            sample_variant__variant=variant,
                             transcript=transcript,
                             selected=False)
 
-                    # Create a transcriptvariant
-                    transcriptvariant = TranscriptVariantFactory(
-                        transcript=transcript, variant=variantcoordinate.variant)
+                    # # Create a transcriptvariant
+                    # transcriptvariant = TranscriptVariantFactory(
+                    #     transcript=transcript, variant=variantcoordinate.variant)
 
                     variantreport = VariantReportFactory(vcf=samplevcf.vcf,
-                                                         variant=variantcoordinate.variant)
+                                                         variant=variant)
 
                     VariantReportInfoFactory(variant_report=variantreport,
                                              tag='DP',
