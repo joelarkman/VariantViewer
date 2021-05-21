@@ -216,9 +216,9 @@ class RunAttributeManager:
         vcf_filenames = []
         vcf_files = tqdm(self.run.vcf_dir.glob('*unified*.vcf.gz'), leave=False)
         for vcf_file in vcf_files:
-            vcf_filename = vcf_file.resolve()
+            vcf_filename = str(vcf_file.resolve())
             vcfs.append({
-                "path": str(vcf_file.resolve()),
+                "path": vcf_filename,
                 "run": self.get_related_instance(Run)
             })
             vcf_filenames.append(vcf_filename)
@@ -246,7 +246,7 @@ class RunAttributeManager:
 
     def get_excel_report(self) -> List[Dict[str, Any]]:
         excel_reports = []
-        db_samples = self.get_related_instances(Sample)
+        db_samples = tqdm(self.get_related_instances(Sample), leave=False)
         for db_sample in db_samples:
             lab_no = db_sample.lab_no.replace('.', '-')
             for excel_file in self.run.excel_dir.glob(f'*{lab_no}*.xlsx'):
@@ -256,19 +256,23 @@ class RunAttributeManager:
                     "sample": db_sample,
                 }
                 excel_reports.append(excel_report)
+        db_samples.close()
         return excel_reports
 
     def get_gene(self) -> List[Dict[str, Any]]:
         genes = []
         variant_manager = self.run.multiple_run_adder.variant_manager
         gene_df = variant_manager.get_df_info(cols=["SYMBOL", "Gene"])
-        for index, row in gene_df.drop_duplicates().iterrows():
+        gene_rows = tqdm(gene_df.drop_duplicates().iterrows(), leave=False)
+        for gene_row in gene_rows:
+            index, row = gene_row
             if row.SYMBOL:
                 gene = {
                     "hgnc_name": row.SYMBOL,
                     "hgnc_id": row.Gene
                 }
                 genes.append(gene)
+        gene_rows.close()
         return genes
 
     def get_transcript(self) -> List[Dict[str, Any]]:
@@ -276,7 +280,9 @@ class RunAttributeManager:
         variant_manager = self.run.multiple_run_adder.variant_manager
         cols = ["Gene", "Feature_type", "Feature", "CANONICAL"]
         transcript_df = variant_manager.get_df_info(cols=cols)
-        for index, row in transcript_df.iterrows():
+        transcript_rows = tqdm(transcript_df.iterrows(), leave=False)
+        for transcript_row in transcript_rows:
+            index, row = transcript_row
             if row.Feature_type == "Transcript":
                 gene = self.get_related_instance(Gene, {'hgnc_id': row.Gene})
                 transcript = {
@@ -294,7 +300,9 @@ class RunAttributeManager:
         cols = ["Gene", "Feature_type", "Feature", "CANONICAL", "EXON"]
         transcript_df = variant_manager.get_df_info(cols=cols)
         exon_df = transcript_df.drop_duplicates(subset=["Gene","Feature"])
-        for index, row in exon_df.iterrows():
+        exon_rows = tqdm(exon_df.iterrows(), leave=False)
+        for exon_row in exon_rows:
+            index, row = exon_row
             if not row.Gene or row.Feature_type != "Transcript" or not row.EXON:
                 continue
             f = {'refseq_id': row.Feature}
@@ -305,6 +313,7 @@ class RunAttributeManager:
                     "transcript": db_transcript,
                 }
                 exons.append(exon)
+        exon_rows.close()
         return exons
 
     def get_variant(self) -> List[Dict[str, Any]]:
@@ -313,34 +322,39 @@ class RunAttributeManager:
         variant_manager = self.run.multiple_run_adder.variant_manager
         cols = ["REF", "ALT"]
         variant_df = variant_manager.get_df_info(cols=cols).drop_duplicates()
-        for index, row in variant_df.iterrows():
+        variant_rows = tqdm(variant_df.iterrows(), leave=False)
+        for variant_row in variant_rows:
+            index, row = variant_row
             variant = {
                 "ref": row.REF,
                 "alt": row.ALT
             }
             variants.append(variant)
+        variant_rows.close()
         return variants
 
     def get_sample_variant(self) -> List[Dict[str, Any]]:
-        sample_variants = []
-        # look through all the variant reports in the variant manager
-        for record in self.run.multiple_run_adder.variant_manager.records:
-            # fetch the matching variant and sample from db
-            f = {'ref': record.ref, 'alt': record.alt}
-            db_variant: Variant = self.get_related_instance(Variant, filters=f)
-            sample = record.samples[0]
-            lab_no_re = r'D(\d{2})-(\d{5})'
+        pass
 
-            # noinspection PyTypeChecker
-            lab_no = '.'.join(re.match(lab_no_re, sample.sample).groups([1,2]))
-            f = {'lab_no': lab_no}
-            db_sample: Sample = self.get_related_instance(Sample, filters=f)
-            sample_variant = {
-                "sample": db_sample,
-                "variant": db_variant
-            }
-            sample_variants.append(sample_variant)
-        return sample_variants
+        # sample_variants = []
+        # # look through all the variant reports in the variant manager
+        # for record in self.run.multiple_run_adder.variant_manager.records:
+        #     # fetch the matching variant and sample from db
+        #     f = {'ref': record.ref, 'alt': record.alt}
+        #     db_variant: Variant = self.get_related_instance(Variant, filters=f)
+        #     sample = record.samples[0]
+        #     lab_no_re = r'D(\d{2})-(\d{5})'
+
+        #     # noinspection PyTypeChecker
+        #     lab_no = '.'.join(re.match(lab_no_re, sample.sample).groups([1,2]))
+        #     f = {'lab_no': lab_no}
+        #     db_sample: Sample = self.get_related_instance(Sample, filters=f)
+        #     sample_variant = {
+        #         "sample": db_sample,
+        #         "variant": db_variant
+        #     }
+        #     sample_variants.append(sample_variant)
+        # return sample_variants
 
     def get_transcript_variant(self) -> List[TranscriptVariant]:
         pass
