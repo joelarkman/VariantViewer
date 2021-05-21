@@ -116,6 +116,7 @@ class RunAttributeManager:
         run_attrs = {
             'worksheet': self.run.worksheet,
             'command_line_usage': '\n'.join(self.run.commandline_usage),
+            'samplesheet': self.get_related_instance(Samplesheet),
             'completed_at': self.run.completed_at,
             'output_dir': self.run.output_dir,
             'fastq_dir': self.run.fastq_dir,
