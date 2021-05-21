@@ -81,7 +81,8 @@ class MultipleRunAdder:
 
         for update_t in to_update:
             model_type, many = update_t
-            to_update.set_description(f"Parsing {model_type}")
+            # noinspection PyProtectedMember
+            to_update.set_description(f"Parsing {model_type._meta.model_name}")
             # create a bulk set of all data for each model type in sequence
             runs = tqdm(runs, desc=f"Run...", leave=False)
             for run in runs:
