@@ -84,6 +84,10 @@ class Document(BaseModel):
             crud = None
         return crud
 
+    class Meta:
+        ordering = ['-date_created']
+        unique_together = ('sample_transcript_variant', 'document')
+
 
 class Comment(BaseModel):
     sample_transcript_variant = models.ForeignKey(
@@ -148,3 +152,6 @@ class Comment(BaseModel):
                         {'type': 'update', 'user': crud.user, 'datetime': crud.datetime, 'value_previous': data['comment'][0], 'value': data['comment'][1]})
 
         return comment_events
+
+    class Meta:
+        ordering = ['classification']
