@@ -115,7 +115,7 @@ class RunAttributeManager:
         """Fetch info to populate a Run model instance"""
         run_attrs = {
             'worksheet': self.run.worksheet,
-            'command_line_usage': self.run.commandline_usage,
+            'command_line_usage': '\n'.join(self.run.commandline_usage),
             'completed_at': self.run.completed_at,
             'output_dir': self.run.output_dir,
             'fastq_dir': self.run.fastq_dir,
