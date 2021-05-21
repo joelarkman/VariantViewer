@@ -156,8 +156,16 @@ class RunAttributeManager:
         samples = samplesheet.samples
 
         for db_sample in db_samples:
-            sample = [sample for sample in samples
-                      if db_sample.lab_no in sample.Sample_Name][0]
+            # check through the samplesheet again for the sample added to db
+            sample = None
+            for ss_sample in samples:
+                labno = ss_sample.Sample_Name
+                labno = LABNO_PATTERN.search(labno).string.replace('-', '.')
+                if labno == db_sample.lab_no:
+                    sample = ss_sample
+                    break
+            if not Sample:
+                raise ValueError(f"{db_sample} not found in {db_samplesheet}")
             samplesheet_samples.append({
                 "samplesheet": db_samplesheet,
                 "sample": db_sample,
