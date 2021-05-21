@@ -182,7 +182,7 @@ class RunAttributeManager:
 
     def get_bam(self) -> List[Dict[str, Any]]:
         bams = []
-        bam_files = tqdm(list(self.run.bam_dir.glob('*.bam')))
+        bam_files = tqdm(list(self.run.bam_dir.glob('*.bam')), leave=False)
         for bam_file in bam_files:
             bams.append({
                 "path": str(bam_file.resolve()),
@@ -192,20 +192,21 @@ class RunAttributeManager:
         return bams
 
     def get_sample_bam(self) -> List[Dict[str, Any]]:
-        db_samples = self.get_related_instances(Sample)
+        db_samples = tqdm(self.get_related_instances(Sample), leave=False)
 
         sample_bams = []
         for db_sample in db_samples:
             # loop through all actual bam files marked with sample lab no
             lab_no = db_sample.lab_no.replace('.', '-')
             for bam_file in self.run.bam_dir.glob(f'*{lab_no}*.bam'):
-                f = {'path', str(bam_file.resolve())}
+                f = {'path': str(bam_file.resolve())}
                 # extract the nascent instance with the matching path
                 db_bam = self.get_related_instance(BAM, filters=f)
                 sample_bams.append({
                     "sample": db_sample,
                     "bam": db_bam
                 })
+        db_samples.close()
         return sample_bams
 
     def get_vcf(self) -> List[Dict[str, Any]]:
@@ -213,32 +214,34 @@ class RunAttributeManager:
 
         vcfs = []
         vcf_filenames = []
-        for vcf_file in self.run.vcf_dir.glob('*unified*.vcf.gz'):
+        vcf_files = tqdm(self.run.vcf_dir.glob('*unified*.vcf.gz'), leave=False)
+        for vcf_file in vcf_files:
             vcf_filename = vcf_file.resolve()
             vcfs.append({
                 "path": str(vcf_file.resolve()),
                 "run": self.get_related_instance(Run)
             })
             vcf_filenames.append(vcf_filename)
+        vcf_files.close()
 
         # keep track of all variants found in these VCFs for later addition
         for vcf_filename in vcf_filenames:
             variant_manager.update_records(vcf_filename)
-
         return vcfs
 
     def get_sample_vcf(self) -> List[Dict[str, Any]]:
-        db_samples = self.get_related_instances(Sample)
+        db_samples = tqdm(self.get_related_instances(Sample), leave=False)
         sample_vcfs = []
         for db_sample in db_samples:
             lab_no = db_sample.lab_no.replace('.', '-')
             for vcf_file in self.run.vcf_dir.glob(f'*{lab_no}*.vcf.gz'):
-                f = {'path', str(vcf_file.resolve())}
+                f = {'path': str(vcf_file.resolve())}
                 db_vcf = self.get_related_instance(VCF, filters=f)
                 sample_vcfs.append({
                     "sample": db_sample,
                     "vcf": db_vcf
                 })
+        db_samples.close()
         return sample_vcfs
 
     def get_excel_report(self) -> List[Dict[str, Any]]:
