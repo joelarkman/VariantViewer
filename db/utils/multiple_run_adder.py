@@ -82,7 +82,7 @@ class MultipleRunAdder:
         for model_type, many in self.update_order():
             # create a bulk set of all data for each model type in sequence
             for run in tqdm(runs, desc=f"parsing {model_type.__name__} to db"):
-                tqdm.write(run.full_name)
+                tqdm.set_description(run.full_name)
 
                 # fetch the data from this run for this particular model type
                 model_objects = model_type.objects.all()
