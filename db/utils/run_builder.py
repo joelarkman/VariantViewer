@@ -4,10 +4,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Type
 from typing import TypedDict
+from typing import TYPE_CHECKING
 
 from django.db import models
+from django.utils import timezone
+import pytz
 
-from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from db.utils.multiple_run_adder import MultipleRunAdder
     from db.utils.run_attribute_manager import RunAttributeManager
@@ -86,6 +89,7 @@ class RunBuilder:
         complete_file = self.output_dir / 'pipeline-complete.txt'
         assert complete_file.exists(), f"No such file: {complete_file}"
         completed_at = datetime.fromtimestamp(complete_file.stat().st_mtime)
+        completed_at = pytz.timezone().localize(completed_at)
         return completed_at
 
     def get_samplesheet(self):
