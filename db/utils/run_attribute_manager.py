@@ -186,7 +186,7 @@ class RunAttributeManager:
         for bam_file in bam_files:
             bams.append({
                 "path": str(bam_file.resolve()),
-                "run": self.get_related_instances(Run)
+                "run": self.get_related_instance(Run)
             })
         bam_files.close()
         return bams
