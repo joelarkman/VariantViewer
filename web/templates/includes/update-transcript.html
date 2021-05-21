@@ -29,7 +29,7 @@
                 {% for transcript in transcript_list %}
                 {% if transcript.grouper.canonical %}
                 <div data-transcript-id='{{transcript.grouper.id}}'
-                    class="ui {% if transcript.grouper == selected_transcript %}inverted{%endif%} card transcript-choice"
+                    class="ui {% if transcript.grouper == selected_transcript %}inverted{%else%}link{%endif%} card transcript-choice"
                     style="margin: 0;">
 
                     <div class="content">
@@ -52,7 +52,7 @@
                 {% for transcript in transcript_list %}
                 {% if not transcript.grouper.canonical %}
                 <div data-transcript-id='{{transcript.grouper.id}}'
-                    class="ui {% if transcript.grouper == selected_transcript %}inverted{%endif%} link card transcript-choice"
+                    class="ui {% if transcript.grouper == selected_transcript %}inverted{%else%}link{%endif%} card transcript-choice"
                     style="margin: 0;">
 
                     <div class="content">
