@@ -220,6 +220,7 @@ class Patient(BaseModel):
 
 
 class Sample(BaseModel):
+    lab_no = models.CharField(max_length=50, unique=True)
     section = models.ForeignKey(
         Section,
         null=True,
@@ -234,7 +235,6 @@ class Sample(BaseModel):
         on_delete=models.PROTECT,
         related_name='samples'
     )
-    lab_no = models.CharField(max_length=50, unique=True)
     samplesheets = models.ManyToManyField(
         Samplesheet,
         through="SamplesheetSample"
