@@ -43,7 +43,7 @@
             <div class="pinned-transcript-popup" data-position="right center"
                 data-html="<span>{% if transcript.grouper.canonical %}Canonical{% else %}Non-canonical{% endif %} transcript</span>{% if not transcript.list.0.selected %}<br><span class='ui red text' style='font-size:smaller;'>Warning: Pinned variant/s in transcript that is not currently selected for this sample.</span>{%endif%}">
                 <div
-                    class="ui horizontal right icon {% if not transcript.list.0.selected %}red{% elif transcript.grouper.canonical %}grey{%else%}blue{% endif %} label disabled ">
+                    class="ui horizontal right icon {% if not transcript.list.0.selected %}red{% elif transcript.grouper.canonical %}grey{%else%}orange{% endif %} label disabled ">
                     {{transcript.grouper.refseq_id}}
                     <i class="lock icon"></i>
                 </div>
@@ -95,7 +95,7 @@
         <div class="title">
             <b>{{transcript.grouper.gene.hgnc_name}}</b>
             <a data-url="{% url 'update_selected_transcript' run=run.id ss_sample=ss_sample.id transcript=transcript.grouper.id %}"
-                class="ui horizontal right icon {% if transcript.grouper.canonical %}grey{%else%}blue{% endif %} label js-update-transcript"
+                class="ui horizontal right icon {% if transcript.grouper.canonical %}grey{%else%}orange{% endif %} label js-update-transcript"
                 data-html="<span>{% if transcript.grouper.canonical %}Canonical{% else %}Non-canonical{% endif %} transcript selected</span><br><span style='font-size:smaller;'>(Click to update)</span>"
                 data-position="right center">
                 {{transcript.grouper.refseq_id}}
