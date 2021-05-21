@@ -146,6 +146,7 @@
        padding-right: 15px;
        align-items: center;
        height: 46.4062px;
+       flex-shrink: 0;
    }
    
    #tab-utility-bar .item-divider {

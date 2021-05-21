@@ -53,3 +53,16 @@ class PipelineOutputFileModel(BaseModel):
 
     class Meta(BaseModel.Meta):
         abstract = True
+
+
+def mode(array):
+    '''
+    returns a set containing valid modes
+    returns None if no valid mode exists
+      - when all values occur the same number of times
+      - when only one value occurs in the list 
+      - when no value occurs in the list 
+    '''
+    most = max(map(array.count, array)) if array else None
+    mset = set(filter(lambda x: array.count(x) == most, array))
+    return list(mset)[0] if set(array) - mset else None

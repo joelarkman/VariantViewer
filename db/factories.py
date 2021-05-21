@@ -6,12 +6,25 @@ import datetime
 from factory.django import DjangoModelFactory
 from factory import fuzzy
 
-from db.models import BAM, CoverageInfo, ExcelReport, Exon, ExonReport, ExonSequence, Gene, GeneAlias, GeneReport, GenomeBuild, GenomicCoordinate, Patient, Pipeline, PipelineVersion, Run, Sample, SampleBAM, SampleTranscriptVariant, SampleVCF, SampleVariant, Samplesheet, SamplesheetSample, Sequence, Transcript, TranscriptVariant, VCF, Variant, VariantCoordinate, VariantReport, VariantReportFilter, VariantReportInfo
+from db.models import BAM, CoverageInfo, ExcelReport, Exon, ExonReport, ExonSequence, Gene, GeneAlias, GeneReport, GenomeBuild, GenomicCoordinate, Patient, Pipeline, PipelineVersion, Run, Sample, SampleBAM, SampleTranscriptVariant, SampleVCF, SampleVariant, Samplesheet, SamplesheetSample, Section, Sequence, Transcript, TranscriptVariant, VCF, Variant, VariantCoordinate, VariantReport, VariantReportFilter, VariantReportInfo
+
+########################
+### Section creation###
+########################
+SECTIONS = ['Cancer', 'Rare disease']
+
+
+class SectionFactory(DjangoModelFactory):
+    class Meta:
+        model = Section
+
+    name = factory.Sequence(lambda n: SECTIONS[n])
+
 
 ########################
 ### Pipeline creation###
 ########################
-PIPELINES = ['TSMP', 'TSO', 'TST170']
+PIPELINES = ['TSMP', 'TSO', 'TST170', 'test']
 
 
 class PipelineFactory(DjangoModelFactory):
@@ -372,6 +385,15 @@ class VariantReportFilterFactory(DjangoModelFactory):
 ############################
 
 
+def create_sections():
+    creating = True
+    while creating:
+        try:
+            SectionFactory.create().save()
+        except Exception:
+            creating = False
+
+
 def create_pipelines():
     creating = True
     while creating:
@@ -410,6 +432,9 @@ def create_samplesheet():
 
     # For each sample on samplesheet
     for sample in tqdm(samples, desc='samples'):
+        # Manually trigger post save after runs have been created.
+        sample.save()
+
         # Create an excel report
         excelreport = ExcelReportFactory(run=latest_run, sample=sample)
 

@@ -55,16 +55,16 @@
                 </div>
 
                 <!-- Sidebar items -->
-                <a href='{% url "index" %}' class="item">
+                <a href='{% url "home" section=section.slug %}' class="item">
                     <i class="home icon"></i>
                     <span class="text-title">
                         Home
                     </span>
                 </a>
-                <a href='{% url "search" %}' class='item'>
+                <a href='{% url "search" section=section.slug %}' class='item'>
                     <i class="search icon"></i>
                     <span class="text-title">
-                        Patient search
+                        Sample search
                     </span>
                 </a>
                 <a href='' class="item">

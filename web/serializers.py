@@ -20,15 +20,15 @@ class RunSerializer(serializers.ModelSerializer):
     class Meta:
         model = Run
         fields = '__all__'
+        datatables_always_serialize = ('id', 'qc_status_display',)
 
 
 class SampleListSerializer(serializers.ModelSerializer):
     first_name = serializers.SerializerMethodField()
     last_name = serializers.SerializerMethodField()
     lab_no = serializers.SerializerMethodField()
-    slug = serializers.SerializerMethodField()
 
-    DT_Rowruns = serializers.SerializerMethodField()
+    runs = serializers.SerializerMethodField()
 
     def get_first_name(self, samplesheetsample):
         return samplesheetsample.sample.patient.first_name
@@ -39,12 +39,10 @@ class SampleListSerializer(serializers.ModelSerializer):
     def get_lab_no(self, samplesheetsample):
         return samplesheetsample.sample.lab_no
 
-    def get_slug(self, samplesheetsample):
-        return samplesheetsample.sample.slug
-
-    def get_DT_Rowruns(self, samplesheetsample):
+    def get_runs(self, samplesheetsample):
         return RunSerializer(samplesheetsample.samplesheet.runs.all().order_by('-completed_at'), many=True).data
 
     class Meta:
         model = SamplesheetSample
         fields = '__all__'
+        datatables_always_serialize = ('id', 'runs',)

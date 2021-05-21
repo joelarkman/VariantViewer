@@ -50,9 +50,11 @@
             </div>
 
             <div class="ui small breadcrumb">
-                <a href="{% url 'index' %}" class="ui compact tiny grey basic inverted button">Rare disease</a>
+                <a href="{% url 'home' section=section.slug %}"
+                    class="ui compact tiny grey basic inverted button">{{section}}</a>
                 <i class="right chevron icon divider"></i>
-                <a href="{% url 'search' %}" class="ui compact tiny grey basic inverted button">Search</a>
+                <a href="{% url 'search' section=section.slug %}"
+                    class="ui compact tiny grey basic inverted button">Search</a>
                 <i class="right chevron icon divider"></i>
                 <div class="ui compact tiny grey basic inverted disabled button">{{ ss_sample.sample_identifier }}
                     ({{ss_sample.sample.lab_no }})</div>
@@ -173,8 +175,10 @@
     <!-- Genome Browser -->
     <div class="browser-collapsed" style="display: none;" id="browser">
         <div class="ui attached segment" style="padding: 5px;border: none;">
-            <div id="jbrowse_linear_view" data-sample='testing' data-vcf='{{ vcf }}' data-tbi='{{ tbi }}'
-                data-bam='{{ bam }}' data-bai='{{ bai }}' data-media-url='{{ MEDIA_URL }}'>
+            <div id="jbrowse_linear_view" data-sample='{{ss_sample.sample.patient.first_name}}
+            {{ss_sample.sample.patient.last_name}} - {{ ss_sample.sample_identifier }}
+            ({{ss_sample.sample.lab_no }})' data-vcf='{{ vcf }}' data-tbi='{{ tbi }}' data-bam='{{ bam }}'
+                data-bai='{{ bai }}' data-media-url='{{ MEDIA_URL }}'>
             </div>
 
         </div>
