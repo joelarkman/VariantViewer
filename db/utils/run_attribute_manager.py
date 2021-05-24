@@ -356,31 +356,19 @@ class RunAttributeManager:
     def get_sample_variant(self) -> List[Dict[str, Any]]:
         sample_variants = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        variant_df = variant_manager.variant_df
+        variant_df = variant_manager.variant_df.drop_duplicates(
+            subset=["Sample", "REF", "ALT"]
+        )
         variant_rows = tqdm(variant_df.iterrows(), leave=False)
         for index, row in variant_rows:
+            sample_f = {"lab_no": row.Sample}
+            variant_f = {"ref": row.REF, "alt": row.ALT}
             sample_variant = {
-                "sample": self.related_instance(Sample, {'labno': row.Sample})
+                "sample": self.related_instance(Sample, filters=sample_f),
+                "variant": self.related_instance(Variant, filters=variant_f)
             }
-
-        # # look through all the variant reports in the variant manager
-        # for record in self.run.multiple_run_adder.variant_manager.records:
-        #     # fetch the matching variant and sample from db
-        #     f = {'ref': record.ref, 'alt': record.alt}
-        #     db_variant: Variant = self.get_related_instance(Variant, filters=f)
-        #     sample = record.samples[0]
-        #     lab_no_re = r'D(\d{2})-(\d{5})'
-
-        #     # noinspection PyTypeChecker
-        #     lab_no = '.'.join(re.match(lab_no_re, sample.sample).groups([1,2]))
-        #     f = {'lab_no': lab_no}
-        #     db_sample: Sample = self.get_related_instance(Sample, filters=f)
-        #     sample_variant = {
-        #         "sample": db_sample,
-        #         "variant": db_variant
-        #     }
-        #     sample_variants.append(sample_variant)
-
+            sample_variants.append(sample_variant)
+        variant_rows.close()
         return sample_variants
 
     def get_transcript_variant(self) -> List[TranscriptVariant]:
