@@ -46,7 +46,8 @@ class VariantManager:
             variant_info = [sample, chrom, pos, ref, alt]
             values = [csq.split('|') for csq in record.INFO['CSQ']]
             for csq in values:
-                vcf_values_list.append(variant_info.extend(csq))
+                variant_info.extend(csq)
+                vcf_values_list.append(variant_info)
             del record
         with open(self.record_csv.name, 'a+', newline='') as f:
             writer = csv.writer(f)
