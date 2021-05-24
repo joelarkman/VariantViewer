@@ -50,7 +50,7 @@ class RunAttributeManager:
 
         self.run_model = run_model
 
-    def get_related_instances(self, model_type: Type[Model], filters=None):
+    def related_instances(self, model_type: Type[Model], filters=None):
         """Fetch the run's nascent instance(s) of given model type"""
         # TODO: fix issue where returning false for pipeline
         many = None
@@ -104,9 +104,9 @@ class RunAttributeManager:
                 ]
             return filtered
 
-    def get_related_instance(self, *args, **kwargs):
+    def related_instance(self, *args, **kwargs):
         """As above but ensure unique"""
-        related_instances = self.get_related_instances(*args, **kwargs)
+        related_instances = self.related_instances(*args, **kwargs)
         assert len(related_instances) == 1
         return related_instances[0]
 
@@ -123,7 +123,7 @@ class RunAttributeManager:
         # TODO: add checks for updated/updates at the end of MCA
         pipeline_version_attrs = {
             'version': self.run.version,
-            'pipeline': self.get_related_instance(Pipeline)
+            'pipeline': self.related_instance(Pipeline)
         }
         return pipeline_version_attrs
 
@@ -137,12 +137,12 @@ class RunAttributeManager:
         run_attrs = {
             'worksheet': self.run.worksheet,
             'command_line_usage': '\n'.join(self.run.commandline_usage),
-            'samplesheet': self.get_related_instance(Samplesheet),
+            'samplesheet': self.related_instance(Samplesheet),
             'completed_at': self.run.completed_at,
             'output_dir': self.run.output_dir,
             'fastq_dir': self.run.fastq_dir,
             'interop_dir': self.run.interop_dir,
-            'pipeline_version': self.get_related_instance(PipelineVersion)
+            'pipeline_version': self.related_instance(PipelineVersion)
         }
         return run_attrs
 
@@ -171,8 +171,8 @@ class RunAttributeManager:
     def get_samplesheet_sample(self) -> List[Dict[str, Any]]:
         samplesheet_samples: List[Dict[str, Any]] = []
 
-        db_samplesheet = self.get_related_instance(Samplesheet)
-        db_samples = self.get_related_instances(Sample)
+        db_samplesheet = self.related_instance(Samplesheet)
+        db_samples = self.related_instances(Sample)
 
         samplesheet = IlluminaSampleSheet(self.run.samplesheet)
         samples = samplesheet.samples
@@ -207,13 +207,13 @@ class RunAttributeManager:
         for bam_file in bam_files:
             bams.append({
                 "path": str(bam_file.resolve()),
-                "run": self.get_related_instance(Run)
+                "run": self.related_instance(Run)
             })
         bam_files.close()
         return bams
 
     def get_sample_bam(self) -> List[Dict[str, Any]]:
-        db_samples = tqdm(self.get_related_instances(Sample), leave=False)
+        db_samples = tqdm(self.related_instances(Sample), leave=False)
 
         sample_bams = []
         for db_sample in db_samples:
@@ -222,7 +222,7 @@ class RunAttributeManager:
             for bam_file in self.run.bam_dir.glob(f'*{lab_no}*.bam'):
                 f = {'path': str(bam_file.resolve())}
                 # extract the nascent instance with the matching path
-                db_bam = self.get_related_instance(BAM, filters=f)
+                db_bam = self.related_instance(BAM, filters=f)
                 sample_bams.append({
                     "sample": db_sample,
                     "bam": db_bam
@@ -243,7 +243,7 @@ class RunAttributeManager:
             vcf_filename = str(vcf_file.resolve())
             vcfs.append({
                 "path": vcf_filename,
-                "run": self.get_related_instance(Run)
+                "run": self.related_instance(Run)
             })
             vcf_filenames.append(vcf_filename)
             # keep track of all variants found in these VCFs for later addition
@@ -252,13 +252,13 @@ class RunAttributeManager:
         return vcfs
 
     def get_sample_vcf(self) -> List[Dict[str, Any]]:
-        db_samples = tqdm(self.get_related_instances(Sample), leave=False)
+        db_samples = tqdm(self.related_instances(Sample), leave=False)
         sample_vcfs = []
         for db_sample in db_samples:
             lab_no = db_sample.lab_no.replace('.', '-')
             for vcf_file in self.run.vcf_dir.glob(f'*{lab_no}*.vcf.gz'):
                 f = {'path': str(vcf_file.resolve())}
-                db_vcf = self.get_related_instance(VCF, filters=f)
+                db_vcf = self.related_instance(VCF, filters=f)
                 sample_vcfs.append({
                     "sample": db_sample,
                     "vcf": db_vcf
@@ -268,13 +268,13 @@ class RunAttributeManager:
 
     def get_excel_report(self) -> List[Dict[str, Any]]:
         excel_reports = []
-        db_samples = tqdm(self.get_related_instances(Sample), leave=False)
+        db_samples = tqdm(self.related_instances(Sample), leave=False)
         for db_sample in db_samples:
             lab_no = db_sample.lab_no.replace('.', '-')
             for excel_file in self.run.excel_dir.glob(f'*{lab_no}*.xlsx'):
                 excel_report = {
                     "path": str(excel_file.resolve()),
-                    "run": self.get_related_instance(Run),
+                    "run": self.related_instance(Run),
                     "sample": db_sample,
                 }
                 excel_reports.append(excel_report)
@@ -303,7 +303,7 @@ class RunAttributeManager:
         transcript_rows = tqdm(transcript_df.iterrows(), leave=False)
         for index, row in transcript_rows:
             if row.Feature_type == "Transcript":
-                gene = self.get_related_instance(
+                gene = self.related_instance(
                     Gene,
                     filters={'hgnc_id': str(row.Gene)}
                 )
@@ -325,7 +325,7 @@ class RunAttributeManager:
             if not row.EXON:
                 continue
             f = {'refseq_id': row.Feature}
-            db_transcript = self.get_related_instance(Transcript, f)
+            db_transcript = self.related_instance(Transcript, f)
             for i in range(row.EXON):
                 exon = {
                     "number": i+1,
@@ -354,9 +354,15 @@ class RunAttributeManager:
         return variants
 
     def get_sample_variant(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
+        sample_variants = []
+        variant_manager = self.run.multiple_run_adder.variant_manager
+        variant_df = variant_manager.variant_df
+        variant_rows = tqdm(variant_df.iterrows(), leave=False)
+        for index, row in variant_rows:
+            sample_variant = {
+                "sample": self.related_instance(Sample, {'labno': row.Sample})
+            }
 
-        # sample_variants = []
         # # look through all the variant reports in the variant manager
         # for record in self.run.multiple_run_adder.variant_manager.records:
         #     # fetch the matching variant and sample from db
@@ -374,7 +380,8 @@ class RunAttributeManager:
         #         "variant": db_variant
         #     }
         #     sample_variants.append(sample_variant)
-        # return sample_variants
+
+        return sample_variants
 
     def get_transcript_variant(self) -> List[TranscriptVariant]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")

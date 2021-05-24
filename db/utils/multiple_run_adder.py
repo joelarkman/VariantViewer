@@ -86,7 +86,6 @@ class MultipleRunAdder:
 
         for update_t in to_update:
             model_type, many = update_t
-            managed = model_type in self.managed_fields
             model_list: List[RunModel] = []
 
             # noinspection PyProtectedMember
@@ -112,9 +111,6 @@ class MultipleRunAdder:
                 else:
                     model_list.append(attribute_manager.run_model)
 
-                # only run managed fields (eg. VariantManager-managed) once
-                if managed:
-                    break
             runs.close()
 
             # do the creation then refresh the attribute managers
@@ -191,13 +187,3 @@ class MultipleRunAdder:
             (ExonReport, True),
             (GeneReport, True),
         )
-
-    @property
-    def managed_fields(self):
-        return (
-            Gene,
-            Exon,
-            Transcript,
-            Variant
-        )
-

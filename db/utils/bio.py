@@ -126,9 +126,9 @@ class VariantManager:
     def variant_df(self):
         if not self._variant_df:
             df = self.get_df_info(
-                cols=['REF', 'ALT'],
-                dtypes={'REF': 'category'},
-                converters={'ALT': lambda x: x.strip('[]')}
+                cols=["REF", "ALT", "Sample"],
+                dtypes={"REF": "category", "Sample": "category"},
+                converters={"ALT": lambda x: x.strip('[]')}
             )
             self._variant_df = df
         return self._variant_df
