@@ -24,7 +24,7 @@ class VariantManager:
         self.record_csv.close()
 
     def get_df_info(self, cols, dtypes=None):
-        return pd.read_csv(self.record_csv.name, usecols=cols, dtypes=dtypes)
+        return pd.read_csv(self.record_csv.name, usecols=cols, dtype=dtypes)
 
     def update_records(self, vcf_filename):
         reader = py_vcf.Reader(filename=vcf_filename, encoding='utf-8')
@@ -37,7 +37,8 @@ class VariantManager:
             self.started_write = True
         vcf_values_list = []
         for record in reader:
-            sample = '.'.join(self.re_ln.search(record.samples[0].sample).groups())
+            record_sample = record.samples[0].sample
+            sample = '.'.join(self.re_ln.search(record_sample).groups())
             chrom = record.CHROM
             pos = record.POS
             ref = record.REF
