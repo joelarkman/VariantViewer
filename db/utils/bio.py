@@ -50,6 +50,9 @@ class VariantManager:
             del record
         with open(self.record_csv.name, 'a+', newline='') as f:
             writer = csv.writer(f)
+            from pprint import pprint
+            pprint(vcf_values_list[:3])
+            input()
             writer.writerows(vcf_values_list)
 
         # noinspection PyProtectedMember
