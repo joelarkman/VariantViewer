@@ -28,9 +28,9 @@ class VariantManager:
         self.record_csv.close()
 
         # various dataframes for accessing data without bloating memory
-        self._gene_df = None
-        self._transcript_df = None
-        self._variant_df = None
+        self._gene_df = pd.DataFrame()
+        self._transcript_df = pd.DataFrame()
+        self._variant_df = pd.DataFrame()
 
     def update_records(self, vcf_filename):
         """Add the records from a given VCF to the managed CSV of variant info.
@@ -83,7 +83,7 @@ class VariantManager:
     
     @property
     def gene_df(self):
-        if not self._gene_df:
+        if self._gene_df.empty:
             # read only HGNC_ID and Gene Symbol values from csv
             cols = {"SYMBOL": "category", "Gene": pd.UInt32Dtype()}
             # exclude those without hgnc ID values
@@ -93,7 +93,7 @@ class VariantManager:
 
     @property
     def transcript_df(self):
-        if not self._transcript_df:
+        if self._transcript_df.empty:
             df = self.get_df_info(
                 # read the hgnc_id, feature type, refseq ID, and canon status
                 cols=["Gene", "Feature_type", "Feature", "CANONICAL", "EXON"],
@@ -124,7 +124,7 @@ class VariantManager:
 
     @property
     def variant_df(self):
-        if not self._variant_df:
+        if self._variant_df.empty:
             df = self.get_df_info(
                 cols=["REF", "ALT", "Sample"],
                 dtypes={"REF": "category", "Sample": "category"},
