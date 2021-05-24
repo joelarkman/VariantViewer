@@ -6,6 +6,7 @@ from typing import Type
 from django.db.models import Model
 from sample_sheet import SampleSheet as IlluminaSampleSheet
 from typing import List
+import pandas as pd
 from VariantViewer.utils.notebook import is_notebook
 if is_notebook():
     from tqdm.notebook import tqdm
@@ -264,14 +265,11 @@ class RunAttributeManager:
         # TODO: only run once for all runs in an MRA
         genes = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        gene_df = variant_manager.get_df_info(
-            cols=["SYMBOL", "Gene"],
-            dtypes={"SYMBOL": "category", "Gene": "uint32"}
-        )
-        gene_df = gene_df[gene_df.SYMBOL.notna().drop_duplicates()]
-        gene_rows = tqdm(gene_df.drop_duplicates().iterrows(), leave=False)
-        for gene_row in gene_rows:
-            index, row = gene_row
+        cols = {"SYMBOL": "category", "Gene": pd.UInt32Dtype()}
+        gene_df = variant_manager.get_df_info(cols=cols.keys(), dtypes=cols)
+        gene_df = gene_df[gene_df.Gene.notna()].drop_duplicates()
+        gene_rows = tqdm(gene_df.iterrows(), leave=False)
+        for index, row in gene_rows:
             gene = {
                 "hgnc_name": row.SYMBOL,
                 "hgnc_id": row.Gene
@@ -286,8 +284,7 @@ class RunAttributeManager:
         cols = ["Gene", "Feature_type", "Feature", "CANONICAL"]
         transcript_df = variant_manager.get_df_info(cols=cols)
         transcript_rows = tqdm(transcript_df.iterrows(), leave=False)
-        for transcript_row in transcript_rows:
-            index, row = transcript_row
+        for index, row in transcript_rows:
             if row.Feature_type == "Transcript":
                 gene = self.get_related_instance(Gene, {'hgnc_id': row.Gene})
                 transcript = {
@@ -306,8 +303,7 @@ class RunAttributeManager:
         transcript_df = variant_manager.get_df_info(cols=cols)
         exon_df = transcript_df.drop_duplicates(subset=["Gene","Feature"])
         exon_rows = tqdm(exon_df.iterrows(), leave=False)
-        for exon_row in exon_rows:
-            index, row = exon_row
+        for index, row in exon_rows:
             if not row.Gene or row.Feature_type != "Transcript" or not row.EXON:
                 continue
             f = {'refseq_id': row.Feature}
@@ -328,8 +324,7 @@ class RunAttributeManager:
         cols = ["REF", "ALT"]
         variant_df = variant_manager.get_df_info(cols=cols).drop_duplicates()
         variant_rows = tqdm(variant_df.iterrows(), leave=False)
-        for variant_row in variant_rows:
-            index, row = variant_row
+        for index, row in variant_rows:
             variant = {
                 "ref": row.REF,
                 "alt": row.ALT

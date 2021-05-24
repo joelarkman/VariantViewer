@@ -13,6 +13,10 @@ class VariantManager:
     the initial model is saved to then come back and save/relate this info at a
     later time.
 
+    Also stores when genes, transcripts, and exons have been accessed from the
+    csv as these don't need to be accessed for every single run; the data is the
+    same.
+
     the csv CANNOT BE LOADED in one, use pd.read_csv(use_cols=[]) arg to reduce
     memory footprint
     """
