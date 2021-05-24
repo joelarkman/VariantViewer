@@ -301,16 +301,7 @@ class Sample(BaseModel):
                 pass
 
     def __str__(self):
-        # return f"{self.samplesheet.run} {self.lab_no}"
-
-        # All samplesheets for this sample shown with comma separating them.
-        # Original version caused an error as it assumed one samplesheet per
-        # sample.
-        latest_worksheets = [
-            samplesheet.latest_run.worksheet
-            for samplesheet in self.samplesheets.all()
-        ]
-        return f"{', '.join(latest_worksheets)} {self.lab_no}"
+        return self.lab_no
 
     class Meta:
         indexes = [
