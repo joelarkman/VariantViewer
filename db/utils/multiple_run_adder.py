@@ -115,7 +115,7 @@ class MultipleRunAdder:
 
                 # only run managed fields (eg. VariantManager-managed) once
                 if managed:
-                    tqdm_runs.close()
+                    tqdm_runs.clear()
                     break
             tqdm_runs.close()
 
