@@ -397,8 +397,8 @@ class Variant(BaseModel):
     Representation of a change in genomic sequence irregardless of build,
     transcript, patient, effect, etc.
     """
-    ref = models.CharField(max_length=255)
-    alt = models.CharField(max_length=255)
+    ref = models.TextField()
+    alt = models.TextField()
 
     def __str__(self):
         return f"{self.ref}>{self.alt}"
