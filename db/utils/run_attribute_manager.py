@@ -299,7 +299,10 @@ class RunAttributeManager:
         transcript_rows = tqdm(transcript_df.iterrows(), leave=False)
         for index, row in transcript_rows:
             if row.Feature_type == "Transcript":
-                gene = self.get_related_instance(Gene, {'hgnc_id': row.Gene})
+                gene = self.get_related_instance(
+                    Gene,
+                    filters={'hgnc_id': str(row.Gene)}
+                )
                 transcript = {
                     "gene": gene,
                     "refseq_id": row.Feature,
