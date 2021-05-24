@@ -356,11 +356,15 @@ class RunAttributeManager:
 
     def get_sample_variant(self) -> List[Dict[str, Any]]:
         sample_variants = []
+        db_samples = self.related_instances(Sample)
+        sample_labnos = [db_sample.lab_no for db_sample in db_samples]
+
         variant_manager = self.run.multiple_run_adder.variant_manager
         variant_df = variant_manager.variant_df.drop_duplicates(
             subset=["Sample", "REF", "ALT"]
         )
-        variant_rows = tqdm(variant_df.iterrows(), leave=False)
+        worksheet_variant_df = variant_df[variant_df.Sample.isin(sample_labnos)]
+        variant_rows = tqdm(worksheet_variant_df.iterrows(), leave=False)
         for index, row in variant_rows:
             sample_f = {"lab_no": row.Sample}
             variant_f = {"ref": row.REF, "alt": row.ALT}
