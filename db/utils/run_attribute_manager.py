@@ -327,7 +327,7 @@ class RunAttributeManager:
                     "gene": gene,
                     "refseq_id": row.Feature,
                     "name": row.Feature,
-                    "canonical": row.CANONICAL == "YES"
+                    "canonical": row.CANONICAL
                 }
                 transcripts.append(transcript)
         return transcripts
