@@ -1,6 +1,7 @@
 from typing import List
 
 import pandas as pd
+
 from VariantViewer.utils.notebook import is_notebook
 
 if is_notebook():
@@ -31,6 +32,7 @@ class MultipleRunAdder:
         - postprocess function: create symlinks
         - make into an atomic transaction
     """
+
     def __init__(self, commandline_usage_list):
         self.commandline_usage_list = commandline_usage_list
         self.df = pd.DataFrame()
@@ -206,4 +208,3 @@ class MultipleRunAdder:
             Transcript,
             Variant
         )
-

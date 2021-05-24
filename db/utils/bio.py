@@ -20,6 +20,7 @@ class VariantManager:
     the csv CANNOT BE LOADED in one, use pd.read_csv(use_cols=[]) arg to reduce
     memory footprint
     """
+
     def __init__(self):
         self.re_ln = re.compile('(D\d{2})-(\d{5})')
 
@@ -80,7 +81,7 @@ class VariantManager:
             dtype=dtypes,
             converters=converters
         )
-    
+
     @property
     def gene_df(self):
         if self._gene_df.empty:
@@ -113,7 +114,7 @@ class VariantManager:
                 (df.Gene.notna())
                 # only include those which are transcripts (ie not regulatory)
                 & (df.Feature_type == "Transcript")
-            ].sort_values(
+                ].sort_values(
                 # sort on exon count, to ensure duplicates with count are kept
                 "EXON",
                 ascending=False

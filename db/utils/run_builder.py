@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Type
 from typing import TypedDict
-from typing import TYPE_CHECKING
 
 import pytz
 from django.db import models
-
 
 if TYPE_CHECKING:
     from db.utils.multiple_run_adder import MultipleRunAdder
@@ -25,6 +24,7 @@ class RunBuilder:
     
     Attributes:
     """
+
     def __init__(self, commandline_usage_file, mra: "MultipleRunAdder"):
         self.commandline_usage_file = commandline_usage_file
         self.multiple_run_adder = mra

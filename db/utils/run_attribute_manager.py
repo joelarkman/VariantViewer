@@ -1,12 +1,14 @@
 import re
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Type
 
 from django.db.models import Model
 from sample_sheet import SampleSheet as IlluminaSampleSheet
-from typing import List
+
 from VariantViewer.utils.notebook import is_notebook
+
 if is_notebook():
     from tqdm.notebook import tqdm
 else:
@@ -31,7 +33,7 @@ class RunAttributeManager:
         self.run = run
         self.model_type = model_type
         self.instances = instances
-        self.many=many
+        self.many = many
         # noinspection PyProtectedMember
         model_str = model_type._meta.verbose_name.replace(' ', '_')
 
@@ -56,7 +58,7 @@ class RunAttributeManager:
         update_order = self.run.multiple_run_adder.update_order()
         for update_model, update_many in update_order:
             if model_type == update_model:
-                many=update_many
+                many = update_many
                 break
         # cannot find the model type
         if many is None:
@@ -88,7 +90,7 @@ class RunAttributeManager:
 
                 # get or set the item based on the filter
                 item_key = f"{attr}_{value}"
-                item_lookup  = model_lookup.get(item_key)
+                item_lookup = model_lookup.get(item_key)
                 if not item_lookup:
                     objs = [x for x in filtered if getattr(x, attr) == value]
                     model_lookup[item_key] = objs
@@ -327,7 +329,7 @@ class RunAttributeManager:
             db_transcript = self.related_instance(Transcript, f)
             for i in range(row.EXON):
                 exon = {
-                    "number": i+1,
+                    "number": i + 1,
                     "transcript": db_transcript,
                 }
                 exons.append(exon)
