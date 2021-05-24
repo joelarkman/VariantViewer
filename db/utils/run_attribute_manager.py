@@ -34,6 +34,7 @@ class RunAttributeManager:
         self.model_type = model_type
         self.instances = instances
         self.many = many
+        self.lookup_index = {}
         # noinspection PyProtectedMember
         model_str = model_type._meta.verbose_name.replace(' ', '_')
 
@@ -80,21 +81,14 @@ class RunAttributeManager:
             if len(filters.items()) == 1:
                 # attempt to use the MRA lookup index to speed process up
                 attr, value = list(filters.items())[0]
-                mra = self.run.multiple_run_adder
-
-                # get or set an index of model type instances
-                model_lookup = mra.lookup_index.get(model_type)
-                if not model_lookup:
-                    mra.lookup_index[model_type] = {}
-                    model_lookup = mra.lookup_index[model_type]
 
                 # get or set the item based on the filter
                 item_key = f"{attr}_{value}"
-                item_lookup = model_lookup.get(item_key)
+                item_lookup = self.lookup_index.get(item_key)
                 if not item_lookup:
                     objs = [x for x in filtered if getattr(x, attr) == value]
-                    model_lookup[item_key] = objs
-                    item_lookup = model_lookup[item_key]
+                    self.lookup_index[item_key] = objs
+                    item_lookup = self.lookup_index[item_key]
                 return item_lookup
 
             for attr, value in filters.items():

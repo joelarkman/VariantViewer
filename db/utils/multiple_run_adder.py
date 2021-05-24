@@ -37,7 +37,6 @@ class MultipleRunAdder:
         self.commandline_usage_list = commandline_usage_list
         self.df = pd.DataFrame()
         self.variant_manager = VariantManager()
-        self.lookup_index = {}
         self.runs = []
 
     def update_database(self):
