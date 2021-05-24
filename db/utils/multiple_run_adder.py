@@ -96,7 +96,7 @@ class MultipleRunAdder:
             tqdm_runs = tqdm(runs, desc=f"Run...", leave=False)
 
             for run in tqdm_runs:
-                runs.set_description(f"{run.full_name}")
+                tqdm_runs.set_description(f"{run.full_name}")
                 # fetch the data from this run for this particular model type
                 model_objects = model_type.objects.all()
                 # create attribute managers corresponding to the current model

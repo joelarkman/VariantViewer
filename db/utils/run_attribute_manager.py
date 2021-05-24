@@ -6,7 +6,6 @@ from typing import Type
 from django.db.models import Model
 from sample_sheet import SampleSheet as IlluminaSampleSheet
 from typing import List
-import pandas as pd
 from VariantViewer.utils.notebook import is_notebook
 if is_notebook():
     from tqdm.notebook import tqdm
