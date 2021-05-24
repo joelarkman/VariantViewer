@@ -267,15 +267,15 @@ class RunAttributeManager:
             cols=["SYMBOL", "Gene"],
             dtypes={"SYMBOL": "uint32", "Gene": "category"}
         )
+        gene_df = gene_df[gene_df.SYMBOL.notna().drop_duplicates()]
         gene_rows = tqdm(gene_df.drop_duplicates().iterrows(), leave=False)
         for gene_row in gene_rows:
             index, row = gene_row
-            if row.SYMBOL:
-                gene = {
-                    "hgnc_name": row.SYMBOL,
-                    "hgnc_id": row.Gene
-                }
-                genes.append(gene)
+            gene = {
+                "hgnc_name": row.SYMBOL,
+                "hgnc_id": row.Gene
+            }
+            genes.append(gene)
         gene_rows.close()
         return genes
 
