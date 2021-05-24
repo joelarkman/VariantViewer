@@ -263,7 +263,10 @@ class RunAttributeManager:
     def get_gene(self) -> List[Dict[str, Any]]:
         genes = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        gene_df = variant_manager.get_df_info(cols=["SYMBOL", "Gene"])
+        gene_df = variant_manager.get_df_info(
+            cols=["SYMBOL", "Gene"],
+            dtypes={}
+        )
         gene_rows = tqdm(gene_df.drop_duplicates().iterrows(), leave=False)
         for gene_row in gene_rows:
             index, row = gene_row
