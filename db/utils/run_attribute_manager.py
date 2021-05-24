@@ -284,9 +284,7 @@ class RunAttributeManager:
     def get_gene(self) -> List[Dict[str, Any]]:
         genes = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        cols = {"SYMBOL": "category", "Gene": pd.UInt32Dtype()}
-        gene_df = variant_manager.get_df_info(cols=cols.keys(), dtypes=cols)
-        gene_df = gene_df[gene_df.Gene.notna()].drop_duplicates()
+        gene_df = variant_manager.gene_df
         gene_rows = tqdm(gene_df.iterrows(), leave=False)
         for index, row in gene_rows:
             gene = {
@@ -300,21 +298,7 @@ class RunAttributeManager:
     def get_transcript(self) -> List[Dict[str, Any]]:
         transcripts = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        transcript_df = variant_manager.get_df_info(
-            cols=["Gene", "Feature_type", "Feature", "CANONICAL"],
-            dtypes={
-                "Gene": pd.UInt32Dtype(),
-                "Feature_type": "category",
-                "Feature": "category"
-            },
-            converters={
-                "CANONICAL": lambda x: True if x == "YES" else False
-            }
-        )
-        transcript_df = transcript_df[
-            (transcript_df.Gene.notna())
-            & (transcript_df.Feature_type == "Transcript")
-        ].drop_duplicates()
+        transcript_df = variant_manager.transcript_df
 
         transcript_rows = tqdm(transcript_df.iterrows(), leave=False)
         for index, row in transcript_rows:
@@ -333,28 +317,26 @@ class RunAttributeManager:
         return transcripts
 
     def get_exon(self) -> List[Dict[str, Any]]:
-        raise ValueError()
         exons = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        cols = ["Gene", "Feature_type", "Feature", "CANONICAL", "EXON"]
-        transcript_df = variant_manager.get_df_info(cols=cols)
-        exon_df = transcript_df.drop_duplicates(subset=["Gene","Feature"])
-        exon_rows = tqdm(exon_df.iterrows(), leave=False)
-        for index, row in exon_rows:
-            if not row.Gene or row.Feature_type != "Transcript" or not row.EXON:
+        transcript_df = variant_manager.transcript_df
+        transcript_rows = tqdm(transcript_df.iterrows(), leave=False)
+        for index, row in transcript_rows:
+            if not row.EXON:
                 continue
             f = {'refseq_id': row.Feature}
             db_transcript = self.get_related_instance(Transcript, f)
-            for i in range(row.EXON.split('/')[-1]):
+            for i in range(row.EXON):
                 exon = {
                     "number": i+1,
                     "transcript": db_transcript,
                 }
                 exons.append(exon)
-        exon_rows.close()
+        transcript_rows.close()
         return exons
 
     def get_variant(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         variants = []
         # create the models using vcf records added when VCFs had been added
         variant_manager = self.run.multiple_run_adder.variant_manager
@@ -371,7 +353,7 @@ class RunAttributeManager:
         return variants
 
     def get_sample_variant(self) -> List[Dict[str, Any]]:
-        pass
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
 
         # sample_variants = []
         # # look through all the variant reports in the variant manager
@@ -394,7 +376,7 @@ class RunAttributeManager:
         # return sample_variants
 
     def get_transcript_variant(self) -> List[TranscriptVariant]:
-        pass
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
 
         # transcript_variants = []
         # db_txs: List[Transcript] = self.get_related_instances(Transcript)
@@ -407,34 +389,45 @@ class RunAttributeManager:
         # return transcript_variants
 
     def get_sample_transcript_variant(self):
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
     def get_genome_build(self):
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
     def get_genomic_coordinate(self):
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
     def get_variant_coordinate(self):
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
     def get_sequence(self):
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
     def get_exon_sequence(self):
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
     def get_coverage_info(self):
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
     def get_exon_report(self):
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
     def get_gene_report(self):
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
     def get_variant_report(self):
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
     def get_variant_report_info(self):
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass

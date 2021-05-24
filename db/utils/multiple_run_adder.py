@@ -114,7 +114,6 @@ class MultipleRunAdder:
 
                 # only run managed fields (eg. VariantManager-managed) once
                 if managed:
-                    print(f"{model_type} is managed; aborting for subsequent runs")
                     break
             runs.close()
 

@@ -27,6 +27,51 @@ class VariantManager:
         self.record_csv = tempfile.NamedTemporaryFile(delete=False)
         self.record_csv.close()
 
+        # various dataframes for accessing data without bloating memory
+        self._gene_df = None
+        self._transcript_df = None
+
+    def update_records(self, vcf_filename):
+        """Add the records from a given VCF to the managed CSV of variant info.
+        """
+        reader = py_vcf.Reader(filename=vcf_filename, encoding='utf-8')
+        if not self.started_write:
+            # set the headers of the csv file if haven't done so already
+            keys = reader.infos['CSQ'].desc.split('Format: ')[-1].split('|')
+            headers = ["Sample", "CHROM", "POS", "REF", "ALT"] + keys
+            with open(self.record_csv.name, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(headers)
+            self.started_write = True
+
+        vcf_values_list = []
+        for record in reader:
+            # loop through the VCF records using the PyVCF module
+            record_sample = record.samples[0].sample
+            # set the sample + variant info
+            sample = '.'.join(self.re_ln.search(record_sample).groups())
+            chrom = record.CHROM
+            pos = record.POS
+            ref = record.REF
+            alt = record.ALT
+            # list of lists: each sublist is a list of consequences for the var
+            values = [csq.split('|') for csq in record.INFO['CSQ']]
+            for csq in values:
+                variant_info = [sample, chrom, pos, ref, alt]
+                variant_info.extend(csq)
+                # add a potential consequence for a variant to the main list
+                vcf_values_list.append(variant_info)
+            # manage memory
+            del record
+
+        with open(self.record_csv.name, 'a+', newline='') as f:
+            # with a list of all consequences for all variants, write to csv
+            writer = csv.writer(f)
+            writer.writerows(vcf_values_list)
+
+        # noinspection PyProtectedMember
+        reader._reader.close()
+
     def get_df_info(self, cols, dtypes=None, converters=None):
         return pd.read_csv(
             self.record_csv.name,
@@ -34,34 +79,38 @@ class VariantManager:
             dtype=dtypes,
             converters=converters
         )
+    
+    @property
+    def gene_df(self):
+        if not self._gene_df:
+            # read only HGNC_ID and Gene Symbol values from csv
+            cols = {"SYMBOL": "category", "Gene": pd.UInt32Dtype()}
+            # exclude those without hgnc ID values
+            df = self.get_df_info(cols=cols.keys(), dtypes=cols)
+            self._gene_df = df[df.Gene.notna()].drop_duplicates()
+        return self._gene_df
 
-    def update_records(self, vcf_filename):
-        reader = py_vcf.Reader(filename=vcf_filename, encoding='utf-8')
-        if not self.started_write:
-            keys = reader.infos['CSQ'].desc.split('Format: ')[-1].split('|')
-            headers = ["Sample", "CHROM", "POS", "REF", "ALT"] + keys
-            with open(self.record_csv.name, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(headers)
-            self.started_write = True
-        vcf_values_list = []
-        for record in reader:
-            record_sample = record.samples[0].sample
-            sample = '.'.join(self.re_ln.search(record_sample).groups())
-            chrom = record.CHROM
-            pos = record.POS
-            ref = record.REF
-            alt = record.ALT
-            values = [csq.split('|') for csq in record.INFO['CSQ']]
-            for csq in values:
-                variant_info = [sample, chrom, pos, ref, alt]
-                variant_info.extend(csq)
-                vcf_values_list.append(variant_info)
-            del record
-        with open(self.record_csv.name, 'a+', newline='') as f:
-            writer = csv.writer(f)
-            from pprint import pprint
-            writer.writerows(vcf_values_list)
+    @property
+    def transcript_df(self):
+        if not self._transcript_df:
+            df = self.get_df_info(
+                # read the hgnc_id, feature type, refseq ID, and canon status
+                cols=["Gene", "Feature_type", "Feature", "CANONICAL", "EXON"],
+                dtypes={
+                    "Gene": pd.UInt32Dtype(),
+                    "Feature_type": "category",
+                    "Feature": "category"
+                },
+                converters={
+                    "CANONICAL": lambda x: True if x == "YES" else False,
+                    # also display exon count for transcripts
+                    "EXON": lambda x: int(x.split('/')[-1])
+                }
+            )
+            self._transcript_df = df[
+                (df.Gene.notna())
+                # only include those which are transcripts (ie not regulatory)
+                & (df.Feature_type == "Transcript")
+            ].drop_duplicates(subset=["Gene", "Feature"])
+        return self._transcript_df
 
-        # noinspection PyProtectedMember
-        reader._reader.close()
