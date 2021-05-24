@@ -74,15 +74,35 @@ class RunAttributeManager:
             entry_list = attribute_manager.run_model.entry_list()
             if not filters:
                 return entry_list
-            filtered_entries = entry_list
+            filtered = entry_list
+
+            if len(filters.items()) == 1:
+                # attempt to use the MRA lookup index to speed process up
+                attr, value = list(filters.items())[0]
+                mra = self.run.multiple_run_adder
+
+                # get or set an index of model type instances
+                model_lookup = mra.lookup_index.get(model_type)
+                if not model_lookup:
+                    mra.lookup_index[model_type] = {}
+                    model_lookup = mra.lookup_index[model_type]
+
+                # get or set the item based on the filter
+                item_key = f"{attr}_{value}"
+                item_lookup  = model_lookup.get(item_key)
+                if not item_lookup:
+                    objs = [x for x in filtered if getattr(x, attr) == value]
+                    model_lookup[item_key] = objs
+                    item_lookup = model_lookup[item_key]
+                return item_lookup
 
             for attr, value in filters.items():
                 # loop through desired filters to progressively filter entries
-                filtered_entries = [
-                    entry for entry in filtered_entries
+                filtered = [
+                    entry for entry in filtered
                     if getattr(entry, attr) == value
                 ]
-            return filtered_entries
+            return filtered
 
     def get_related_instance(self, *args, **kwargs):
         """As above but ensure unique"""
