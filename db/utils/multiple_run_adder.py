@@ -1,5 +1,8 @@
+from typing import List
+
 import pandas as pd
 from VariantViewer.utils.notebook import is_notebook
+
 if is_notebook():
     from tqdm.notebook import tqdm
 else:
@@ -9,6 +12,7 @@ from db.models import *
 from db.utils.bio import VariantManager
 from db.utils.run_attribute_manager import RunAttributeManager
 from db.utils.run_builder import RunBuilder
+from db.utils.run_model import RunModel
 
 
 class MultipleRunAdder:
@@ -81,39 +85,36 @@ class MultipleRunAdder:
 
         for update_t in to_update:
             model_type, many = update_t
+            managed = model_type in self.managed_fields
+            model_list: List[RunModel] = []
+
             # noinspection PyProtectedMember
             to_update.set_description(f"Parsing {model_type._meta.model_name}")
             # create a bulk set of all data for each model type in sequence
             runs = tqdm(runs, desc=f"Run...", leave=False)
+
             for run in runs:
                 runs.set_description(f"{run.full_name}")
 
                 # fetch the data from this run for this particular model type
                 model_objects = model_type.objects.all()
                 # create attribute managers corresponding to the current model
-                run.attribute_managers[model_type] = RunAttributeManager(
+                attribute_manager = RunAttributeManager(
                     run=run,
                     model_type=model_type,
                     instances=model_objects,
                     many=many
                 )
-            runs.close()
+                run.attribute_managers[model_type] = attribute_manager
+                if many:
+                    model_list.extend(attribute_manager.run_model.run_models)
+                else:
+                    model_list.append(attribute_manager.run_model)
 
-            # create a list of models to be created
-            if not many:
-                model_list = [
-                    run.attribute_managers[model_type].run_model
-                    for run in runs
-                ]
-            else:
-                model_lists = [
-                    run.attribute_managers[model_type].run_model.run_models
-                    for run in runs
-                ]
-                # flatten list of lists
-                model_list = [
-                    model for model_list in model_lists for model in model_list
-                ]
+                # only run managed fields (eg. VariantManager-managed) once
+                if managed:
+                    break
+            runs.close()
 
             # do the creation then refresh the attribute managers
             self.bulk_create_new(model_type, model_list)
@@ -189,3 +190,12 @@ class MultipleRunAdder:
             (ExonReport, True),
             (GeneReport, True),
         )
+
+    @property
+    def managed_fields(self):
+        return (
+            Variant,
+            Exon,
+            Transcript
+        )
+

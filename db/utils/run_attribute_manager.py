@@ -262,7 +262,6 @@ class RunAttributeManager:
         return excel_reports
 
     def get_gene(self) -> List[Dict[str, Any]]:
-        # TODO: only run once for all runs in an MRA
         genes = []
         variant_manager = self.run.multiple_run_adder.variant_manager
         cols = {"SYMBOL": "category", "Gene": pd.UInt32Dtype()}
