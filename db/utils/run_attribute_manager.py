@@ -280,8 +280,22 @@ class RunAttributeManager:
     def get_transcript(self) -> List[Dict[str, Any]]:
         transcripts = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        cols = ["Gene", "Feature_type", "Feature", "CANONICAL"]
-        transcript_df = variant_manager.get_df_info(cols=cols)
+        transcript_df = variant_manager.get_df_info(
+            cols=["Gene", "Feature_type", "Feature", "CANONICAL"],
+            dtypes={
+                "Gene": pd.UInt32Dtype(),
+                "Feature_type": "category",
+                "Feature": "category"
+            },
+            converters={
+                "CANONICAL": lambda x: True if x == "YES" else False
+            }
+        )
+        transcript_df = transcript_df[
+            (transcript_df.Gene.notna())
+            & (transcript_df.Feature_type == "Transcript")
+        ].drop_duplicates()
+
         transcript_rows = tqdm(transcript_df.iterrows(), leave=False)
         for index, row in transcript_rows:
             if row.Feature_type == "Transcript":
@@ -296,6 +310,7 @@ class RunAttributeManager:
         return transcripts
 
     def get_exon(self) -> List[Dict[str, Any]]:
+        raise ValueError()
         exons = []
         variant_manager = self.run.multiple_run_adder.variant_manager
         cols = ["Gene", "Feature_type", "Feature", "CANONICAL", "EXON"]

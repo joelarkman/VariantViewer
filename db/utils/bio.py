@@ -27,8 +27,13 @@ class VariantManager:
         self.record_csv = tempfile.NamedTemporaryFile(delete=False)
         self.record_csv.close()
 
-    def get_df_info(self, cols, dtypes=None):
-        return pd.read_csv(self.record_csv.name, usecols=cols, dtype=dtypes)
+    def get_df_info(self, cols, dtypes=None, converters=None):
+        return pd.read_csv(
+            self.record_csv.name,
+            usecols=cols,
+            dtype=dtypes,
+            converters=converters
+        )
 
     def update_records(self, vcf_filename):
         reader = py_vcf.Reader(filename=vcf_filename, encoding='utf-8')
