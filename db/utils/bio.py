@@ -43,17 +43,15 @@ class VariantManager:
             pos = record.POS
             ref = record.REF
             alt = record.ALT
-            variant_info = [sample, chrom, pos, ref, alt]
             values = [csq.split('|') for csq in record.INFO['CSQ']]
             for csq in values:
+                variant_info = [sample, chrom, pos, ref, alt]
                 variant_info.extend(csq)
                 vcf_values_list.append(variant_info)
             del record
         with open(self.record_csv.name, 'a+', newline='') as f:
             writer = csv.writer(f)
             from pprint import pprint
-            pprint(vcf_values_list[:3])
-            input()
             writer.writerows(vcf_values_list)
 
         # noinspection PyProtectedMember
