@@ -265,7 +265,7 @@ class RunAttributeManager:
         variant_manager = self.run.multiple_run_adder.variant_manager
         gene_df = variant_manager.get_df_info(
             cols=["SYMBOL", "Gene"],
-            dtypes={}
+            dtypes={"SYMBOL": "uint32", "Gene": "category"}
         )
         gene_rows = tqdm(gene_df.drop_duplicates().iterrows(), leave=False)
         for gene_row in gene_rows:
