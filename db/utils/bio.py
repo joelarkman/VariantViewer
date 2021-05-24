@@ -30,6 +30,7 @@ class VariantManager:
         # various dataframes for accessing data without bloating memory
         self._gene_df = None
         self._transcript_df = None
+        self._variant_df = None
 
     def update_records(self, vcf_filename):
         """Add the records from a given VCF to the managed CSV of variant info.
@@ -103,14 +104,31 @@ class VariantManager:
                 },
                 converters={
                     "CANONICAL": lambda x: True if x == "YES" else False,
-                    # also display exon count for transcripts
-                    "EXON": lambda x: int(x.split('/')[-1])
+                    # also display exon count for transcripts if present
+                    "EXON": lambda x: 0 if not x else int(x.split('/')[-1])
                 }
             )
             self._transcript_df = df[
+                # only include those with hgnc id
                 (df.Gene.notna())
                 # only include those which are transcripts (ie not regulatory)
                 & (df.Feature_type == "Transcript")
-            ].drop_duplicates(subset=["Gene", "Feature"])
+            ].sort_values(
+                # sort on exon count, to ensure duplicates with count are kept
+                "EXON",
+                ascending=False
+            ).drop_duplicates(
+                subset=["Gene", "Feature"]
+            )
         return self._transcript_df
 
+    @property
+    def variant_df(self):
+        if not self._variant_df:
+            df = self.get_df_info(
+                cols=['REF', 'ALT'],
+                dtypes={'REF': 'category'},
+                converters={'ALT': lambda x: x.strip('[]')}
+            )
+            self._variant_df = df
+        return self._variant_df

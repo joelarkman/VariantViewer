@@ -336,12 +336,13 @@ class RunAttributeManager:
         return exons
 
     def get_variant(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         variants = []
         # create the models using vcf records added when VCFs had been added
         variant_manager = self.run.multiple_run_adder.variant_manager
-        cols = ["REF", "ALT"]
-        variant_df = variant_manager.get_df_info(cols=cols).drop_duplicates()
+        variant_df = variant_manager.variant_df.drop_duplicates(
+            subset=['REF', 'ALT']
+        )
+
         variant_rows = tqdm(variant_df.iterrows(), leave=False)
         for index, row in variant_rows:
             variant = {

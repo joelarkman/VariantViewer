@@ -197,6 +197,7 @@ class MultipleRunAdder:
         return (
             Gene,
             Exon,
-            Transcript
+            Transcript,
+            Variant
         )
 
