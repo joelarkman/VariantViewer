@@ -97,6 +97,7 @@ class Run(BaseModel):
         on_delete=models.PROTECT,
         related_name='runs'
     )
+    config_file = models.CharField(max_length=255)
     output_dir = models.CharField(max_length=255)
     fastq_dir = models.CharField(max_length=255)
     interop_dir = models.CharField(max_length=255)
@@ -579,7 +580,8 @@ class SampleTranscriptVariant(BaseModel):
     selected = models.BooleanField()
     pinned = models.BooleanField(default=False)
 
-    effect = models.CharField(max_length=255)
+    consequence = models.CharField(max_length=255)
+    impact = models.CharField(max_length=255)
 
     def get_short_hgvs(self):
         tv = TranscriptVariant.objects.get(

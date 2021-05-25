@@ -32,6 +32,7 @@ class VariantManager:
         self._gene_df = pd.DataFrame()
         self._transcript_df = pd.DataFrame()
         self._variant_df = pd.DataFrame()
+        self._transcript_variant_df = pd.DataFrame()
 
     def update_records(self, vcf_filename):
         """Add the records from a given VCF to the managed CSV of variant info.
@@ -134,7 +135,8 @@ class VariantManager:
                     "Feature_type",
                     "Feature",
                     "HGVSc",
-                    "HGVSp"
+                    "HGVSp",
+                    "Consequence",
                 ],
                 dtypes={
                     "REF": "category",
@@ -142,9 +144,23 @@ class VariantManager:
                     "Feature": "category",
                     "Sample": "category",
                     "HGVSc": "category",
-                    "HGVSp": "category"
-            },
+                    "HGVSp": "category",
+                    "Consequence": "category",
+                    "IMPACT": "category",
+                },
                 converters={"ALT": lambda x: x.strip('[]')}
             )
             self._variant_df = df
         return self._variant_df
+
+    @property
+    def transcript_variant_df(self):
+        if self._transcript_variant_df.empty:
+            df = self.variant_df
+            self._transcript_variant_df = df[
+                (df.gene.notna())
+                & (df.Feature_type == "Transcript")
+            ].drop_duplicates(
+                subset=["Feature", "REF", "ALT"]
+            )
+        return self._transcript_variant_df

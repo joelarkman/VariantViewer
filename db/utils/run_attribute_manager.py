@@ -382,16 +382,9 @@ class RunAttributeManager:
     def get_transcript_variant(self) -> List[Dict[str, Any]]:
         transcript_variants = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        variant_df = variant_manager.variant_df
-        transcript_variant_df = variant_df[
-            (variant_df.gene.notna())
-            & (variant_df.Feature_type == "Transcript")
-        ].drop_duplicates(
-            subset=["Feature", "REF", "ALT"]
-        )
-
-        variant_rows = tqdm(transcript_variant_df.iterrows(), leave=False)
-        for index, row in variant_rows:
+        transcript_variant_df = variant_manager.transcript_variant_df
+        df_rows = tqdm(transcript_variant_df.iterrows(), leave=False)
+        for index, row in df_rows:
             variant_f = {"ref": row.REF, "alt": row.ALT}
             tx_f = {"refseq_id": row.Feature}
             db_variant = self.related_instance(Variant, filters=variant_f)
@@ -403,13 +396,17 @@ class RunAttributeManager:
                 'hgvs_p': row.HGVSp
             }
             transcript_variants.append(transcript_variant)
-        variant_rows.close()
+        df_rows.close()
 
         return transcript_variants
 
     def get_sample_transcript_variant(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         sample_transcript_variants = []
+        variant_manager = self.run.multiple_run_adder.variant_manager
+        transcript_variant_df = variant_manager.transcript_variant_df
+        df_rows = tqdm(transcript_variant_df.iterrows(), leave=False)
+        for index, row in df_rows:
+            pass
         return sample_transcript_variants
 
     def get_genome_build(self) -> List[Dict[str, Any]]:

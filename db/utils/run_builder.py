@@ -30,6 +30,7 @@ class RunBuilder:
         self.multiple_run_adder = mra
         self.commandline_usage = self.parse_commandline_usage()
         self.pipeline, self.worksheet, self.version = self.get_run_info()
+        self.config_file = self.get_config_file()
         self.interop_dir, self.fastq_dir = self.get_input_dirs()
         self.output_dir = self.get_output_dir()
         self.completed_at = self.get_completed_at()
@@ -70,6 +71,10 @@ class RunBuilder:
             pipeline = config_file[-1].split('-')[0]
             version = config_file[3].split('-')[-1]
         return pipeline, worksheet, version
+
+    def get_config_file(self):
+        config_index = -11
+        return self.commandline_usage[config_index]
 
     def get_input_dirs(self):
         """Extract the FASTQ and InterOp directories for the run from CL args"""
