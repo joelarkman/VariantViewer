@@ -406,6 +406,10 @@ class RunAttributeManager:
         variant_manager = self.run.multiple_run_adder.variant_manager
         transcript_variant_df = variant_manager.transcript_variant_df
         df_rows = tqdm(transcript_variant_df.iterrows(), leave=False)
+
+        config_file = self.run.config_file
+        config_dict = config_file
+
         for index, row in df_rows:
             pass
         return sample_transcript_variants

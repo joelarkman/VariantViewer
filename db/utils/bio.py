@@ -158,7 +158,7 @@ class VariantManager:
         if self._transcript_variant_df.empty:
             df = self.variant_df
             self._transcript_variant_df = df[
-                (df.gene.notna())
+                (df.Gene.notna())
                 & (df.Feature_type == "Transcript")
             ].drop_duplicates(
                 subset=["Feature", "REF", "ALT"]
