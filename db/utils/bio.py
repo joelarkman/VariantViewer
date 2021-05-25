@@ -139,6 +139,7 @@ class VariantManager:
                     "HGVSc",
                     "HGVSp",
                     "Consequence",
+                    "IMPACT"
                     "CANONICAL",
                 ],
                 dtypes={
