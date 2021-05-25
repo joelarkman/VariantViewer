@@ -141,6 +141,7 @@ class RunAttributeManager:
             'command_line_usage': '\n'.join(self.run.commandline_usage),
             'samplesheet': self.related_instance(Samplesheet),
             'completed_at': self.run.completed_at,
+            'config_file': self.run.config_file,
             'output_dir': self.run.output_dir,
             'fastq_dir': self.run.fastq_dir,
             'interop_dir': self.run.interop_dir,
