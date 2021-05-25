@@ -137,6 +137,7 @@ class VariantManager:
                     "HGVSc",
                     "HGVSp",
                     "Consequence",
+                    "CANONICAL",
                 ],
                 dtypes={
                     "REF": "category",
@@ -148,7 +149,10 @@ class VariantManager:
                     "Consequence": "category",
                     "IMPACT": "category",
                 },
-                converters={"ALT": lambda x: x.strip('[]')}
+                converters={
+                    "ALT": lambda x: x.strip('[]'),
+                    "CANONICAL": lambda x: True if x == "YES" else False,
+                }
             )
             self._variant_df = df
         return self._variant_df

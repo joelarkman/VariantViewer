@@ -402,6 +402,7 @@ class RunAttributeManager:
         return transcript_variants
 
     def get_sample_transcript_variant(self) -> List[Dict[str, Any]]:
+        # TODO: remember to talk about setting selected
         sample_transcript_variants = []
         variant_manager = self.run.multiple_run_adder.variant_manager
         transcript_variant_df = variant_manager.transcript_variant_df
@@ -411,7 +412,23 @@ class RunAttributeManager:
         config_dict = config_file
 
         for index, row in df_rows:
-            pass
+            tx_f = {"refseq_id": row.Feature}
+            sample_f = {"lab_no": row.Sample}
+            variant_f = {"ref": row.REF, "alt": row.ALT}
+            db_transcript = self.related_instance(Transcript, filters=tx_f)
+            db_sample = self.related_instance(Sample, filters=sample_f)
+            db_variant = self.related_instance(Variant, filters=variant_f)
+
+            sv_f = {"sample_id": db_sample.id, "variant_id": db_variant.id}
+            db_sample_variant = self.related_instance(SampleVariant, sv_f)
+            sample_transcript_variant = {
+                "transcript": db_transcript,
+                "sample_variant": db_sample_variant,
+                "selected": row.CANONICAL,
+                "consequence": row.Consequence,
+                "impact": row.IMPACT
+            }
+            sample_transcript_variants.append(sample_transcript_variant)
         return sample_transcript_variants
 
     def get_genome_build(self) -> List[Dict[str, Any]]:
