@@ -69,35 +69,42 @@ class RunAttributeManager:
 
         if filters is None:
             filters = {}
+
         attribute_manager = self.run.attribute_managers[model_type]
         if not many:
+            # just one will be present, return as list to ensure 1
             return [attribute_manager.run_model.entry]
+
         else:
             entry_list = attribute_manager.run_model.entry_list()
             if not filters:
+                # no filters given, return all related items
                 return entry_list
-            filtered = entry_list
 
-            if len(filters.items()) == 1:
-                # attempt to use the MRA lookup index to speed process up
-                attr, value = list(filters.items())[0]
+        # apply filters
+        filtered = entry_list
 
-                # get or set the item based on the filter
-                item_key = f"{attr}_{value}"
-                item_lookup = self.lookup_index.get(item_key)
-                if not item_lookup:
-                    objs = [x for x in filtered if getattr(x, attr) == value]
-                    self.lookup_index[item_key] = objs
-                    item_lookup = self.lookup_index[item_key]
-                return item_lookup
+        if len(filters.items()) == 1:
+            # attempt to use the MRA lookup index to speed process up
+            attr, value = list(filters.items())[0]
 
-            for attr, value in filters.items():
-                # loop through desired filters to progressively filter entries
-                filtered = [
-                    entry for entry in filtered
-                    if getattr(entry, attr) == value
-                ]
-            return filtered
+            # get or set the item based on the filter
+
+            item_key = f"{attr}_{value}"
+            item_lookup = self.lookup_index.get(item_key)
+            if not item_lookup:
+                objs = [x for x in filtered if getattr(x, attr) == value]
+                self.lookup_index[item_key] = objs
+                item_lookup = self.lookup_index[item_key]
+            return item_lookup
+
+        for attr, value in filters.items():
+            # loop through desired filters to progressively filter entries
+            filtered = [
+                entry for entry in filtered
+                if getattr(entry, attr) == value
+            ]
+        return filtered
 
     def related_instance(self, *args, **kwargs):
         """As above but ensure unique"""
@@ -291,6 +298,7 @@ class RunAttributeManager:
         return genes
 
     def get_transcript(self) -> List[Dict[str, Any]]:
+        # TODO: include RegulatoryFeature, MotifFeature
         transcripts = []
         variant_manager = self.run.multiple_run_adder.variant_manager
         transcript_df = variant_manager.transcript_df
@@ -312,6 +320,7 @@ class RunAttributeManager:
         return transcripts
 
     def get_exon(self) -> List[Dict[str, Any]]:
+        # TODO: include intron
         exons = []
         variant_manager = self.run.multiple_run_adder.variant_manager
         transcript_df = variant_manager.transcript_df
@@ -370,59 +379,75 @@ class RunAttributeManager:
         variant_rows.close()
         return sample_variants
 
-    def get_transcript_variant(self) -> List[TranscriptVariant]:
+    def get_transcript_variant(self) -> List[Dict[str, Any]]:
+        transcript_variants = []
+        variant_manager = self.run.multiple_run_adder.variant_manager
+        variant_df = variant_manager.variant_df
+        transcript_variant_df = variant_df[
+            (variant_df.gene.notna())
+            & (variant_df.Feature_type == "Transcript")
+        ].drop_duplicates(
+            subset=["Feature", "REF", "ALT"]
+        )
+
+        variant_rows = tqdm(transcript_variant_df.iterrows(), leave=False)
+        for index, row in variant_rows:
+            variant_f = {"ref": row.REF, "alt": row.ALT}
+            tx_f = {"refseq_id": row.Feature}
+            db_variant = self.related_instance(Variant, filters=variant_f)
+            db_transcript = self.related_instance(Transcript, filters=tx_f)
+            transcript_variant = {
+                'transcript': db_transcript,
+                'variant': db_variant,
+                'hgvs_c': row.HGVSc,
+                'hgvs_p': row.HGVSp
+            }
+            transcript_variants.append(transcript_variant)
+        variant_rows.close()
+
+        return transcript_variants
+
+    def get_sample_transcript_variant(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
+        sample_transcript_variants = []
+        return sample_transcript_variants
 
-        # transcript_variants = []
-        # db_txs: List[Transcript] = self.get_related_instances(Transcript)
-        # db_variants: List[Variant] = self.get_related_instances(Variant)
-        # variants_df = self.run.multiple_run_adder.variant_manager.df
-        # for db_tx in db_txs:
-        #     transcript_variants_df = variants_df[
-        #         (variants_df.Feature == db_tx.refseq_id)
-        #     ]
-        # return transcript_variants
-
-    def get_sample_transcript_variant(self):
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
-
-    def get_genome_build(self):
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
-
-    def get_genomic_coordinate(self):
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
-
-    def get_variant_coordinate(self):
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
-
-    def get_sequence(self):
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
-
-    def get_exon_sequence(self):
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
-
-    def get_coverage_info(self):
+    def get_genome_build(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_exon_report(self):
+    def get_genomic_coordinate(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_gene_report(self):
+    def get_variant_coordinate(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_variant_report(self):
+    def get_sequence(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_variant_report_info(self):
+    def get_exon_sequence(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
+        pass
+
+    def get_coverage_info(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
+        pass
+
+    def get_exon_report(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
+        pass
+
+    def get_gene_report(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
+        pass
+
+    def get_variant_report(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
+        pass
+
+    def get_variant_report_info(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass

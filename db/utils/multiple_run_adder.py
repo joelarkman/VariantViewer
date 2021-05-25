@@ -206,5 +206,6 @@ class MultipleRunAdder:
             Gene,
             Exon,
             Transcript,
-            Variant
+            Variant,
+            TranscriptVariant,
         )
