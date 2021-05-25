@@ -49,7 +49,7 @@
                     <div class="ui segment" style="padding-top: 45px;">
                         <div class="ui top attached label">{% if event.type == 'create' %}Created {%else%}Modified
                             {%endif%}by:</div>
-                        <span>{{event.user}}</span>
+                        <span>{{event.user.first_name}} {{event.user.last_name}}</span>
                     </div>
                     <div class="ui segment" style="padding-top: 45px;margin-top: 0;">
                         <div class="ui top attached label">Date:</div>

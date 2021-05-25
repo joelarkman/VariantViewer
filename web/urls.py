@@ -33,6 +33,9 @@ urlpatterns = [
     path('ajax/update_selected_transcript/<int:run>/<int:ss_sample>/<int:transcript>',
          views.update_selected_transcript, name='update_selected_transcript'),
 
+    path('ajax/load_variant_list/<int:run>/<int:ss_sample>',
+         views.load_variant_list, name='load_variant_list'),
+
     path('ajax/load_variant_details/<int:run>/<int:stv>',
          views.load_variant_details, name='load_variant_details'),
 
@@ -44,6 +47,12 @@ urlpatterns = [
 
     path('ajax/save_evidence/<int:stv>',
          views.save_evidence, name='save_evidence'),
+
+    path('ajax/delete_evidence/<int:document>',
+         views.delete_evidence, name='delete_evidence'),
+
+    path('ajax/load_previous_evidence/<int:current_stv>/<int:previous_stv>',
+         views.load_previous_evidence, name='load_previous_evidence'),
 
     # Temporary to explore jbrowse during development
     path('jbrowse-testing', views.JbrowseTestingView.as_view(),

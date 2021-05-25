@@ -1,5 +1,5 @@
 {% load humanize %}
-
+{% if documents %}
 <div class="ui three horizontal link cards">
 
     {% for doc in documents %}
@@ -28,6 +28,12 @@
                 <div class="header">
                     <h4>{{ doc.filename }}</h4>
                 </div>
+
+                <div class="ui right corner label prevent-evidence-display delete-evidence"
+                    data-url="{% url 'delete_evidence' document=doc.id%}">
+                    <i class="trash icon prevent-evidence-display"></i>
+                </div>
+
                 <div class="meta">
                     Click to view
                 </div>
@@ -53,29 +59,38 @@
 
         {% endfor %}
 
-    </div>
 
+    </div>
+    {% else %}
+    <span style="font-size:smaller;">No evidence files uploaded yet</span>
+    {% endif %}
     <script>
         // Code to view existing files in lightbox
         $('.PhotoCard').click(function () {
-            var image = $(this).attr('data-file');
+            if ($(event.target).hasClass("prevent-evidence-display")) {
+                null
+            } else {
+                var image = $(this).attr('data-file');
+                $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <img class="lightbox-img" src="' + image + '"/>');
 
-
-            $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <img class="lightbox-img" src="' + image + '"/>');
-
-            $('#lightbox').dimmer({
-                closable: true
-            }).dimmer('show');
+                $('#lightbox').dimmer({
+                    closable: true
+                }).dimmer('show');
+            }
         })
 
         // Code to view existing files in lightbox
         $('.PdfCard').click(function () {
-            var pdf = $(this).attr('data-file');
+            if ($(event.target).hasClass("prevent-evidence-display")) {
+                null
+            } else {
+                var pdf = $(this).attr('data-file');
 
-            $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <object class="lightbox-pdf" data="' + pdf + '" type="application/pdf"><iframe src="https://docs.google.com/viewer?url=' + pdf + '&embedded=true"></iframe></object>');
+                $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <object class="lightbox-pdf" data="' + pdf + '" type="application/pdf"><iframe src="https://docs.google.com/viewer?url=' + pdf + '&embedded=true"></iframe></object>');
 
-            $('#lightbox').dimmer({
-                closable: true
-            }).dimmer('show');
+                $('#lightbox').dimmer({
+                    closable: true
+                }).dimmer('show');
+            }
         })
     </script>

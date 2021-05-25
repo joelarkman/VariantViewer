@@ -1,0 +1,312 @@
+{% load humanize %}
+
+<div class='previous-evidence-modal-container'>
+
+    <div class="ui segments" style="display: flex;flex: 1;margin: 0;max-width: 30cm;height:100%;max-height: 20cm;">
+        <div class="ui left aligned clearing segment">
+            <h3 class="ui header" style="margin:0">Placeholder.... {{previous_stv}}</h3>
+        </div>
+        <div class="ui left aligned clearing segment">
+            <h3 class="ui message" style="margin:0">gqreghrehwerhwerhwer</h3>
+        </div>
+        <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
+
+            <div class="ui top attached segment">
+                <h4>Variant Information</h4>
+            </div>
+
+            <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+                <div id="readonly-comment-form">
+                    {% include 'includes/comment-display.html' %}
+                </div>
+            </div>
+
+            <div id="add-all-documents" class="ui top attached segment action-header" style="display: flex;">
+                <h4 style="margin: 0;">Evidence </h4>
+                <div class="ui right icon label"
+                    style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">
+                    Toggle all
+                    <i class="blue circle outline icon"></i>
+                </div>
+            </div>
+
+            <div class=" ui bottom attached segment" style="background-color: #eeeeee;margin-bottom: 0;">
+                <div id="evidence-container">
+
+                    {% if previous_stv.evidence_files.all %}
+                    <div class="ui three horizontal cards previous-evidence">
+
+                        {% for doc in previous_stv.evidence_files.all %}
+
+                        {% if doc.extension == '.pdf' %}
+
+                        <div class="ui link card PdfCard" data-file="{{ doc.document.url }}">
+                            <div class="image"
+                                style="flex: 1;display: flex;align-items: center;justify-content: center;min-height: 5cm;max-width: 25%;">
+                                <i class="huge file pdf outline icon"></i>
+                            </div>
+
+                            {% else %}
+
+                            <div class="ui link card PhotoCard" data-file="{{ doc.document.url }}">
+
+                                <div class="image"
+                                    style="flex: 1;display: flex;align-items: center;justify-content: center;min-height: 5cm;max-width: 25%;">
+                                    <img src="{{ doc.document.url }}"
+                                        style="height: auto;width: auto;max-width:100%;max-height:150px;border-radius: 15px;padding: 10px;">
+                                </div>
+
+                                {% endif %}
+
+                                <div class="content" style="overflow: auto;max-height: 5cm;">
+                                    <div class="header">
+                                        <h4>{{ doc.filename }}</h4>
+                                    </div>
+
+                                    <div class="ui right corner label prevent-evidence-display copy-evidence"
+                                        data-id="{{doc.id}}">
+                                        <i class="blue circle outline icon prevent-evidence-display"></i>
+                                    </div>
+
+                                    <div class="meta">
+                                        Click to view
+                                    </div>
+                                    <div class="description">
+                                        {% if doc.description%}
+                                        {{ doc.description }}
+                                        {% else %}
+                                        No description provided
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="extra content" style="display: flex;align-items: center;flex-shrink: 0;">
+
+                                    <span
+                                        style="display: flex;align-items: center;flex: 1;word-wrap: break-word;margin-right: auto;">
+                                        <i style="margin-top: -3px;margin-right: 7px;" class="user icon"></i>
+                                        {{doc.get_user_created.first_name}} {{doc.get_user_created.last_name}}
+                                    </span>
+                                    <span style="margin-left: 10px;">
+                                        {{doc.date_created|naturaltime}}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {% endfor %}
+
+
+                        </div>
+                        {% else %}
+                        <span style="font-size:smaller;">No evidence files uploaded yet</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <form id='copy-evidence-form' method="post"
+                    action="{% url 'load_previous_evidence' current_stv=current_stv.id previous_stv=previous_stv.id %}"
+                    class="copy-evidence-form">
+
+                    {% csrf_token %}
+
+                </form>
+            </div>
+
+            <div class="ui secondary left aligned clearing segment">
+                <input type="submit" value="Add item" form="copy-evidence-form"
+                    class="ui right floated primary button disabled submit-button" style="margin-left: 10px;">
+                <div class="ui right floated button previous-evidence-close">Cancel</div>
+            </div>
+        </div>
+
+
+        <!-- Evidence preview container -->
+        <div class="ui inverted raised tertiary segment evidence-container"
+            style="flex:0 0 30%;margin: 0;display: flex;flex-direction: column;padding: 0;height:100%;max-height: 20cm;">
+            <div class="ui top attached fluid compact button placeholder-close-icon"
+                style="text-align: right;position: relative;z-index: 1000;">
+                <i class="big times icon" style="margin: 0;"></i>
+            </div>
+
+            <div id="test" class="sub-container"
+                style="display: flex;flex: 1;align-items: center;justify-content: center;">
+            </div>
+
+            <div id="image-buttons"
+                style="display: flex;flex-direction: row;position: absolute;z-index: 1000;padding: 25px;align-items: center;justify-content: center;bottom:0;width: 100%;">
+                <button class="ui button zoom-in">Zoom In</button>
+                <button class="ui button zoom-out">Zoom Out</button>
+                <button class="ui button reset">Reset</button>
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <script>
+        $('.previous-evidence .card').click(function () {
+            if ($(event.target).hasClass("prevent-evidence-display")) {
+                null
+            } else {
+                if ($(this).hasClass('selected')) {
+                    $('.evidence-container').fadeOut()
+                    $('.previous-evidence .card').addClass('link').removeClass('selected deselected')
+                } else {
+                    $('.previous-evidence .card').addClass('link deselected').removeClass('selected')
+                    $(this).removeClass('link deselected').addClass('selected')
+
+                    var data = $(this).attr('data-file');
+                    if ($(this).hasClass('PhotoCard')) {
+                        $('.evidence-container .sub-container').html('<img class="lightbox-img" src="' + data + '"/>');
+                        $('#image-buttons').show()
+
+                        const elem = document.getElementById('test')
+                        const panzoom = Panzoom(elem)
+                        $(".zoom-in").click(panzoom.zoomIn)
+                        $(".zoom-out").click(panzoom.zoomOut)
+                        $(".reset").click(panzoom.reset)
+
+                    } else if ($(this).hasClass('PdfCard')) {
+                        $('.evidence-container .sub-container').html('<object class="lightbox-pdf previous" data="' + data + '" type="application/pdf"><p>PDF cannot be displayed.</p></object>');
+                        $('#image-buttons').hide()
+
+                    }
+                    $('.evidence-container').fadeIn()
+                }
+            }
+        })
+
+        $('.placeholder-close-icon').click(function () {
+            $('.evidence-container').fadeOut()
+            $('.previous-evidence .card').addClass('link').removeClass('selected deselected')
+        })
+
+        $('.evidence-container').hide()
+
+        $('.copy-evidence').click(function () {
+            var value = $(this).attr('data-id')
+            // If item already checked
+            if ($('i', this).hasClass('check')) {
+                // Find the hidden input with the relevent value and remove it.
+                $("input[value='" + value + "']").remove();
+                // Remove the check
+                $('i', this).removeClass('check').addClass('outline')
+            } else {
+                // If item not already checked
+                // Create a hidden input with the relevent value
+                $('<input>', {
+                    type: 'hidden',
+                    id: 'documents',
+                    name: 'documents',
+                    value: value
+                }).appendTo('#copy-evidence-form');
+                // Add check
+                $('i', this).addClass('check').removeClass('outline')
+            }
+
+            var inputs = $("#copy-evidence-form").find($("input"));
+            var count = inputs.length - 1
+
+            if (count != 0) {
+                $('.submit-button').removeClass('disabled')
+            } else {
+                $('.submit-button').addClass('disabled')
+            }
+
+            if (count > 1) {
+                $('.submit-button').val('Add items (' + count + ')')
+            } else {
+                $('.submit-button').val('Add item')
+            }
+        })
+
+        $('#add-all-documents').click(function () {
+            $('i', this).toggleClass('check outline')
+
+            $('.copy-evidence').each(function (i, obj) {
+                var value = $(this).attr('data-id')
+                // If item already checked
+                if ($('i', this).hasClass('check')) {
+                    // Find the hidden input with the relevent value and remove it.
+                    $("input[value='" + value + "']").remove();
+                    // Remove the check
+                    $('i', this).removeClass('check').addClass('outline')
+                } else {
+                    // If item not already checked
+                    // Create a hidden input with the relevent value
+                    $('<input>', {
+                        type: 'hidden',
+                        id: 'documents',
+                        name: 'documents',
+                        value: value
+                    }).appendTo('#copy-evidence-form');
+                    // Add check
+                    $('i', this).addClass('check').removeClass('outline')
+                }
+            });
+
+            var inputs = $("#copy-evidence-form").find($("input"));
+            var count = inputs.length - 1
+
+            if (count != 0) {
+                $('.submit-button').removeClass('disabled')
+            } else {
+                $('.submit-button').addClass('disabled')
+            }
+
+            if (count > 1) {
+                $('.submit-button').val('Add items (' + count + ')')
+            } else {
+                $('.submit-button').val('Add item')
+            }
+        })
+
+    </script>
+
+    <style>
+        .previous-evidence-modal-container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: 100%;
+            gap: 25px;
+            padding: 30px;
+            justify-content: center;
+            align-items: stretch;
+        }
+
+        @media (min-height: 26cm) {
+            .previous-evidence-modal-container {
+                align-items: center;
+            }
+        }
+
+        .lightbox-pdf.previous {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+        }
+
+        .previous-evidence .card.selected {
+            /* background-color: rgb(226, 226, 226); */
+            box-shadow: 0 1px 3px 0 #555, 0 0 0 1px #555;
+            /* opacity: 50%; */
+        }
+
+        .previous-evidence .card.deselected {
+            opacity: 50%;
+        }
+
+        .previous-evidence .card.selected .prevent-evidence-display {
+            margin-top: 0px;
+        }
+
+        .copy-evidence:hover {
+            border-color: rgb(33, 133, 208) !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        .copy-evidence:hover i {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+    </style>

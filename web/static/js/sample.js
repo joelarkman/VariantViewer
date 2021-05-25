@@ -1,3 +1,36 @@
+// =========
+// MAIN TABS 
+// ========= 
+
+$(document).ready(function () {
+
+    $('.main-tabs-link').click(function () {
+        var tab_id = $(this).attr('data-tab');
+
+        $('.main-tabs-link').removeClass('active');
+        $('.main-tabs-content').removeClass('active');
+        $('.main-tabs-content').addClass('hidden');
+
+        $(this).addClass('active');
+        $("#" + tab_id).addClass('active');
+        $("#" + tab_id).removeClass('hidden');
+
+        $('.main-tabs-content').hide().filter(".active").show()
+
+        $.fn.dataTable
+            .tables({ visible: true, api: true })
+            .columns.adjust()
+            .draw();
+
+        $(".dataTables_scrollHeadInner").css("width", "100%");
+    })
+
+})
+
+// Hide non-active tabs initially
+$('.main-tabs-content').hide().filter(".active").show()
+
+
 // =================
 // UTILITY FUNCTIONS 
 // ================= 
@@ -13,6 +46,43 @@ function ResetHideBrowser() {
     $('#browser-expand-collapse').hide()
     $('.view-in-browser').removeClass("red");
 }
+
+// =================
+// LOAD VARIANT LIST
+// =================
+$(function () {
+    $.ajax(
+        {
+            type: 'get',
+            url: $('#variant-menu').attr('data-url'), //get url from toggle attribute
+            beforeSend: function () {
+                // Load a loading circle if taking more than 3ms
+                ajaxLoadTimeout = setTimeout(function () {
+                    $("#variant-list-content-loader").addClass('active');
+                }, 20);
+            },
+            success: function (data) {
+
+                // Use returned data to update the unpinned and pinned lists of variants. 
+                // This is done individually to retain search term and scroll positions.
+                $('#variant-menu').append(data.variant_list)
+                $('#variants-tab #tab-utility-bar .filters-sub-menu-container').html(data.active_filters)
+                SetupFilterScrolling()
+
+                clearTimeout(ajaxLoadTimeout);
+                $("#variant-list-content-loader").removeClass('active');
+
+                // Refresh popups
+                $("#variant-menu .js-update-transcript,.pinned-transcript-popup").popup({
+                    inline: false
+                })
+
+            },
+            error: function () {
+                alert("error");
+            }
+        })
+})
 
 
 // ==============
@@ -152,11 +222,20 @@ $(function () {
             data: form.serialize(),
             type: form.attr("method"),
             dataType: 'json',
+            beforeSend: function () {
+                // Load a loading circle if taking more than 3ms
+                ajaxLoadTimeout = setTimeout(function () {
+                    $("#variant-list-content-loader").addClass('active');
+                }, 500);
+            },
             success: function (data) {
                 if (data.form_is_valid) {
                     $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
                     $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
                     $('#variants-tab #tab-utility-bar .filters-sub-menu-container').html(data.active_filters)
+
+                    clearTimeout(ajaxLoadTimeout);
+                    $("#variant-list-content-loader").removeClass('active');
 
                     // Apply searches to carry them over.
                     apply_variant_search()
@@ -337,6 +416,12 @@ function SetupVariantPinning() {
                     data: {
                         "ischecked": ischecked, //send check status as data
                     },
+                    beforeSend: function () {
+                        // Load a loading circle if taking more than 3ms
+                        ajaxLoadTimeout = setTimeout(function () {
+                            $("#variant-list-content-loader").addClass('active');
+                        }, 500);
+                    },
                     success: function (data) {
 
                         // Use returned data to update the unpinned and pinned lists of variants. 
@@ -344,6 +429,9 @@ function SetupVariantPinning() {
                         $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
                         $('#variant-menu #pinned-container').html($(data.variant_list).filter('#pinned-container').html())
                         $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
+
+                        clearTimeout(ajaxLoadTimeout);
+                        $("#variant-list-content-loader").removeClass('active');
 
                         // Apply searches to carry them over.
                         apply_variant_search()
@@ -393,21 +481,154 @@ function SetupVariantPinning() {
     })
 }
 
-// $("#variant-menu").on("click", ".variant-sub-menu", function () {
-//     // Reset look of filter button and filter bar
-//     $("#variant-menu .variant-sub-menu").removeClass('active')
-//     $(this).addClass('active')
+// ========================
+// PREVIOUS CLASSIFICATIONS 
+// ========================
 
-//     if ($(this).hasClass('pinned')) {
-//         $("#variant-menu #pinned-list").show()
-//         $("#variant-menu #unpinned-list").hide()
-//     } else {
-//         $("#variant-menu #pinned-list").hide()
-//         $("#variant-menu #unpinned-list").show()
-//     }
+function SetupClassificationsTable() {
+
+    // Initiate sample table
+    $('.mini-tabs-content .previous-classification-table').DataTable({
+        'serverSide': false,
+        'ajax': '/api/' + $('.mini-tabs-content .previous-classification-table').attr('data-stv') + '/previous_classifications_list?format=datatables',
+        "deferRender": true,
+        'processing': true,
+        'columns': [
+            { 'data': 'ss_samples.0.first_name', 'name': 'sample_variant__sample__patient__first_name' },
+            { 'data': 'ss_samples.0.last_name', 'name': 'sample_variant__sample__patient__last_name' },
+            {
+                "data": null,
+                "render": function (data, type, row, meta) {
+                    data = $.map(row.ss_samples, function (ss_sample) {
+                        return ss_sample.sample_identifier;
+                    })
+                    return data.join(', ');
+                }
+            },
+            { 'data': 'ss_samples.0.lab_no', 'name': 'sample_variant__sample__lab_no' },
+            {
+                "data": null,
+                "render": function (data, type, row, meta) {
+                    data = $.map(row.ss_samples, function (ss_sample) {
+                        return $.map(ss_sample.runs, function (runs) {
+                            return runs.worksheet;
+                        })
+                    })
+                    return data.filter((item, i, ar) => ar.indexOf(item) === i).join(', ');
+                }
+            },
+            {
+                "data": null,
+                "render": function (data, type, row, meta) {
+                    data = $.map(row.ss_samples, function (ss_sample) {
+                        return $.map(ss_sample.runs, function (runs) {
+                            return runs.pipeline_name;
+                        })
+                    })
+                    return data.filter((item, i, ar) => ar.indexOf(item) === i).join(', ');
+                }
+            },
+            { 'data': 'date_classified', 'searchable': false, "sortable": false },
+            {
+                "data": null,
+                "render": function (data, type, row, meta) {
+                    comment = row.comment
+                    if (comment) {
+                        data = '<i class="check circle icon"></i>'
+                    } else {
+                        data = '<i class="times circle icon"></i>'
+                    }
+                    return data;
+                },
+                "orderable": false,
+                "className": 'left aligned',
+            },
+            { 'data': 'evidence_file_count', 'name': 'evidence_files__description' },
+            { 'data': 'classification', 'name': 'comments__classification' },
+        ],
+        createdRow: function (row, data, index) {
+            classification = data.classification
+            if (classification === 'Benign') {
+                $(row).addClass('left marked green');
+            } else if (classification === 'Pathogenic') {
+                $(row).addClass('left marked red');
+            }
+        },
+        "ordering": false,
+        "scrollCollapse": true,
+        "paging": false,
+        "pageLength": 25,
+        "footer": false,
+        "dom": '<"top">rt<"bottom"><"clear">',
+        "language": {
+            "emptyTable": "No previous classifications",
+            'loadingRecords': '&nbsp;',
+            'processing': 'Loading...',
+            "zeroRecords": "No classifications matching query",
+        },
+        "order": [[3, 'desc']]
+
+    });
+
+    $(function () {
+        $('.mini-tabs-content .previous-classification-table tbody').on('click', 'tr', function (event) {
+            var row = $('.mini-tabs-content .previous-classification-table').DataTable().row(this);
+
+            var previous_stv = row.data().id
+            var current_stv = $('.mini-tabs-content .previous-classification-table').attr('data-stv')
+            $.ajax({
+                url: '/ajax/load_previous_evidence/' + current_stv + '/' + previous_stv,
+                type: 'get',
+                dataType: 'json',
+                beforeSend: function () {
+                    $('#lightbox')
+                        .dimmer('hide')
+                        ;
+                },
+                success: function (data) {
+                    $("#lightbox").html(data.html_form);
+
+                    $('#lightbox')
+                        .dimmer('show')
+                        ;
+
+                    $('#lightbox .previous-evidence-close').click(function () {
+                        $('#lightbox')
+                            .dimmer('hide')
+                            ;
+                    })
+                }
+            });
+        })
 
 
-// });
+        $("#lightbox").on("submit", ".copy-evidence-form", function () {
+            var form = $(this);
+            $.ajax({
+                url: form.attr("action"),
+                data: form.serialize(),
+                type: form.attr("method"),
+                dataType: 'json',
+                success: function (data) {
+                    if (data.is_valid) {
+                        $(".mini-tabs-content #evidence-container").html(data.documents)
+
+                        $('#lightbox').dimmer("hide");
+                        $('.mini-tabs-content .details-tabs .item')
+                            .tab("change tab", 'evidence');
+                    } else {
+                        $("#lightbox").html(data.html_form);
+                    }
+                }
+            });
+            return false;
+        });
+
+    });
+
+}
+
+
 
 // ====================
 // LOAD VARIANT DETAILS 
@@ -470,6 +691,9 @@ $(document).ready(function () {
                     // Setup listener on pin toggle.
                     SetupVariantPinning()
 
+                    // Setup table
+                    SetupClassificationsTable()
+
                 }
             });
         }
@@ -508,14 +732,14 @@ function apply_variant_search() {
     //     .show();
 
     $("#variant-menu #unpinned-list .gene").show()
-    $("#variant-menu .mini-tabs-link").removeClass('hidden');
+    $("#variant-menu #unpinned-list .mini-tabs-link").removeClass('hidden');
     if ($('#variant-menu #unpinned-list .gene .title').is(':icontains("' + query + '")')) {
         $("#variant-menu #unpinned-list .gene")
             .hide()
             .filter(':icontains("' + query + '")')
             .show();
     } else {
-        $("#variant-menu .mini-tabs-link")
+        $("#variant-menu #unpinned-list .mini-tabs-link")
             .addClass('hidden')
             .filter(':icontains("' + query + '")')
             .removeClass('hidden');
@@ -597,10 +821,19 @@ $(function () {
             data: form.serialize(),
             type: form.attr("method"),
             dataType: 'json',
+            beforeSend: function () {
+                // Load a loading circle if taking more than 5ms
+                ajaxLoadTimeout = setTimeout(function () {
+                    $("#variant-list-content-loader").addClass('active');
+                }, 500);
+            },
             success: function (data) {
                 if (data.form_is_valid) {
                     $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
                     $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
+
+                    clearTimeout(ajaxLoadTimeout);
+                    $("#variant-list-content-loader").removeClass('active');
 
                     // Hide lightbox
                     $('#lightbox').dimmer('hide');
@@ -720,9 +953,6 @@ $(function () {
                             })
                         });
                     })
-
-
-
                 }
                 else {
                     $('.mini-tabs-content #comment-form').html(data.html_form);
@@ -776,37 +1006,68 @@ $(".mini-tabs-content").on("click", "#comment-history", function () {
     });
 });
 
-// =========
-// MAIN TABS 
-// ========= 
+// ===============
+// DELETE EVIDENCE 
+// =============== 
 
-$(document).ready(function () {
+$(function () {
 
-    $('.main-tabs-link').click(function () {
-        var tab_id = $(this).attr('data-tab');
+    /* Functions */
 
-        $('.main-tabs-link').removeClass('active');
-        $('.main-tabs-content').removeClass('active');
-        $('.main-tabs-content').addClass('hidden');
+    var loadDeleteEvidenceForm = function () {
+        var btn = $(this);
+        $.ajax({
+            url: btn.attr("data-url"),
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+                $('#lightbox').dimmer('hide');
+            },
+            success: function (data) {
+                // Populate lightbox with modal featuring form.
+                $('#lightbox').html(data.html_form);
 
-        $(this).addClass('active');
-        $("#" + tab_id).addClass('active');
-        $("#" + tab_id).removeClass('hidden');
+                // Show lightbox
+                $('#lightbox').dimmer({
+                    closable: false
+                }).dimmer('show');
+            }
+        });
+    };
 
-        $('.main-tabs-content').hide().filter(".active").show()
+    var confirmDeleteEvidenceForm = function () {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            success: function (data) {
+                if (data.is_valid) {
+                    $(".mini-tabs-content #evidence-container").html(data.documents)
+                    $('#lightbox').dimmer('hide');
 
-        $.fn.dataTable
-            .tables({ visible: true, api: true })
-            .columns.adjust()
-            .draw();
+                }
+                else {
+                    $('.mini-tabs-content #comment-form').html(data.html_form);
+                }
+            }
+        });
+        return false;
+    };
 
-        $(".dataTables_scrollHeadInner").css("width", "100%");
-    })
 
-})
+    /* Binding */
 
-// Hide non-active tabs initially
-$('.main-tabs-content').hide().filter(".active").show()
+    // Update transcript
+    $(".mini-tabs-content").on("click", ".delete-evidence", loadDeleteEvidenceForm);
+    $("#lightbox").on("submit", "#delete-evidence-form", confirmDeleteEvidenceForm);
+    $("#lightbox").on("click", ".delete-evidence-close", function () {
+        // Hide lightbox
+        $('#lightbox').dimmer('hide');
+    });
+
+});
 
 
 // =======================

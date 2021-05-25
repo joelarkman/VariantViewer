@@ -11,7 +11,7 @@ from django.db import transaction
 
 from db.utils.filter_utils import filter_variants, get_filters
 
-from .models import Filter, FilterItem
+from .models import Document, Filter, FilterItem
 
 from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm
 
@@ -113,16 +113,16 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         context['run'] = run
         context['ss_sample'] = ss_sample
 
-        filters = get_filters(ss_sample.sample, run, user=self.request.user)
-        filtered_variants = filter_variants(
-            ss_sample.sample, run, filter=filters.get('active_filter'))
+        # filters = get_filters(ss_sample.sample, run, user=self.request.user)
+        # filtered_variants = filter_variants(
+        #     ss_sample.sample, run, filter=filters.get('active_filter'))
 
-        context['variants'] = filtered_variants
+        # context['variants'] = filtered_variants
 
-        context['filters'] = filters
+        # context['filters'] = filters
 
-        context['excelreport'] = ExcelReport.objects.get(
-            run=run, sample=ss_sample.sample)
+        # context['excelreport'] = ExcelReport.objects.get(
+        #     run=run, sample=ss_sample.sample)
 
         # Load files for jbrowse
         context['vcf'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz'
@@ -275,6 +275,36 @@ def modify_filters(request, run, ss_sample, filter=None):
     return JsonResponse(data)
 
 
+def load_variant_list(request, run, ss_sample):
+    """
+    AJAX view to load variant list.
+    """
+
+    data = dict()
+    run = Run.objects.get(id=run)
+    ss_sample = SamplesheetSample.objects.get(
+        id=ss_sample)
+
+    filters = get_filters(ss_sample.sample, run, user=request.user)
+
+    filtered_variants = filter_variants(
+        ss_sample.sample, run, filter=filters.get('active_filter'))
+
+    data['variant_list'] = render_to_string('includes/variant-list.html',
+                                            {'run': run,
+                                             'ss_sample': ss_sample,
+                                             'variants': filtered_variants},
+                                            request=request)
+
+    data['active_filters'] = render_to_string('includes/active-filters.html',
+                                              {'run': run,
+                                               'ss_sample': ss_sample,
+                                               'filters': filters},
+                                              request=request)
+
+    return JsonResponse(data)
+
+
 def load_variant_details(request, run, stv):
     """
     AJAX view to load variant details. Database filtered for correct variant and its associated
@@ -324,7 +354,7 @@ def pin_variant(request, run, stv):
     if ischecked == 'true':
         stv.pinned = True
         stv.save()
-    else:
+    elif ischecked == 'false':
         stv.pinned = False
         stv.save()
 
@@ -390,7 +420,9 @@ def update_selected_transcript(request, run, ss_sample, transcript):
 
 
 def comment_update_or_create(request, stv):
-
+    """
+    AJAX view to facilitate the creation or update of a single comment object for each STV.  
+    """
     data = dict()
     stv = SampleTranscriptVariant.objects.get(id=stv)
 
@@ -455,7 +487,65 @@ def save_evidence(request, stv):
             return JsonResponse(data)
 
 
+def delete_evidence(request, document):
+    """
+    AJAX view to facilitate the deletion of an evidence object associated with a particular STV.
+    """
+
+    data = dict()
+    document = Document.objects.get(id=document)
+    stv = document.sample_transcript_variant
+
+    if request.method == 'POST':
+        document.delete()
+
+        documents = stv.evidence_files.order_by('-date_created')
+        data['is_valid'] = True
+        data['documents'] = render_to_string('includes/evidence.html',
+                                             {'documents': documents},
+                                             request=request)
+    else:
+        context = {'document': document}
+        data['html_form'] = render_to_string('includes/delete-evidence.html',
+                                             context,
+                                             request=request
+                                             )
+    return JsonResponse(data)
+
+
+def load_previous_evidence(request, current_stv, previous_stv):
+    """
+    AJAX view to facilitate the view of previous evidence
+    """
+
+    data = dict()
+    current_stv = SampleTranscriptVariant.objects.get(id=current_stv)
+    previous_stv = SampleTranscriptVariant.objects.get(id=previous_stv)
+
+    if request.method == 'POST':
+        for document in request.POST.getlist('documents'):
+
+            document = Document.objects.get(id=document)
+
+            Document.objects.get_or_create(sample_transcript_variant=current_stv,
+                                           document=document.document,
+                                           description=document.description)
+
+        documents = current_stv.evidence_files.order_by('-date_created')
+        data['is_valid'] = True
+        data['documents'] = render_to_string('includes/evidence.html',
+                                             {'documents': documents},
+                                             request=request)
+    else:
+        context = {'current_stv': current_stv, 'previous_stv': previous_stv}
+        data['html_form'] = render_to_string('includes/previous-evidence.html',
+                                             context,
+                                             request=request
+                                             )
+    return JsonResponse(data)
+
 # Temporary to explore jbrowse during development
+
 
 class JbrowseTestingView(TemplateView):
     """

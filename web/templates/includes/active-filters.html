@@ -66,8 +66,8 @@
 </a>
 
 {% else %}
-<a class="ui orange right icon tag label selectable" style="background-color: rgb(255, 167, 108)"
-    data-position="bottom center" data-html="<span>Modify filters</span>" id="mod_filter"
+<a class="ui orange right icon tag label selectable" data-position="bottom center"
+    data-html="<span>Modify filters</span>" id="mod_filter"
     data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filters.active_filter.id %}">
     USER PRESET:
     <div class="detail">'{{filters.active_filter.name}}'</div>

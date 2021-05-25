@@ -158,77 +158,123 @@
     background-color: white;
 }
 
-/* ===============
-   VARIANT DETAILS
-   =============== */
-
-.variant-details-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    flex-flow: row wrap;
-    row-gap: 5px;
-    background-color: #d7d9f3;
-    margin: -7px;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-
-.circular.ui.icon.button.menu-toggle-closed {
-    margin: 0;
-    margin-top: -3px;
-    margin-left: -2px;
-    margin-right: 15px;
-    align-self: flex-start;
-}
-
-.ui.right.corner.label.tabCloser {
-    margin-right: 8px;
-    margin-top: 8px;
-    border-radius: 20px !important
-}
-
-.variant-details-header .title.container {
-    display: flex;
-    flex-direction: column;
-    border-right: 2px solid #9d9eb1;
-    margin-right: 20px;
-}
-
-.ui.secondary.menu.details-tabs {
-    margin-top: 5px;
-    margin-bottom: 0px;
-    margin-right: 15px;
-}
-
-.variant-details-header .dropdown.container {
-    display: flex;
-    flex-direction: column;
-    background-color: white;
-    align-items: center;
-    border-radius: 10px;
-    align-self: stretch;
-    justify-content: center;
-    padding: 10px;
-    margin-right: 15px;
-}
-
-.variant-details-header .dropdown.container .dropdown.title{
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-#variant-title.ischecked {
-    background-color: rgb(255, 167, 108) !important;
-}
-
 #mod_filter{
     cursor: default;
 }
 
 #mod_filter.selectable{
     cursor: pointer;
+}
+
+/* ===============
+   VARIANT DETAILS
+   =============== */
+
+.variant-details-header {
+    margin: -15px;
+    margin-bottom: 15px;
+    padding: 15px;
+    padding-bottom: 0px;
+    padding-top: 10px;
+    background-color: #e2e2e2;
+    border-bottom: 2px solid #D5D5D6;
+}
+
+.top-row-container {
+    display: flex;
+    flex-flow: row wrap;
+    row-gap: 5px;
+}
+
+.circular.ui.icon.button.menu-toggle-closed {
+    margin: 0;
+    margin-top: 5px;
+    margin-left: 1px;
+    margin-right: 15px;
+    align-self: flex-start;
+}
+
+.variant-details-header .title-container {
+    background-color:#F8F8F8;
+    padding: 0px;
+    display: flex;
+    align-items: center;
+    margin-top: 0;
+    margin-right: auto;
+    margin-bottom: 0px;
+    flex-shrink: 1;
+}
+
+.variant-details-header .title-container.ischecked {
+    background-color: rgb(255, 167, 108) !important;
+}
+
+.variant-details-header .col-container {
+    /* display: flex;
+    flex-direction: column; */
+    margin: 5px;
+    margin-left: 10px;
+    margin-right: 10px;
+    /* align-items: center;
+    justify-content: center; */
+}
+
+.variant-details-header .col-container .header{
+    display: flex;
+    margin: 0px;
+    align-self: flex-start;
+    align-items: center;
+}
+
+.variant-details-header .col-container .header #pinned-icon{
+    margin: 0;
+    margin-right: 5px;
+}
+
+.variant-details-header .col-container .info-labels-container{
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    margin-top: 5px;
+    margin-bottom: 3px;
+    align-items: center;
+    justify-content: center;
+}
+
+.variant-details-header .col-container .info-labels-container .info-label{
+    display: flex;
+    flex-direction: column;
+    background-color: #e2e2e2;
+    padding: 5px;
+    border-radius: 3px;
+    min-width: 100px;
+}
+
+.variant-details-header .col-container .info-labels-container .info-label .title{
+    font-size: smaller;
+    margin-top: -2px;
+}
+
+.variant-details-header .col-container .info-labels-container .info-label .value{
+    font-weight: bold;
+    margin-top: -2px;
+}
+
+.ui.secondary.menu.details-tabs {
+    margin-top: 5px;
+    border: none;
+    
+}
+
+/* .variant-details-header #variant-classification-container {
+    display:flex;
+    align-self: flex-start;
+} */
+
+
+.variant-details-header #pin-variant-checkbox {
+    margin-left: 15px;
+    margin-right: 10px;
 }
 
 /* ==========
@@ -242,7 +288,12 @@
     margin: 15px;
 } */
 
-table.dataTable.no-footer {
+/* table.dataTable.no-footer {
+    border-bottom: 0 !important;
+    border-top: none; 
+} */
+
+#gene-table,#exon-table {
     border-bottom: 0 !important;
     border-top: none;
 }

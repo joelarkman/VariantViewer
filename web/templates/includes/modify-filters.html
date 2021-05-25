@@ -1,7 +1,27 @@
 {% load add_class %}
 {% load get_display_choice %}
 
-<div class="ui segments" style="display: flex;min-width: 75%;max-width: 90%;max-height: 80%;">
+<style>
+    .modal-container {
+        display: flex;
+        width: 25cm;
+        height: 15cm;
+    }
+
+    @media (max-width: 35cm) {
+        .modal-container {
+            width: 75%
+        }
+    }
+
+    @media (max-height: 20cm) {
+        .modal-container {
+            height: calc(80vh - 125.7656px)
+        }
+    }
+</style>
+
+<div class="ui segments modal-container">
     <div class="ui left aligned clearing segment">
         <h3 class="ui header" style="margin:0">Modify Filters</h3>
     </div>
@@ -34,7 +54,7 @@
     </div>
 
     <div class="ui left aligned segment"
-        style="display: flex;flex-direction: row;;overflow: hidden;padding: 0;min-height: 40vh;">
+        style="display: flex;flex-direction: row;;overflow: hidden;padding: 0;min-height: calc(40vh - 125.7656px);">
 
         <!-- Load readonly version of form if filter_instance is a default -->
         {% if filter_instance == filters.pipeline_default_filter and filter_instance != None or filter_instance == filters.blank_filter %}

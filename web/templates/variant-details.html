@@ -10,115 +10,40 @@
 <link rel="stylesheet" href="{% static 'css/variant-details.css' %}">
 
 <!-- Variant-details header -->
-<!-- <div class="variant-details-header">
+<div class="variant-details-header">
 
-    <button class="circular ui icon button menu-toggle-closed" data-tooltip="Expand Menu" data-position="bottom left">
-        <i class="icon bars"></i>
-    </button>
-
-
-    <a class="ui right corner label tabCloser">
-        <i class="close icon"></i>
-    </a>
-
-    <div class="title container">
-
-        <div>
-            <h2 class="ui header">
-                Variant 98429
-                <div class="sub header">(Last updated by JHDL just now)</div>
-            </h2>
-        </div>
-
-        <div class="ui secondary menu details-tabs">
-            <a class="item active" data-tab="details">
-                Variant Details
-            </a>
-            <a class="item " data-tab="databases">
-                Databases
-            </a>
-            <a class="item" data-tab="evidence">
-                Evidence
-            </a>
-        </div>
-
-    </div>
-
-    <div class="dropdown container">
-
-        <span class="dropdown title">Classification</span>
-
-        <div class="ui small selection dropdown classification">
-            <input type="hidden" name="gender">
-            <i class="dropdown icon"></i>
-            <div class="default text">Small</div>
-            <div class="menu">
-                <div class="item" data-value="1">Male</div>
-                <div class="item" data-value="0">Female</div>
-            </div>
-        </div>
-    </div>
-
-
-    <div class="dropdown container">
-
-        <span class="dropdown title">Include in Report</span>
-
-        <div class="ui small selection dropdown report inclusion">
-            <input type="hidden" name="gender">
-            <i class="dropdown icon"></i>
-            <div class="default text">No</div>
-            <div class="menu">
-                <div class="item" data-value="1">Yes</div>
-                <div class="item" data-value="0">No</div>
-            </div>
-        </div>
-    </div>
-
-</div> -->
-
-<div class="topper"
-    style="margin: -15px;margin-bottom: 15px;padding: 15px;padding-bottom: 0px;padding-top: 10px;background-color: #e2e2e2;border-bottom: 2px solid #D5D5D6;">
-
-    <div class="top-row-container" style="display: flex;flex-flow: row wrap;row-gap: 5px;">
+    <div class="top-row-container">
 
         <button class="circular ui icon button menu-toggle-closed" data-tooltip="Expand Menu"
-            data-position="bottom left" style="margin-top: 5px;margin-left: 1px;">
+            data-position="bottom left">
             <i class="icon bars"></i>
         </button>
 
-        <div id="variant-title" class="ui segment {% if stv.pinned %}ischecked{%endif%}"
-            style="background-color:#F8F8F8;padding: 0px;display: flex;align-items: center;margin-top: 0;margin-right: auto;margin-bottom: 0px;flex-shrink: 1;">
+        <div id="variant-title" class="ui segment {% if stv.pinned %}ischecked{%endif%} title-container">
 
-            <div class="col-container"
-                style="display: flex;flex-direction: column;margin: 5px;margin-left: 10px;margin-right: 10px;align-items: center;justify-content: center;">
+            <div class="col-container">
 
-
-                <h2 class="ui header" style="display: flex;margin: 0px;align-self: flex-start;align-items: center;">
-                    <i id="pinned-icon" class="tiny inverted circular pin icon {% if not stv.pinned %}hidden{%endif%}"
-                        style="margin: 0;margin-right: 5px;"></i>
+                <h2 class="ui header">
+                    <i id="pinned-icon"
+                        class="tiny inverted circular pin icon {% if not stv.pinned %}hidden{%endif%}"></i>
                     {{stv.get_long_hgvs.hgvs_c}}
                 </h2>
 
 
-                <div
-                    style="display: flex;flex-direction: row;gap: 5px;margin-top: 5px;margin-bottom: 3px;align-items: center;justify-content: center;">
-                    <div
-                        style="display: flex;flex-direction: column;background-color: #e2e2e2;padding: 5px;border-radius: 3px;min-width: 100px;">
-                        <span style="font-size: smaller;margin-top: -2px;">GENE SYMBOL:</span>
-                        <span style="font-weight: bold;margin-top: -2px;">{{stv.transcript.gene.hgnc_name}}</span>
+                <div class="info-labels-container">
+                    <div class="info-label">
+                        <span class="title">GENE SYMBOL:</span>
+                        <span class="value">{{stv.transcript.gene.hgnc_name}}</span>
                     </div>
 
-                    <div
-                        style="display: flex;flex-direction: column;background-color: #e2e2e2;padding: 5px;border-radius: 3px;flex: 1;">
-                        <span style="font-size: smaller;margin-top: -2px;">PROTEIN HGVS:</span>
-                        <span style="font-weight: bold;margin-top: -2px;">{{stv.get_long_hgvs.hgvs_p}}</span>
+                    <div class="info-label">
+                        <span class="title">PROTEIN HGVS:</span>
+                        <span class="value">{{stv.get_long_hgvs.hgvs_p}}</span>
                     </div>
 
-                    <div
-                        style="display: flex;flex-direction: column;background-color: #e2e2e2;padding: 5px;border-radius: 3px;flex: 1;">
-                        <span style="font-size: smaller;margin-top: -2px;">GENOMIC HGVS:</span>
-                        <span style="font-weight: bold;margin-top: -2px;">{{stv.get_long_hgvs.hgvs_g}}</span>
+                    <div class="info-label">
+                        <span class="title">GENOMIC HGVS:</span>
+                        <span class="value">{{stv.get_long_hgvs.hgvs_g}}</span>
                     </div>
                 </div>
 
@@ -126,19 +51,19 @@
 
             <div id="pin-variant-checkbox" class="ui toggle checkbox"
                 data-url="{% url 'pin_variant' run=run.id stv=stv.id %}" data-stv="{{stv.id}}"
-                data-tooltip="Pin variant" data-position="bottom left" style="margin-left: 15px;margin-right: 10px;">
+                data-tooltip="Pin variant" data-position="bottom left">
                 <input type="checkbox" {% if stv.pinned %}checked="checked" {%endif%}>
                 <label></label>
             </div>
         </div>
 
-        <div id='variant-classification-container' style="display:flex;align-self: flex-start;">
+        <div id='variant-classification-container'>
             {% include 'includes/classification.html' %}
         </div>
 
     </div>
 
-    <div class="ui secondary pointing menu details-tabs" style="margin-top: 5px;border: none;">
+    <div class="ui secondary pointing menu details-tabs">
         <a class="item active" data-tab="details">
             Variant Details
         </a>
@@ -147,6 +72,9 @@
         </a>
         <a class="item" data-tab="evidence">
             Evidence
+        </a>
+        <a class="right item" data-tab="previous-classifications">
+            Previous classifications
         </a>
     </div>
 
@@ -370,13 +298,38 @@
         </div>
 
         <div id="evidence-container">
-            {% if documents %}
             {% include 'includes/evidence.html' %}
-            {% else %}
-            <span style="font-size:smaller;">No evidence files uploaded yet</span>
-            {% endif %}
         </div>
 
     </div>
 
+</div>
+
+<div class="ui tab" data-tab="previous-classifications">
+
+    <div class="ui top attached segment" style="border-bottom:none">
+        <h4>Previous classifications of this variant</h4>
+    </div>
+
+    <table class="ui selectable bottom attached compact celled table previous-classification-table" data-stv={{stv.id}}
+        style="background-color: #eeeeee;width: calc(100% + 2px);table-layout:auto;">
+        <thead>
+            <tr>
+                <th style="background-color: white !important;border-radius: 0;">First name</th>
+                <th style="background-color: white !important;">Last name</th>
+                <th style="background-color: white !important;border-radius: 0;">Sample ID(s)</th>
+                <th style="background-color: white !important;border-radius: 0;">Lab no</th>
+                <th style="background-color: white !important;border-radius: 0;">Worksheet(s)</th>
+                <th style="background-color: white !important;border-radius: 0;">Pipeline(s)</th>
+                <th style="background-color: white !important;border-radius: 0;">Date classified</th>
+                <th style="background-color: white !important;border-radius: 0;">Comment</th>
+                <th style="background-color: white !important;border-radius: 0;"># Evidence files</th>
+
+
+                <th style="background-color: white !important;border-radius: 0;">Classification</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 </div>
