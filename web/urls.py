@@ -48,8 +48,8 @@ urlpatterns = [
     path('ajax/save_evidence/<int:stv>',
          views.save_evidence, name='save_evidence'),
 
-    path('ajax/delete_evidence/<int:document>',
-         views.delete_evidence, name='delete_evidence'),
+    path('ajax/archive_evidence/<int:document>',
+         views.archive_evidence, name='archive_evidence'),
 
     path('ajax/load_previous_evidence/<int:current_stv>/<int:previous_stv>',
          views.load_previous_evidence, name='load_previous_evidence'),
