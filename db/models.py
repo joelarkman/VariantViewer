@@ -466,9 +466,6 @@ class VariantReport(BaseModel):
         variant_coordinates = f"({', '.join(list(map(str, coords)))})"
         return f"{variant_coordinates} record: {self.vcf.path}"
 
-    class Meta:
-        unique_together = ['variant', 'vcf']
-
 
 class VariantReportInfo(BaseModel):
     """
