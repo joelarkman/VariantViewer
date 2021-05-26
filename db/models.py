@@ -97,6 +97,7 @@ class Run(BaseModel):
         on_delete=models.PROTECT,
         related_name='runs'
     )
+    config_file = models.CharField(max_length=255)
     output_dir = models.CharField(max_length=255)
     fastq_dir = models.CharField(max_length=255)
     interop_dir = models.CharField(max_length=255)
@@ -282,16 +283,7 @@ class Sample(BaseModel):
                 pass
 
     def __str__(self):
-        # return f"{self.samplesheet.run} {self.lab_no}"
-
-        # All samplesheets for this sample shown with comma separating them.
-        # Original version caused an error as it assumed one samplesheet per
-        # sample.
-        latest_worksheets = [
-            samplesheet.latest_run.worksheet
-            for samplesheet in self.samplesheets.all()
-        ]
-        return f"{', '.join(latest_worksheets)} {self.lab_no}"
+        return self.lab_no
 
     class Meta:
         indexes = [
@@ -372,8 +364,8 @@ class Variant(BaseModel):
     Representation of a change in genomic sequence irregardless of build,
     transcript, patient, effect, etc.
     """
-    ref = models.CharField(max_length=255)
-    alt = models.CharField(max_length=255)
+    ref = models.TextField()
+    alt = models.TextField()
 
     def __str__(self):
         return f"{self.ref}>{self.alt}"
@@ -534,7 +526,6 @@ class TranscriptVariant(BaseModel):
     )
     hgvs_c = models.TextField()
     hgvs_p = models.TextField()
-    hgvs_g = models.TextField()
 
     def __str__(self):
         return self.hgvs_c
@@ -565,24 +556,24 @@ class SampleTranscriptVariant(BaseModel):
     selected = models.BooleanField()
     pinned = models.BooleanField(default=False)
 
-    effect = models.CharField(max_length=255)
+    consequence = models.CharField(max_length=255)
+    impact = models.CharField(max_length=255)
 
     def get_short_hgvs(self):
         tv = TranscriptVariant.objects.get(
             variant=self.sample_variant.variant, transcript=self.transcript)
         long_hgvs = [i.partition(':')[2]
-                     for i in [tv.hgvs_c, tv.hgvs_p, tv.hgvs_g]]
+                     for i in [tv.hgvs_c, tv.hgvs_p]]
         short_hgvs = {
             'hgvs_c': long_hgvs[0],
             'hgvs_p': long_hgvs[1],
-            'hgvs_g': long_hgvs[2]
         }
         return short_hgvs
 
     def get_long_hgvs(self):
         tv = TranscriptVariant.objects.get(
             variant=self.sample_variant.variant, transcript=self.transcript)
-        return {'hgvs_c': tv.hgvs_c, 'hgvs_p': tv.hgvs_p, 'hgvs_g': tv.hgvs_g}
+        return {'hgvs_c': tv.hgvs_c, 'hgvs_p': tv.hgvs_p}
 
     def get_variant_report(self, run):
         vcf = self.sample_variant.sample.vcfs.get(run=run)

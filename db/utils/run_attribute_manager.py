@@ -1,12 +1,14 @@
 import re
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Type
 
 from django.db.models import Model
 from sample_sheet import SampleSheet as IlluminaSampleSheet
-from typing import List
+
 from VariantViewer.utils.notebook import is_notebook
+
 if is_notebook():
     from tqdm.notebook import tqdm
 else:
@@ -31,7 +33,8 @@ class RunAttributeManager:
         self.run = run
         self.model_type = model_type
         self.instances = instances
-        self.many=many
+        self.many = many
+        self.lookup_index = {}
         # noinspection PyProtectedMember
         model_str = model_type._meta.verbose_name.replace(' ', '_')
 
@@ -49,14 +52,14 @@ class RunAttributeManager:
 
         self.run_model = run_model
 
-    def get_related_instances(self, model_type: Type[Model], filters=None):
+    def related_instances(self, model_type: Type[Model], filters=None):
         """Fetch the run's nascent instance(s) of given model type"""
         # TODO: fix issue where returning false for pipeline
         many = None
         update_order = self.run.multiple_run_adder.update_order()
         for update_model, update_many in update_order:
             if model_type == update_model:
-                many=update_many
+                many = update_many
                 break
         # cannot find the model type
         if many is None:
@@ -66,26 +69,46 @@ class RunAttributeManager:
 
         if filters is None:
             filters = {}
+
         attribute_manager = self.run.attribute_managers[model_type]
         if not many:
+            # just one will be present, return as list to ensure 1
             return [attribute_manager.run_model.entry]
+
         else:
             entry_list = attribute_manager.run_model.entry_list()
             if not filters:
+                # no filters given, return all related items
                 return entry_list
-            filtered_entries = entry_list
 
-            for attr, value in filters.items():
-                # loop through desired filters to progressively filter entries
-                filtered_entries = [
-                    entry for entry in filtered_entries
-                    if getattr(entry, attr) == value
-                ]
-            return filtered_entries
+        # apply filters
+        filtered = entry_list
 
-    def get_related_instance(self, *args, **kwargs):
+        if len(filters.items()) == 1:
+            # attempt to use the MRA lookup index to speed process up
+            attr, value = list(filters.items())[0]
+
+            # get or set the item based on the filter
+
+            item_key = f"{attr}_{value}"
+            item_lookup = self.lookup_index.get(item_key)
+            if not item_lookup:
+                objs = [x for x in filtered if getattr(x, attr) == value]
+                self.lookup_index[item_key] = objs
+                item_lookup = self.lookup_index[item_key]
+            return item_lookup
+
+        for attr, value in filters.items():
+            # loop through desired filters to progressively filter entries
+            filtered = [
+                entry for entry in filtered
+                if getattr(entry, attr) == value
+            ]
+        return filtered
+
+    def related_instance(self, *args, **kwargs):
         """As above but ensure unique"""
-        related_instances = self.get_related_instances(*args, **kwargs)
+        related_instances = self.related_instances(*args, **kwargs)
         assert len(related_instances) == 1
         return related_instances[0]
 
@@ -102,7 +125,7 @@ class RunAttributeManager:
         # TODO: add checks for updated/updates at the end of MCA
         pipeline_version_attrs = {
             'version': self.run.version,
-            'pipeline': self.get_related_instance(Pipeline)
+            'pipeline': self.related_instance(Pipeline)
         }
         return pipeline_version_attrs
 
@@ -116,12 +139,13 @@ class RunAttributeManager:
         run_attrs = {
             'worksheet': self.run.worksheet,
             'command_line_usage': '\n'.join(self.run.commandline_usage),
-            'samplesheet': self.get_related_instance(Samplesheet),
+            'samplesheet': self.related_instance(Samplesheet),
             'completed_at': self.run.completed_at,
+            'config_file': self.run.config_file,
             'output_dir': self.run.output_dir,
             'fastq_dir': self.run.fastq_dir,
             'interop_dir': self.run.interop_dir,
-            'pipeline_version': self.get_related_instance(PipelineVersion)
+            'pipeline_version': self.related_instance(PipelineVersion)
         }
         return run_attrs
 
@@ -150,8 +174,8 @@ class RunAttributeManager:
     def get_samplesheet_sample(self) -> List[Dict[str, Any]]:
         samplesheet_samples: List[Dict[str, Any]] = []
 
-        db_samplesheet = self.get_related_instance(Samplesheet)
-        db_samples = self.get_related_instances(Sample)
+        db_samplesheet = self.related_instance(Samplesheet)
+        db_samples = self.related_instances(Sample)
 
         samplesheet = IlluminaSampleSheet(self.run.samplesheet)
         samples = samplesheet.samples
@@ -186,13 +210,13 @@ class RunAttributeManager:
         for bam_file in bam_files:
             bams.append({
                 "path": str(bam_file.resolve()),
-                "run": self.get_related_instance(Run)
+                "run": self.related_instance(Run)
             })
         bam_files.close()
         return bams
 
     def get_sample_bam(self) -> List[Dict[str, Any]]:
-        db_samples = tqdm(self.get_related_instances(Sample), leave=False)
+        db_samples = tqdm(self.related_instances(Sample), leave=False)
 
         sample_bams = []
         for db_sample in db_samples:
@@ -201,7 +225,7 @@ class RunAttributeManager:
             for bam_file in self.run.bam_dir.glob(f'*{lab_no}*.bam'):
                 f = {'path': str(bam_file.resolve())}
                 # extract the nascent instance with the matching path
-                db_bam = self.get_related_instance(BAM, filters=f)
+                db_bam = self.related_instance(BAM, filters=f)
                 sample_bams.append({
                     "sample": db_sample,
                     "bam": db_bam
@@ -222,7 +246,7 @@ class RunAttributeManager:
             vcf_filename = str(vcf_file.resolve())
             vcfs.append({
                 "path": vcf_filename,
-                "run": self.get_related_instance(Run)
+                "run": self.related_instance(Run)
             })
             vcf_filenames.append(vcf_filename)
             # keep track of all variants found in these VCFs for later addition
@@ -231,13 +255,13 @@ class RunAttributeManager:
         return vcfs
 
     def get_sample_vcf(self) -> List[Dict[str, Any]]:
-        db_samples = tqdm(self.get_related_instances(Sample), leave=False)
+        db_samples = tqdm(self.related_instances(Sample), leave=False)
         sample_vcfs = []
         for db_sample in db_samples:
             lab_no = db_sample.lab_no.replace('.', '-')
             for vcf_file in self.run.vcf_dir.glob(f'*{lab_no}*.vcf.gz'):
                 f = {'path': str(vcf_file.resolve())}
-                db_vcf = self.get_related_instance(VCF, filters=f)
+                db_vcf = self.related_instance(VCF, filters=f)
                 sample_vcfs.append({
                     "sample": db_sample,
                     "vcf": db_vcf
@@ -247,13 +271,13 @@ class RunAttributeManager:
 
     def get_excel_report(self) -> List[Dict[str, Any]]:
         excel_reports = []
-        db_samples = tqdm(self.get_related_instances(Sample), leave=False)
+        db_samples = tqdm(self.related_instances(Sample), leave=False)
         for db_sample in db_samples:
             lab_no = db_sample.lab_no.replace('.', '-')
             for excel_file in self.run.excel_dir.glob(f'*{lab_no}*.xlsx'):
                 excel_report = {
                     "path": str(excel_file.resolve()),
-                    "run": self.get_related_instance(Run),
+                    "run": self.related_instance(Run),
                     "sample": db_sample,
                 }
                 excel_reports.append(excel_report)
@@ -263,69 +287,69 @@ class RunAttributeManager:
     def get_gene(self) -> List[Dict[str, Any]]:
         genes = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        gene_df = variant_manager.get_df_info(cols=["SYMBOL", "Gene"])
-        gene_rows = tqdm(gene_df.drop_duplicates().iterrows(), leave=False)
-        for gene_row in gene_rows:
-            index, row = gene_row
-            if row.SYMBOL:
-                gene = {
-                    "hgnc_name": row.SYMBOL,
-                    "hgnc_id": row.Gene
-                }
-                genes.append(gene)
+        gene_df = variant_manager.gene_df
+        gene_rows = tqdm(gene_df.iterrows(), leave=False)
+        for index, row in gene_rows:
+            gene = {
+                "hgnc_name": row.SYMBOL,
+                "hgnc_id": row.Gene
+            }
+            genes.append(gene)
         gene_rows.close()
         return genes
 
     def get_transcript(self) -> List[Dict[str, Any]]:
+        # TODO: include RegulatoryFeature, MotifFeature
         transcripts = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        cols = ["Gene", "Feature_type", "Feature", "CANONICAL"]
-        transcript_df = variant_manager.get_df_info(cols=cols)
+        transcript_df = variant_manager.transcript_df
+
         transcript_rows = tqdm(transcript_df.iterrows(), leave=False)
-        for transcript_row in transcript_rows:
-            index, row = transcript_row
+        for index, row in transcript_rows:
             if row.Feature_type == "Transcript":
-                gene = self.get_related_instance(Gene, {'hgnc_id': row.Gene})
+                gene = self.related_instance(
+                    Gene,
+                    filters={'hgnc_id': str(row.Gene)}
+                )
                 transcript = {
                     "gene": gene,
                     "refseq_id": row.Feature,
                     "name": row.Feature,
-                    "canonical": row.CANONICAL == "YES"
+                    "canonical": row.CANONICAL
                 }
                 transcripts.append(transcript)
         return transcripts
 
     def get_exon(self) -> List[Dict[str, Any]]:
+        # TODO: include intron
         exons = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        cols = ["Gene", "Feature_type", "Feature", "CANONICAL", "EXON"]
-        transcript_df = variant_manager.get_df_info(cols=cols)
-        exon_df = transcript_df.drop_duplicates(subset=["Gene","Feature"])
-        exon_rows = tqdm(exon_df.iterrows(), leave=False)
-        for exon_row in exon_rows:
-            index, row = exon_row
-            if not row.Gene or row.Feature_type != "Transcript" or not row.EXON:
+        transcript_df = variant_manager.transcript_df
+        transcript_rows = tqdm(transcript_df.iterrows(), leave=False)
+        for index, row in transcript_rows:
+            if not row.EXON:
                 continue
             f = {'refseq_id': row.Feature}
-            db_transcript = self.get_related_instance(Transcript, f)
-            for i in range(row.EXON.split('/')[-1]):
+            db_transcript = self.related_instance(Transcript, f)
+            for i in range(row.EXON):
                 exon = {
-                    "number": i+1,
+                    "number": i + 1,
                     "transcript": db_transcript,
                 }
                 exons.append(exon)
-        exon_rows.close()
+        transcript_rows.close()
         return exons
 
     def get_variant(self) -> List[Dict[str, Any]]:
         variants = []
         # create the models using vcf records added when VCFs had been added
         variant_manager = self.run.multiple_run_adder.variant_manager
-        cols = ["REF", "ALT"]
-        variant_df = variant_manager.get_df_info(cols=cols).drop_duplicates()
+        variant_df = variant_manager.variant_df.drop_duplicates(
+            subset=['REF', 'ALT']
+        )
+
         variant_rows = tqdm(variant_df.iterrows(), leave=False)
-        for variant_row in variant_rows:
-            index, row = variant_row
+        for index, row in variant_rows:
             variant = {
                 "ref": row.REF,
                 "alt": row.ALT
@@ -335,70 +359,114 @@ class RunAttributeManager:
         return variants
 
     def get_sample_variant(self) -> List[Dict[str, Any]]:
+        sample_variants = []
+        db_samples = self.related_instances(Sample)
+        sample_labnos = [db_sample.lab_no for db_sample in db_samples]
+
+        variant_manager = self.run.multiple_run_adder.variant_manager
+        variant_df = variant_manager.variant_df.drop_duplicates(
+            subset=["Sample", "REF", "ALT"]
+        )
+        worksheet_variant_df = variant_df[variant_df.Sample.isin(sample_labnos)]
+        variant_rows = tqdm(worksheet_variant_df.iterrows(), leave=False)
+        for index, row in variant_rows:
+            sample_f = {"lab_no": row.Sample}
+            variant_f = {"ref": row.REF, "alt": row.ALT}
+            sample_variant = {
+                "sample": self.related_instance(Sample, filters=sample_f),
+                "variant": self.related_instance(Variant, filters=variant_f)
+            }
+            sample_variants.append(sample_variant)
+        variant_rows.close()
+        return sample_variants
+
+    def get_transcript_variant(self) -> List[Dict[str, Any]]:
+        transcript_variants = []
+        variant_manager = self.run.multiple_run_adder.variant_manager
+        transcript_variant_df = variant_manager.transcript_variant_df
+        df_rows = tqdm(transcript_variant_df.iterrows(), leave=False)
+        for index, row in df_rows:
+            variant_f = {"ref": row.REF, "alt": row.ALT}
+            tx_f = {"refseq_id": row.Feature}
+            db_variant = self.related_instance(Variant, filters=variant_f)
+            db_transcript = self.related_instance(Transcript, filters=tx_f)
+            transcript_variant = {
+                'transcript': db_transcript,
+                'variant': db_variant,
+                'hgvs_c': row.HGVSc,
+                'hgvs_p': row.HGVSp
+            }
+            transcript_variants.append(transcript_variant)
+        df_rows.close()
+
+        return transcript_variants
+
+    def get_sample_transcript_variant(self) -> List[Dict[str, Any]]:
+        # TODO: remember to talk about setting selected
+        sample_transcript_variants = []
+        variant_manager = self.run.multiple_run_adder.variant_manager
+        transcript_variant_df = variant_manager.transcript_variant_df
+        df_rows = tqdm(transcript_variant_df.iterrows(), leave=False)
+
+        config_file = self.run.config_file
+        config_dict = config_file
+
+        for index, row in df_rows:
+            tx_f = {"refseq_id": row.Feature}
+            sample_f = {"lab_no": row.Sample}
+            variant_f = {"ref": row.REF, "alt": row.ALT}
+            db_transcript = self.related_instance(Transcript, filters=tx_f)
+            db_sample = self.related_instance(Sample, filters=sample_f)
+            db_variant = self.related_instance(Variant, filters=variant_f)
+
+            sv_f = {"sample_id": db_sample.id, "variant_id": db_variant.id}
+            db_sample_variant = self.related_instance(SampleVariant, sv_f)
+            sample_transcript_variant = {
+                "transcript": db_transcript,
+                "sample_variant": db_sample_variant,
+                "selected": row.CANONICAL,
+                "consequence": row.Consequence,
+                "impact": row.IMPACT
+            }
+            sample_transcript_variants.append(sample_transcript_variant)
+        return sample_transcript_variants
+
+    def get_genome_build(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-        # sample_variants = []
-        # # look through all the variant reports in the variant manager
-        # for record in self.run.multiple_run_adder.variant_manager.records:
-        #     # fetch the matching variant and sample from db
-        #     f = {'ref': record.ref, 'alt': record.alt}
-        #     db_variant: Variant = self.get_related_instance(Variant, filters=f)
-        #     sample = record.samples[0]
-        #     lab_no_re = r'D(\d{2})-(\d{5})'
-
-        #     # noinspection PyTypeChecker
-        #     lab_no = '.'.join(re.match(lab_no_re, sample.sample).groups([1,2]))
-        #     f = {'lab_no': lab_no}
-        #     db_sample: Sample = self.get_related_instance(Sample, filters=f)
-        #     sample_variant = {
-        #         "sample": db_sample,
-        #         "variant": db_variant
-        #     }
-        #     sample_variants.append(sample_variant)
-        # return sample_variants
-
-    def get_transcript_variant(self) -> List[TranscriptVariant]:
+    def get_genomic_coordinate(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-        # transcript_variants = []
-        # db_txs: List[Transcript] = self.get_related_instances(Transcript)
-        # db_variants: List[Variant] = self.get_related_instances(Variant)
-        # variants_df = self.run.multiple_run_adder.variant_manager.df
-        # for db_tx in db_txs:
-        #     transcript_variants_df = variants_df[
-        #         (variants_df.Feature == db_tx.refseq_id)
-        #     ]
-        # return transcript_variants
-
-    def get_sample_transcript_variant(self):
+    def get_variant_coordinate(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_genome_build(self):
+    def get_sequence(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_genomic_coordinate(self):
+    def get_exon_sequence(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_variant_coordinate(self):
+    def get_coverage_info(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_sequence(self):
+    def get_exon_report(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_exon_sequence(self):
+    def get_gene_report(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_coverage_info(self):
+    def get_variant_report(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_exon_report(self):
-        pass
-
-    def get_gene_report(self):
-        pass
-
-    def get_variant_report(self):
-        pass
-
-    def get_variant_report_info(self):
+    def get_variant_report_info(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass

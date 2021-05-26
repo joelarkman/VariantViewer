@@ -15,6 +15,7 @@ class BaseModel(models.Model):
 class BaseSingletonModel(BaseModel):
     """Abstract base model for singletons; only one instance may exist in db
     """
+
     @classmethod
     def load(cls):
         # call this method to access the instance, else load with defaults

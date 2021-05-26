@@ -4,6 +4,7 @@ class RunModel:
     This module allows for holding of a model instance pre- or post-creation in
     the db, and therefore informs whether it requires creation.
     """
+
     def __init__(self, model_type, model_attributes, model_objects):
         self.model_type = model_type
         self.attrs = model_attributes
@@ -31,6 +32,7 @@ class ManyRunModel:
     The bulk update occurs using 'through' tables in such cases, so data for a
     set of these must be generated
     """
+
     def __init__(self, model_type, model_attributes_list, model_objects):
         self.model_type = model_type
         self.model_attributes_list = model_attributes_list
