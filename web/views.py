@@ -11,7 +11,7 @@ from django.db import transaction
 
 from db.utils.filter_utils import filter_variants, get_filters
 
-from .models import Document, Filter, FilterItem
+from .models import Comment, Document, Filter, FilterItem
 
 from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm
 
@@ -121,8 +121,8 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
 
         # context['filters'] = filters
 
-        # context['excelreport'] = ExcelReport.objects.get(
-        #     run=run, sample=ss_sample.sample)
+        context['excelreport'] = ExcelReport.objects.get(
+            run=run, sample=ss_sample.sample)
 
         # Load files for jbrowse
         context['vcf'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz'
@@ -317,7 +317,10 @@ def load_variant_details(request, run, stv):
     run = Run.objects.get(id=run)
     stv = SampleTranscriptVariant.objects.get(id=stv)
     variant_report = stv.get_variant_report(run=run)
-    documents = stv.evidence_files.order_by('-date_created')
+    documents = stv.evidence_files.filter(
+        archived=False).order_by('-date_created')
+    archived_documents = stv.evidence_files.filter(
+        archived=True).order_by('-date_created')
 
     form = DocumentForm()
 
@@ -325,7 +328,8 @@ def load_variant_details(request, run, stv):
                'stv': stv,
                'variant_report': variant_report,
                'form': form,
-               'documents': documents}
+               'documents': documents,
+               'archived_documents': archived_documents}
 
     data['variant_details'] = render_to_string('variant-details.html',
                                                context,
@@ -349,14 +353,15 @@ def pin_variant(request, run, stv):
     filtered_variants = filter_variants(
         ss_sample.sample, run, filter=filters.get('active_filter'))
 
-    ischecked = request.GET.get('ischecked')
+    if request.method == 'POST':
+        ischecked = request.POST.get('ischecked')
 
-    if ischecked == 'true':
-        stv.pinned = True
-        stv.save()
-    elif ischecked == 'false':
-        stv.pinned = False
-        stv.save()
+        if ischecked == 'true':
+            stv.pinned = True
+            stv.save()
+        elif ischecked == 'false':
+            stv.pinned = False
+            stv.save()
 
     data['variant_list'] = render_to_string('includes/variant-list.html',
                                             {'run': run,
@@ -478,18 +483,22 @@ def save_evidence(request, stv):
             evidence_file.sample_transcript_variant = stv
             evidence_file.save()
 
-            documents = stv.evidence_files.order_by('-date_created')
+            documents = stv.evidence_files.filter(
+                archived=False).order_by('-date_created')
+            archived_documents = stv.evidence_files.filter(
+                archived=True).order_by('-date_created')
             data['is_valid'] = True
             data['documents'] = render_to_string('includes/evidence.html',
-                                                 {'documents': documents},
+                                                 {'documents': documents,
+                                                  'archived_documents': archived_documents},
                                                  request=request)
 
             return JsonResponse(data)
 
 
-def delete_evidence(request, document):
+def archive_evidence(request, document):
     """
-    AJAX view to facilitate the deletion of an evidence object associated with a particular STV.
+    AJAX view to facilitate the archiving of a document associated with a particular STV.
     """
 
     data = dict()
@@ -497,16 +506,21 @@ def delete_evidence(request, document):
     stv = document.sample_transcript_variant
 
     if request.method == 'POST':
-        document.delete()
+        document.archived = True
+        document.save()
 
-        documents = stv.evidence_files.order_by('-date_created')
+        documents = stv.evidence_files.filter(
+            archived=False).order_by('-date_created')
+        archived_documents = stv.evidence_files.filter(
+            archived=True).order_by('-date_created')
         data['is_valid'] = True
         data['documents'] = render_to_string('includes/evidence.html',
-                                             {'documents': documents},
+                                             {'documents': documents,
+                                                 'archived_documents': archived_documents},
                                              request=request)
     else:
         context = {'document': document}
-        data['html_form'] = render_to_string('includes/delete-evidence.html',
+        data['html_form'] = render_to_string('includes/archive-evidence.html',
                                              context,
                                              request=request
                                              )
@@ -521,23 +535,47 @@ def load_previous_evidence(request, current_stv, previous_stv):
     data = dict()
     current_stv = SampleTranscriptVariant.objects.get(id=current_stv)
     previous_stv = SampleTranscriptVariant.objects.get(id=previous_stv)
+    previous_documents = previous_stv.evidence_files.filter(
+        archived=False).order_by('-date_created')
 
     if request.method == 'POST':
+
+        classification = request.POST.get('classification')
+        if classification:
+            previous_comment = Comment.objects.get(id=classification)
+
+            added_comment, created = Comment.objects.update_or_create(
+                sample_transcript_variant=current_stv,
+                defaults={'comment': previous_comment.comment,
+                          'classification': previous_comment.classification})
+
         for document in request.POST.getlist('documents'):
-
             document = Document.objects.get(id=document)
+            added_document, created = Document.objects.update_or_create(sample_transcript_variant=current_stv,
+                                                                        document=document.document,
+                                                                        description=document.description,
+                                                                        defaults={'archived': False})
 
-            Document.objects.get_or_create(sample_transcript_variant=current_stv,
-                                           document=document.document,
-                                           description=document.description)
+        documents = current_stv.evidence_files.filter(
+            archived=False).order_by('-date_created')
+        archived_documents = current_stv.evidence_files.filter(
+            archived=True).order_by('-date_created')
 
-        documents = current_stv.evidence_files.order_by('-date_created')
         data['is_valid'] = True
         data['documents'] = render_to_string('includes/evidence.html',
-                                             {'documents': documents},
+                                             {'documents': documents,
+                                                 'archived_documents': archived_documents},
                                              request=request)
+        data['html_comment_display'] = render_to_string('includes/comment-display.html', {
+            'stv': current_stv
+        })
+        data['html_classification'] = render_to_string('includes/classification.html', {
+            'stv': current_stv
+        })
     else:
-        context = {'current_stv': current_stv, 'previous_stv': previous_stv}
+        context = {'current_stv': current_stv,
+                   'previous_stv': previous_stv,
+                   'previous_documents': previous_documents}
         data['html_form'] = render_to_string('includes/previous-evidence.html',
                                              context,
                                              request=request
