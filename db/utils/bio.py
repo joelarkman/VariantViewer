@@ -60,7 +60,7 @@ class VariantManager:
             headers = meta_keys + var_keys + csq_keys + info_keys + filter_keys
             with open(self.record_csv.name, 'w', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow(var_keys)
+                writer.writerow(headers)
             self.started_write = True
             self.keys = headers
 
