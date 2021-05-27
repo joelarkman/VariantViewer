@@ -25,6 +25,7 @@ class VariantManager:
         self.re_ln = re.compile('(D\d{2})-(\d{5})')
 
         self.started_write = False
+        self.keys = []
         self.record_csv = tempfile.NamedTemporaryFile(delete=False)
         self.record_csv.close()
 
@@ -38,14 +39,30 @@ class VariantManager:
         """Add the records from a given VCF to the managed CSV of variant info.
         """
         reader = py_vcf.Reader(filename=vcf_filename, encoding='utf-8')
+        info = reader.infos
+        filters = reader.filters
+        info_keys = [
+            header for header
+            in map(
+                # get all headers except CSQ, which is handled separately
+                lambda x: None if x.id == "CSQ" else f"INFO{x.id}|{x.desc}",
+                info.values()
+            )
+            if header is not None
+        ]
+        filter_keys = []
         if not self.started_write:
             # set the headers of the csv file if haven't done so already
-            keys = reader.infos['CSQ'].desc.split('Format: ')[-1].split('|')
-            headers = ["Sample", "CHROM", "POS", "REF", "ALT"] + keys
+            csq_keys = info['CSQ'].desc.split('Format: ')[-1].split('|')
+            var_keys = ["CHROM", "POS", "REF", "ALT"]
+            meta_keys = ["Sample", "VCF"] + list(reader.metadata.keys())[:4]
+
+            headers = meta_keys + var_keys + csq_keys + info_keys + filter_keys
             with open(self.record_csv.name, 'w', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow(headers)
+                writer.writerow(var_keys)
             self.started_write = True
+            self.keys = headers
 
         vcf_values_list = []
         for record in reader:
@@ -53,17 +70,33 @@ class VariantManager:
             record_sample = record.samples[0].sample
             # set the sample + variant info
             sample = '.'.join(self.re_ln.search(record_sample).groups())
+            meta = [sample, vcf_filename] + list(reader.metadata.values())[:4]
+
             chrom = record.CHROM
             pos = record.POS
             ref = record.REF
             alt = record.ALT
-            # list of lists: each sublist is a list of consequences for the var
-            values = [csq.split('|') for csq in record.INFO['CSQ']]
-            for csq in values:
-                variant_info = [sample, chrom, pos, ref, alt]
-                variant_info.extend(csq)
+            var = [chrom, pos, ref, alt]
+
+            # fetch the INFO information for the variant, match to INFO headers
+            var_info = [
+                record.INFO.get(key.split('|')[1])
+                for key in info_keys
+            ]
+
+            # create a of True/False for whether a filter from header applies
+            filters = record.FILTER
+            f = lambda x: False if not filters else x.split('|')[1] in filters
+            var_filters = list(map(f, filter_keys))
+
+            # deal with the consequence INFO field from VEP
+            consequences = [csq.split('|') for csq in record.INFO['CSQ']]
+            for csq in consequences:
                 # add a potential consequence for a variant to the main list
+                variant_info = meta + var + csq + var_info + var_filters
+                variant_info.extend(csq)
                 vcf_values_list.append(variant_info)
+
             # manage memory
             del record
 
