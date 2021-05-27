@@ -82,12 +82,12 @@ $(function () {
                     $('#pending-container').html('<i class="huge file pdf outline icon"></i><h5>' + file.name + '</h5>');
 
                     $('#pending-container').click(function () {
-
-                        // Add the image and a close button to a dimmer and use custom classes to make the image fill the available screen space.
-                        $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <object class="lightbox-pdf" data="' + URL.createObjectURL(file) + '" type="application/pdf"><iframe src="https://docs.google.com/viewer?url=' + URL.createObjectURL(file) + '&embedded=true"></iframe></object>');
+                        $('.evidence-container .sub-container').html('<object class="lightbox-pdf previous" data="' + URL.createObjectURL(file) + '" type="application/pdf"><p>PDF cannot be displayed.</p></object>');
+                        $('.image-buttons').hide()
+                        $('#lightbox').html($('.evidence-container').html());
 
                         $('#lightbox').dimmer({
-                            closable: true
+                            closable: false
                         }).dimmer('show');
 
                     })
@@ -102,10 +102,19 @@ $(function () {
                     $('#pending-container').click(function () {
 
                         // Add the image and a close button to a dimmer and use custom classes to make the image fill the available screen space.
-                        $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <img class="lightbox-img" src="' + URL.createObjectURL(file) + '"/>');
+                        $('.evidence-container .sub-container').html('<img class="lightbox-img" src="' + URL.createObjectURL(file) + '"/>');
+                        $('.image-buttons').show()
+                        $('#lightbox').html($('.evidence-container').html());
+
+                        const elem = $('#lightbox .sub-container').get(0)
+                        const panzoom = Panzoom(elem)
+                        $(".zoom-in").click(panzoom.zoomIn)
+                        $(".zoom-out").click(panzoom.zoomOut)
+                        $(".reset").click(panzoom.reset)
+
 
                         $('#lightbox').dimmer({
-                            closable: true
+                            closable: false
                         }).dimmer('show');
 
                     })
@@ -201,12 +210,3 @@ target.onmousedown = e => {
     // wait just enough for 'contextmenu' to fire
     setTimeout(() => target.contentEditable = false, 20);
 };
-
-
-// Close dimmer when you click on its content
-// $('#lightbox').click(function () {
-//     $('#lightbox')
-//         .dimmer('hide');
-// })
-
-
