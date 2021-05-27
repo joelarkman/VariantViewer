@@ -287,11 +287,14 @@ class RunAttributeManager:
     def get_genome_build(self) -> List[Dict[str, Any]]:
         genome_builds = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        build_df = variant_manager.get_df_info(
-            cols=["VEP"]
-        )
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
+        d_type = {'build': 'category'}
+        build_df = variant_manager.get_df_info(cols=["build"], dtypes=d_type)
+        for build in build_df.build.unique():
+            genome_build = {
+                'name': build
+            }
+            genome_builds.append(genome_build)
+        return genome_builds
 
     def get_gene(self) -> List[Dict[str, Any]]:
         genes = []

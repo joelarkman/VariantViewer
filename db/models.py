@@ -160,8 +160,8 @@ class VCFFilter(BaseModel):
 
 class GenomeBuild(BaseModel):
     name = models.CharField(max_length=255)
-    path = models.TextField(unique=True)
-    url = models.URLField()
+    path = models.TextField(unique=True, null=True)
+    url = models.URLField(null=True)
 
     def __str__(self):
         return self.name
