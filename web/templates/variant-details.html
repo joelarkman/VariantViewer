@@ -95,7 +95,7 @@
                 <div class="content">
                     <div class="center aligned header">Chromosome</div>
                     <div class="center aligned description">
-                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.chrom}}</div>
+                        {{stv.sample_variant.variant.chrom}}</div>
                 </div>
             </div>
 
@@ -103,7 +103,7 @@
                 <div class="content">
                     <div class="center aligned header">Position</div>
                     <div class="center aligned description">
-                        {{stv.sample_variant.variant.variantcoordinate_set.last.coordinate.pos}}</div>
+                        {{stv.sample_variant.variant.pos}}</div>
                 </div>
             </div>
 
@@ -139,15 +139,15 @@
             <div class="teal card">
                 <div class="content">
                     <div class="center aligned header">Variation Type</div>
-                    <!-- <div class="center aligned description">Exonic SNV</div> -->
+                    <div class="center aligned description">{{stv.consequence}}</div>
                 </div>
             </div>
 
 
             <div class="teal card">
                 <div class="content">
-                    <div class="center aligned header">Worst Consequence</div>
-                    <!-- <div class="center aligned description">Missense</div> -->
+                    <div class="center aligned header">Impact</div>
+                    <div class="center aligned description">{{stv.impact}}</div>
                 </div>
             </div>
 
