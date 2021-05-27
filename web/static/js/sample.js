@@ -411,10 +411,11 @@ function SetupVariantPinning() {
             // Initiate AJAX
             $.ajax(
                 {
-                    type: 'get',
+                    type: 'POST',
                     url: $('.mini-tabs-content #pin-variant-checkbox').attr('data-url'), //get url from toggle attribute
                     data: {
-                        "ischecked": ischecked, //send check status as data
+                        "ischecked": ischecked,
+                        "csrfmiddlewaretoken": $('.mini-tabs-content #pin-variant-checkbox').attr('data-csrf') //send check status as data
                     },
                     beforeSend: function () {
                         // Load a loading circle if taking more than 3ms
@@ -612,6 +613,24 @@ function SetupClassificationsTable() {
                 success: function (data) {
                     if (data.is_valid) {
                         $(".mini-tabs-content #evidence-container").html(data.documents)
+                        $('.mini-tabs-content #readonly-comment-form').html(data.html_comment_display)
+                        // Fade out existing classifcation, replace with new data from ajax data and fade back in. 
+                        $('.mini-tabs-content #variant-classification-container').fadeOut(function () {
+                            $('.mini-tabs-content #variant-classification-container').html(data.html_classification);
+                            $('.mini-tabs-content #variant-classification-container').fadeIn(function () {
+                                // Refresh variant classification popup
+                                $(".mini-tabs-content .variant-classification").popup({
+                                    inline: false,
+                                    hoverable: true
+                                })
+                            });
+                        })
+
+                        // Ensure comment form is closed
+                        $('.mini-tabs-content .js-update-create-comment-active-header').hide()
+                        $('.mini-tabs-content .js-update-create-comment').show()
+                        $('.mini-tabs-content #comment-form').hide()
+                        $('.mini-tabs-content #readonly-comment-form').show()
 
                         $('#lightbox').dimmer("hide");
                         $('.mini-tabs-content .details-tabs .item')
@@ -875,10 +894,8 @@ $(function () {
 // When select a different transcript
 $("#lightbox").on("click", ".transcript-choice", function () {
     // Deselect others and make this appear selected
-    $("#lightbox .transcript-choice").removeClass('inverted')
-    $("#lightbox .transcript-choice").addClass('link')
-    $(this).addClass('inverted')
-    $(this).removeClass('link')
+    $("#lightbox .transcript-choice").removeClass('selected').addClass('deselected link')
+    $(this).addClass('selected').removeClass('deselected link')
 
     // Extract new and previous transcript id's from data attributes.
     var new_transcript = $(this).attr('data-transcript-id');
@@ -1014,7 +1031,7 @@ $(function () {
 
     /* Functions */
 
-    var loadDeleteEvidenceForm = function () {
+    var loadArchiveEvidenceForm = function () {
         var btn = $(this);
         $.ajax({
             url: btn.attr("data-url"),
@@ -1035,7 +1052,7 @@ $(function () {
         });
     };
 
-    var confirmDeleteEvidenceForm = function () {
+    var confirmArchiveEvidenceForm = function () {
         var form = $(this);
         $.ajax({
             url: form.attr("action"),
@@ -1060,9 +1077,9 @@ $(function () {
     /* Binding */
 
     // Update transcript
-    $(".mini-tabs-content").on("click", ".delete-evidence", loadDeleteEvidenceForm);
-    $("#lightbox").on("submit", "#delete-evidence-form", confirmDeleteEvidenceForm);
-    $("#lightbox").on("click", ".delete-evidence-close", function () {
+    $(".mini-tabs-content").on("click", ".archive-evidence", loadArchiveEvidenceForm);
+    $("#lightbox").on("submit", "#archive-evidence-form", confirmArchiveEvidenceForm);
+    $("#lightbox").on("click", ".archive-evidence-close", function () {
         // Hide lightbox
         $('#lightbox').dimmer('hide');
     });

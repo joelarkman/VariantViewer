@@ -66,7 +66,10 @@ class Document(BaseModel):
         related_name='evidence_files'
     )
     description = models.CharField(max_length=1000, blank=True,)
+
     document = models.FileField(upload_to='documents/%Y/%m/%d/',)
+
+    archived = models.BooleanField(default=False)
 
     @property
     def extension(self):

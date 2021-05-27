@@ -204,25 +204,6 @@ class Sample(BaseModel):
         through="SampleVCF"
     )
 
-
-    def get_variants(self, run, pinned):
-
-        vcf = self.vcfs.get(run=run)
-
-        if pinned:
-            return SampleTranscriptVariant.objects.filter(
-                sample_variant__sample=self,
-                sample_variant__variant__variantreport__vcf=vcf,
-                pinned=True
-            ).order_by('transcript__gene__hgnc_name')
-        else:
-            return SampleTranscriptVariant.objects.filter(
-                sample_variant__sample=self,
-                sample_variant__variant__variantreport__vcf=vcf,
-                selected=True,
-                pinned=False
-            ).order_by('transcript__gene__hgnc_name')
-
     @classmethod
     def SetSampleSection(self, sample):
         # Retrieve the set of pipelines associated with any of the sample's runs across any samplesheet the sample appears in.
@@ -264,16 +245,10 @@ class Sample(BaseModel):
             models.Index(fields=['lab_no'])
         ]
 
+
 @receiver(post_save, sender=Sample)
 def set_sample_section(sender, instance, *args, **kwargs):
     Sample.SetSampleSection(instance)
-
-# noinspection PyUnusedLocal
-@receiver(pre_save, sender=Sample)
-def set_sample_slug(sender, instance, *args, **kwargs):
-    # Automatically populate empty slug field with sample_id before save.
-    if not instance.slug:
-        instance.slug = slugify(instance.lab_no)
 
 
 # noinspection PyAbstractClass
@@ -451,6 +426,7 @@ class Gene(BaseModel):
 
     def __str__(self):
         return f"{self.hgnc_name} (HGNC:{self.hgnc_id})"
+
 
 class GeneAlias(BaseModel):
     name = models.CharField(max_length=255)

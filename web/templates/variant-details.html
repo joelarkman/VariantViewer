@@ -51,7 +51,7 @@
 
             <div id="pin-variant-checkbox" class="ui toggle checkbox"
                 data-url="{% url 'pin_variant' run=run.id stv=stv.id %}" data-stv="{{stv.id}}"
-                data-tooltip="Pin variant" data-position="bottom left">
+                data-csrf="{{ csrf_token }}" data-tooltip="Pin variant" data-position="bottom left">
                 <input type="checkbox" {% if stv.pinned %}checked="checked" {%endif%}>
                 <label></label>
             </div>
@@ -139,7 +139,7 @@
             <div class="teal card">
                 <div class="content">
                     <div class="center aligned header">Variation Type</div>
-                    <div class="center aligned description">Exonic SNV</div>
+                    <!-- <div class="center aligned description">Exonic SNV</div> -->
                 </div>
             </div>
 
@@ -147,21 +147,21 @@
             <div class="teal card">
                 <div class="content">
                     <div class="center aligned header">Worst Consequence</div>
-                    <div class="center aligned description">Missense</div>
+                    <!-- <div class="center aligned description">Missense</div> -->
                 </div>
             </div>
 
             <div class="teal card">
                 <div class="content">
                     <div class="center aligned header">ClinVar Clin Sig</div>
-                    <div class="center aligned description">Likely Pathogenic</div>
+                    <!-- <div class="center aligned description">Likely Pathogenic</div> -->
                 </div>
             </div>
 
             <div class="teal card">
                 <div class="content">
                     <div class="center aligned header">WMRGL AF</div>
-                    <div class="center aligned description">2/100</div>
+                    <!-- <div class="center aligned description">2/100</div> -->
                 </div>
             </div>
 
