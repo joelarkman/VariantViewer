@@ -40,22 +40,35 @@ class VariantManager:
         """
         reader = py_vcf.Reader(filename=vcf_filename, encoding='utf-8')
         info = reader.infos
+        skip = ['CSQ',]
         filters = reader.filters
         info_keys = [
             header for header
             in map(
                 # get all headers except CSQ, which is handled separately
-                lambda x: None if x.id == "CSQ" else f"INFO{x.id}|{x.desc}",
+                lambda x: None if x.id in skip else f"INFO|{x.id}|{x.desc}",
                 info.values()
             )
             if header is not None
         ]
-        filter_keys = []
+        filter_keys = [
+            header for header in map(
+                lambda x: f"FILTER|{x.id}|{x.desc}",
+                filters.values
+            )
+        ]
+        vep_meta = reader.metadata.get('VEP')[0]
+        build_re = re.compile(r'assembly="?([^"]+)"?')
+        build = build_re.search(vep_meta).groups()[0]
+        vep = vep_meta.split(' ')[0].strip('"')
+        file_format = list(reader.metadata.values())[0]
+
         if not self.started_write:
             # set the headers of the csv file if haven't done so already
             csq_keys = info['CSQ'].desc.split('Format: ')[-1].split('|')
             var_keys = ["CHROM", "POS", "REF", "ALT"]
-            meta_keys = ["Sample", "VCF"] + list(reader.metadata.keys())[:4]
+            meta_keys = ["Sample", "VCF", "format", "VEP", "build"]
+
 
             headers = meta_keys + var_keys + csq_keys + info_keys + filter_keys
             with open(self.record_csv.name, 'w', newline='') as f:
@@ -70,7 +83,7 @@ class VariantManager:
             record_sample = record.samples[0].sample
             # set the sample + variant info
             sample = '.'.join(self.re_ln.search(record_sample).groups())
-            meta = [sample, vcf_filename] + list(reader.metadata.values())[:4]
+            meta = [sample, vcf_filename, file_format, vep, build]
 
             chrom = record.CHROM
             pos = record.POS
