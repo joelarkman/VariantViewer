@@ -140,6 +140,11 @@
     
 }
 
+.lightbox-pdf p{
+    height: 100%;
+    transform: translateY(45%)
+}
+
 .archive-evidence:hover {
     border-color: #db2828 !important;
     color: rgba(255, 255, 255, 0.8) !important;
