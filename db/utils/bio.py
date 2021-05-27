@@ -54,7 +54,7 @@ class VariantManager:
         filter_keys = [
             header for header in map(
                 lambda x: f"FILTER|{x.id}|{x.desc}",
-                filters.values
+                filters.values()
             )
         ]
         vep_meta = reader.metadata.get('VEP')[0]
