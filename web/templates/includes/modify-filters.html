@@ -5,7 +5,8 @@
     .modal-container {
         display: flex;
         width: 25cm;
-        height: 15cm;
+        max-height: 15cm;
+        margin: 0 !important;
     }
 
     @media (max-width: 35cm) {
@@ -16,7 +17,7 @@
 
     @media (max-height: 20cm) {
         .modal-container {
-            height: calc(80vh - 125.7656px)
+            max-height: calc(80vh - 125.7656px)
         }
     }
 </style>
