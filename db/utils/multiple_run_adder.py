@@ -198,6 +198,7 @@ class MultipleRunAdder:
     @property
     def managed_fields(self):
         return (
+            GenomeBuild,
             Gene,
             Exon,
             Transcript,
