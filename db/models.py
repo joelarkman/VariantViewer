@@ -167,51 +167,6 @@ class GenomeBuild(BaseModel):
         return self.name
 
 
-class GenomicCoordinate(BaseModel):
-    chrom = models.CharField(max_length=2)
-    pos = models.IntegerField()
-    genome_build = models.ForeignKey(
-        GenomeBuild,
-        on_delete=models.PROTECT
-    )
-
-    def __str__(self):
-        return f"{self.chrom}:{self.pos} ({self.genome_build})"
-
-    class Meta:
-        unique_together = ['chrom', 'pos']
-        indexes = [
-            models.Index(fields=['chrom', 'pos'])
-        ]
-
-
-class Sequence(BaseModel):
-    strand = models.CharField(max_length=1)
-    start_coord = models.ForeignKey(
-        GenomicCoordinate,
-        on_delete=models.PROTECT,
-        related_name='sequence_starts'
-    )
-    end_coord = models.ForeignKey(
-        GenomicCoordinate,
-        on_delete=models.PROTECT,
-        related_name='sequence_ends'
-    )
-    sequence = models.TextField(null=True, blank=True)
-
-    class Meta:
-        unique_together = ['strand', 'start_coord', 'end_coord']
-        indexes = [
-            models.Index(fields=['start_coord']),
-            models.Index(fields=['end_coord'])
-        ]
-
-    def __str__(self):
-        return f"{self.start_coord.chrom}" \
-               f":{self.start_coord.pos}" \
-               f"->{self.end_coord}"
-
-
 class Patient(BaseModel):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
@@ -386,39 +341,32 @@ class SampleVCF(BaseModel):
 
 class Variant(BaseModel):
     """
-    Representation of a change in genomic sequence irregardless of build,
-    transcript, patient, effect, etc.
+    Representation of a change in genomic sequence irregardless of transcript,
+    patient, effect, etc.
     """
     ref = models.TextField()
     alt = models.TextField()
+    chrom = models.CharField(max_length=2)
+    pos = models.IntegerField()
 
-    def __str__(self):
-        return f"{self.ref}>{self.alt}"
-
-    class Meta:
-        unique_together = ['ref', 'alt']
-
-
-class VariantCoordinate(BaseModel):
-    """
-    Linking a particular variant to a particular coordinate in a genome build.
-    """
-    variant = models.ForeignKey(
-        Variant,
-        on_delete=models.CASCADE,
-    )
-    coordinate = models.ForeignKey(
-        GenomicCoordinate,
+    genome_build = models.ForeignKey(
+        GenomeBuild,
         on_delete=models.PROTECT
     )
+    alt_build = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
-        return f"{self.coordinate.chrom}:{self.coordinate.pos}{self.variant}"
+        return f"{self.chrom}:{self.pos}{self.ref}>{self.alt}"
 
     class Meta:
-        unique_together = ['variant', 'coordinate']
+        unique_together = ['chrom', 'pos', 'ref', 'alt', 'genome_build']
         indexes = [
-            models.Index(fields=['variant', 'coordinate'])
+            models.Index(fields=['chrom', 'pos']),
         ]
 
 
@@ -436,9 +384,7 @@ class SampleVariant(BaseModel):
     )
 
     def __str__(self):
-        coords = self.variant.variantcoordinate_set
-        variant_coordinates = f"({', '.join(list(map(str, coords)))})"
-        return f"{self.sample.lab_no} variant: {variant_coordinates}"
+        return f"{self.sample.lab_no} {str(self.variant)}"
 
     class Meta:
         unique_together = ['sample', 'variant']
@@ -620,36 +566,31 @@ class Exon(BaseModel):
         Transcript,
         on_delete=models.CASCADE,
     )
-    sequence = models.ManyToManyField(
-        Sequence,
-        through="ExonSequence"
+    strand = models.CharField(max_length=1)
+    chrom = models.CharField(max_length=2)
+    start_pos = models.IntegerField()
+    end_pos = models.IntegerField()
+
+    genome_build = models.ForeignKey(
+        GenomeBuild,
+        on_delete=models.PROTECT
     )
+    alt_build = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
 
     def __str__(self):
         return f"{self.transcript} exon {self.number}"
 
     class Meta:
         unique_together = ['transcript', 'number']
-
-
-class ExonSequence(BaseModel):
-    """
-    Through table to enable multiple builds of an exon sequence to be stored
-    """
-    exon = models.ForeignKey(
-        Exon,
-        on_delete=models.CASCADE
-    )
-    sequence = models.ForeignKey(
-        Sequence,
-        on_delete=models.PROTECT
-    )
-
-    def __str__(self):
-        return f"{self.exon} sequence"
-
-    class Meta:
-        unique_together = ['exon', 'sequence']
+        indexes = [
+            models.Index(fields=['chrom', 'start_pos'])
+        ]
 
 
 class CoverageInfo(BaseModel):
