@@ -176,6 +176,7 @@ class MultipleRunAdder:
             (SampleVCF, True),
             (ExcelReport, True),
             # gene info
+            (GenomeBuild, True),
             (Gene, True),
             (Transcript, True),
             (Exon, True),
@@ -184,12 +185,6 @@ class MultipleRunAdder:
             (SampleVariant, True),
             (TranscriptVariant, True),
             (SampleTranscriptVariant, True),
-            # coordinate info
-            (GenomeBuild, True),
-            (GenomicCoordinate, True),
-            (VariantCoordinate, True),
-            (Sequence, True),
-            (ExonSequence, True),
             # vcf info
             (VariantReport, True),
             (VariantReportInfo, True),

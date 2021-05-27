@@ -284,6 +284,15 @@ class RunAttributeManager:
         db_samples.close()
         return excel_reports
 
+    def get_genome_build(self) -> List[Dict[str, Any]]:
+        genome_builds = []
+        variant_manager = self.run.multiple_run_adder.variant_manager
+        build_df = variant_manager.get_df_info(
+            cols=["VEP"]
+        )
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
+        pass
+
     def get_gene(self) -> List[Dict[str, Any]]:
         genes = []
         variant_manager = self.run.multiple_run_adder.variant_manager
@@ -408,9 +417,6 @@ class RunAttributeManager:
         transcript_variant_df = variant_manager.transcript_variant_df
         df_rows = tqdm(transcript_variant_df.iterrows(), leave=False)
 
-        config_file = self.run.config_file
-        config_dict = config_file
-
         for index, row in df_rows:
             tx_f = {"refseq_id": row.Feature}
             sample_f = {"lab_no": row.Sample}
@@ -430,26 +436,6 @@ class RunAttributeManager:
             }
             sample_transcript_variants.append(sample_transcript_variant)
         return sample_transcript_variants
-
-    def get_genome_build(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
-
-    def get_genomic_coordinate(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
-
-    def get_variant_coordinate(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
-
-    def get_sequence(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
-
-    def get_exon_sequence(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
 
     def get_coverage_info(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
