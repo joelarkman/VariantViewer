@@ -328,7 +328,7 @@ class Variant(BaseModel):
         GenomeBuild,
         on_delete=models.PROTECT
     )
-    alt_build = models.ForeignKey(
+    alt_build = models.OneToOneField(
         'self',
         on_delete=models.SET_NULL,
         null=True,
@@ -551,7 +551,7 @@ class Exon(BaseModel):
         GenomeBuild,
         on_delete=models.PROTECT
     )
-    alt_build = models.ForeignKey(
+    alt_build = models.OneToOneField(
         'self',
         on_delete=models.SET_NULL,
         null=True,
