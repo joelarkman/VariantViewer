@@ -542,10 +542,10 @@ class Exon(BaseModel):
         Transcript,
         on_delete=models.CASCADE,
     )
-    strand = models.CharField(max_length=1)
-    chrom = models.CharField(max_length=2)
-    start_pos = models.IntegerField()
-    end_pos = models.IntegerField()
+    strand = models.CharField(max_length=1, null=True)
+    chrom = models.CharField(max_length=2, null=True)
+    start_pos = models.IntegerField(null=True)
+    end_pos = models.IntegerField(null=True)
 
     genome_build = models.ForeignKey(
         GenomeBuild,
