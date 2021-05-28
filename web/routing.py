@@ -12,6 +12,12 @@ router.register('(?P<section>.+)/runs_awaiting_first_check_list',
                 endpoints.RunsAwaitingFirstCheckListView, basename='Run')
 router.register('(?P<section>.+)/runs_awaiting_second_check_list',
                 endpoints.RunsAwaitingSecondCheckListView, basename='Run')
+
+router.register('(?P<run>\d+)/(?P<ss_sample>\d+)/gene_report_list',
+                endpoints.GeneReportListView, basename='GeneReport')
+router.register('(?P<run>\d+)/(?P<ss_sample>\d+)/exon_report_list',
+                endpoints.ExonReportListView, basename='ExonReport')
+
 router.register('(?P<stv>\d+)/previous_classifications_list',
                 endpoints.PreviousClassificationsListView, basename='SampleTranscriptVariant')
 

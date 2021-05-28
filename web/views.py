@@ -113,17 +113,6 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         context['run'] = run
         context['ss_sample'] = ss_sample
 
-        # filters = get_filters(ss_sample.sample, run, user=self.request.user)
-        # filtered_variants = filter_variants(
-        #     ss_sample.sample, run, filter=filters.get('active_filter'))
-
-        # context['variants'] = filtered_variants
-
-        # context['filters'] = filters
-
-        context['excelreport'] = ExcelReport.objects.get(
-            run=run, sample=ss_sample.sample)
-
         # Load files for jbrowse
         context['vcf'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz'
         context['tbi'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz.tbi'
@@ -318,9 +307,9 @@ def load_variant_details(request, run, stv):
     stv = SampleTranscriptVariant.objects.get(id=stv)
     variant_report = stv.get_variant_report(run=run)
     documents = stv.evidence_files.filter(
-        archived=False).order_by('-date_created')
+        archived=False).order_by('-date_modified')
     archived_documents = stv.evidence_files.filter(
-        archived=True).order_by('-date_created')
+        archived=True).order_by('-date_modified')
 
     form = DocumentForm()
 

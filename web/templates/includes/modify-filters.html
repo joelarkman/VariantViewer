@@ -263,11 +263,11 @@
 
                 {% if filters.pipeline_default_filter %}
 
-                <a class="item  {% if  filters.pipeline_default_filter == filters.active_filter %}active blue{% endif %} filter-preset-item"
+                <a class="item  {% if  filters.pipeline_default_filter == filters.active_filter %}active blue{% endif %} filter-preset-item option"
                     data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filters.pipeline_default_filter.id %}">
                     {{filters.pipeline_default_filter.name}}
                     <i
-                        class="{% if  filters.pipeline_default_filter == filters.active_filter %}check{% endif %} circle outline icon"></i>
+                        class="{% if  filters.pipeline_default_filter == filters.active_filter %}check{%else%}outline{% endif %} circle icon"></i>
                 </a>
 
                 {%else%}
@@ -286,10 +286,10 @@
 
                 {% for filter in filters.user_filters %}
 
-                <a class="item  {% if filters.active_filter == filter %}active blue{% endif %} filter-preset-item"
+                <a class="item  {% if filters.active_filter == filter %}active blue{% endif %} filter-preset-item option"
                     data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filter.id %}">
                     {{filter.name}}
-                    <i class="{% if filters.active_filter == filter %}check{% endif %} circle outline icon"></i>
+                    <i class="{% if filters.active_filter == filter %}check{%else%}outline{% endif %} circle icon"></i>
                 </a>
 
                 {% endfor %}

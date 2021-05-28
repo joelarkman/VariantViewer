@@ -264,7 +264,8 @@
         <div class="ui attached segment"
             style="padding: 0;border-top: none;flex: 1;overflow-y:scroll;background-color: #F8F8F8;">
 
-            <table id='gene-table' class='ui coverage-tables selectable celled table ' style="width: 100%;">
+            <table id='gene-table' class='ui coverage-tables selectable celled table ' style="width: 100%;"
+                data-run={{run.id}} data-ss_sample='{{ss_sample.id}}'>
 
                 <colgroup>
                     <col style="width: 220px;">
@@ -312,7 +313,7 @@
 
                 </thead>
 
-                <tbody>
+                <!-- <tbody>
 
                     {% for gene in excelreport.genereport_set.all %}
 
@@ -352,7 +353,7 @@
 
                     {% endfor %}
 
-                </tbody>
+                </tbody> -->
 
             </table>
 
@@ -384,7 +385,8 @@
         <div class="ui attached segment"
             style="padding: 0;border-top: none;flex: 1;overflow-y: scroll;background-color: #F8F8F8;">
 
-            <table id="exon-table" class='ui coverage-tables selectable celled table ' style="width: 100%;">
+            <table id="exon-table" class='ui coverage-tables selectable celled table ' style="width: 100%;"
+                data-run={{run.id}} data-ss_sample='{{ss_sample.id}}'>
                 <colgroup>
                     <col style="width: 110px;">
                     <col style="width: 110px;">

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from db.models import Sample, SampleTranscriptVariant, Samplesheet, Run, SamplesheetSample
+from db.models import CoverageInfo, SampleTranscriptVariant, Run, SamplesheetSample, GeneReport, ExonReport
 
 
 class RunSerializer(serializers.ModelSerializer):
@@ -48,25 +48,49 @@ class SampleListSerializer(serializers.ModelSerializer):
         datatables_always_serialize = ('id', 'runs',)
 
 
+class CoverageInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoverageInfo
+        fields = '__all__'
+        datatables_always_serialize = ('id',)
+
+
+class GeneReportSerializer(serializers.ModelSerializer):
+    gene_name = serializers.SerializerMethodField()
+    coverage_info = CoverageInfoSerializer()
+
+    def get_gene_name(self, gr):
+        return gr.gene.hgnc_name
+
+    class Meta:
+        model = GeneReport
+        fields = ['gene_name', 'coverage_info']
+        datatables_always_serialize = ('id',)
+
+
+class ExonReportSerializer(serializers.ModelSerializer):
+    gene_name = serializers.SerializerMethodField()
+    exon_number = serializers.SerializerMethodField()
+    coverage_info = CoverageInfoSerializer()
+
+    def get_gene_name(self, er):
+        return er.exon.transcript.gene.hgnc_name
+
+    def get_exon_number(self, er):
+        return er.exon.number
+
+    class Meta:
+        model = ExonReport
+        fields = ['gene_name', 'exon_number', 'coverage_info']
+        datatables_always_serialize = ('id',)
+
+
 class SampleTranscriptVariantSerializer(serializers.ModelSerializer):
-    # first_name = serializers.SerializerMethodField()
-    # last_name = serializers.SerializerMethodField()
-    # lab_no = serializers.SerializerMethodField()
     date_classified = serializers.SerializerMethodField()
     comment = serializers.SerializerMethodField()
     evidence_file_count = serializers.SerializerMethodField()
     classification = serializers.SerializerMethodField()
-    # runs = serializers.SerializerMethodField()
     ss_samples = serializers.SerializerMethodField()
-
-    # def get_first_name(self, stv):
-    #     return stv.sample_variant.sample.patient.first_name
-
-    # def get_last_name(self, stv):
-    #     return stv.sample_variant.sample.patient.last_name
-
-    # def get_lab_no(self, stv):
-    #     return stv.sample_variant.sample.lab_no
 
     def get_date_classified(self, stv):
         return stv.comments.last().get_last_modified()['classification'].datetime.strftime("%Y-%m-%d")
@@ -79,11 +103,6 @@ class SampleTranscriptVariantSerializer(serializers.ModelSerializer):
 
     def get_classification(self, stv):
         return stv.comments.last().get_classification_display()
-
-    # def get_runs(self, stv):
-    #     vcfs = stv.sample_variant.variant.variantreport_set.filter(
-    #         vcf__sample=stv.sample_variant.sample).values_list('vcf', flat=True)
-    #     return RunSerializer(Run.objects.filter(vcf__in=vcfs).order_by('-completed_at'), many=True).data
 
     def get_ss_samples(self, stv):
         vcfs = stv.sample_variant.variant.variantreport_set.filter(
