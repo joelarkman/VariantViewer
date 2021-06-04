@@ -1,0 +1,94 @@
+{% extends 'accounts-base.html' %}
+{% load static %}
+{% block page_title %}User profile{% endblock %}
+{% block javascript %}
+<script>
+    $('.ui.dropdown')
+        .dropdown()
+        ;
+</script>
+{% endblock %}
+{% block content %}
+<div class="ui middle aligned center aligned grid">
+    <div class="column" style="max-width: 600px;">
+        <div class=" ui top attached raised inverted segment logo-segment">
+            <i class="huge dna icon" style="margin: 0;color:#005EB8"></i>
+
+            <div class="text-title" style="margin: 0;margin-top: 5px;">
+                <span style="font-weight: bold;font-size:x-large;">VARIANT</span>
+                <span style="font-weight: lighter;font-size: x-large;color:#9aa4ac">VIEWER</span>
+            </div>
+        </div>
+
+        <div class="ui raised inverted attached segment form-segment">
+
+
+            <!-- {% if form.errors %}
+            <p class="ui error message">Username and password provided do not match. <br> Please try again.</p>
+            {% endif %} -->
+
+            <form class="ui large form" , method="post" , action="{% url 'profile' %}" novalidate>
+                {% csrf_token %}
+
+                <div class="field {% if form.errors %} error{% endif %}">
+                    <div class="ui left icon input floating-label">
+                        <i class="mail icon"></i>
+                        <input type="text" name="{{ form.first_name.html_name }}" placeholder="First name"
+                            value="{{ form.first_name.value }}">
+                        <label>First name</label>
+                    </div>
+                </div>
+
+                <div class="field {% if form.errors %} error{% endif %}">
+                    <div class="ui left icon input floating-label">
+                        <i class="mail icon"></i>
+                        <input type="text" name="{{ form.last_name.html_name }}" placeholder="Last name"
+                            value="{{ form.last_name.value }}">
+                        <label>Last name</label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="ui fluid selection dropdown">
+                        <input type="hidden" name="default_section" id="id_default_section"
+                            value="{% if form.initial.default_section %}{{form.initial.default_section}}{%else%}{%endif%}">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">Select default_section</div>
+                        <div class="menu">
+                            {% for value, key in form.fields.default_section.choices %}
+                            <div class="item" data-value="{{ value }}">
+                                <div
+                                    class="ui {% cycle 'blue' 'red' 'orange' 'yellow' 'olive' 'green' %} empty circular label">
+                                </div>
+                                {{ key }}
+                            </div>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+                </div>
+                <input class="ui fluid large submit button" type="submit" value="Save Changes" />
+                <input type="hidden" name="next" value="{{ next }}" />
+            </form>
+        </div>
+
+        <div class="ui bottom attached raised inverted segment footer-segment"
+            style="display: flex;align-items: center;">
+
+
+            <a href="{{ request.GET.next }}" class="ui inverted tiny basic button">
+                <i class="arrow circle left icon"></i>
+                Back
+            </a>
+
+            <p style="margin-top: -2px;margin-left: auto;font-size: smaller;">User since
+                {{account.date_joined|date:'d M Y'}}
+            </p>
+
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
