@@ -12,8 +12,7 @@
     <div style="padding: 15px;padding-bottom: 10px;padding-top: 10px;width:max-content;text-align: center;">
         <span style="font-size: smaller;">{% if stv.comments.last %}Last modified
             {{stv.comments.last.get_last_modified.classification.datetime|naturaltime}} by
-            {{stv.comments.last.get_last_modified.classification.user.first_name}}
-            {{stv.comments.last.get_last_modified.classification.user.last_name}}
+            {{stv.comments.last.get_last_modified.classification.user.get_full_name}}
             {%else%}
             No classification provided yet
             {%endif%}

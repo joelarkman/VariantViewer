@@ -99,12 +99,12 @@
                     <img style='max-width: 25px;margin: 0;margin-right: 7px;border-radius: 5px;'
                         src="{{user.avatar_url}}" alt="">
                     <span class="text-title">
-                        {{user.first_name}} {{user.last_name}}
+                        {{user.get_full_name}}
                         <span style="font-size:x-small;color: #9aa4ac;">{{user.email}}</span>
                     </span>
                 </div>
                 <div class="content">
-                    <a class="item">
+                    <a href="{% url 'profile' %}?next={{ request.path }}" class="item">
                         <i class="cog icon"></i>
                         <span class="text-title">
                             Account Settings
