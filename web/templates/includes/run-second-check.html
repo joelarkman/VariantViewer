@@ -1,0 +1,188 @@
+{% load humanize %}
+
+<div class="ui segments set-status-modal" style="display: flex;min-width: 60%;max-width: 90%;max-height: 90%;">
+    <div class="ui left aligned clearing segment">
+        <h3 class="ui header" style="margin:0">Run QC Second Check: {{run.worksheet}} </h3>
+    </div>
+    <div class="ui left aligned segment" style="display: flex;flex: 1;overflow: hidden;padding: 0;min-height: 40vh;">
+
+        <div class="status-options">
+
+            {% if run.qc_status == 1 %}
+            <div class="pass option selected" data-value="pass">
+                Pass
+            </div>
+            {% else %}
+            <div class="fail option selected" data-value="fail">
+                Fail
+            </div>
+            {% endif%}
+        </div>
+
+        <div style="display: flex; flex-direction: column; flex: 1;">
+            <div class="ui attached segment" style="border-top: none;">
+                <div class="ui message">
+
+                    {% if user == last_updated.fields.qc_status.user %}
+                    First QC check conducted by you
+                    {{last_updated.fields.qc_status.datetime|naturaltime}}. The
+                    {% if run.qc_status == 1 %}pass{% else %}fail{% endif%} result must be confirmed or rejected by
+                    another user.
+                    {% else %}
+                    First QC check conducted by {{last_updated.fields.qc_status.user.get_full_name}}
+                    {{last_updated.fields.qc_status.datetime|naturaltime}}. Please
+                    confirm or reject the
+                    {% if run.qc_status == 1 %}pass{% else %}fail{% endif%} result.
+                    {% endif %}
+
+
+                </div>
+            </div>
+
+            <div class="ui attached segment" style="flex: 1;overflow-y: auto; border-bottom: none;">
+                {% for sample in run.samplesheet.sample_set.all %}
+                <div class="ui raised segment">{{sample}}</div>
+                {% endfor %}
+            </div>
+
+
+        </div>
+
+
+
+
+        <form id='worksheet-detail-form' method="post" action="{% url 'run_second_check' pk=run.id %}"
+            class="js-worksheet-detail-form">
+
+            {% csrf_token %}
+
+            <input type="hidden" id="qc_status_second_check_input" name="qc_status_second_check" value="">
+
+        </form>
+        <!-- <span class='ui grey small text' style="text-align: left"> Last modified by </span> -->
+
+
+    </div>
+    <div class="ui secondary left aligned clearing segment">
+        <div style="margin-left: 10px;"
+            class="ui right floated positive button second-check-save {% if user == last_updated.fields.qc_status.user %}disabled{%endif%}"
+            data-value="accept">
+            Accept
+        </div>
+        <div style="margin-left: 10px;"
+            class="ui right floated negative button second-check-save {% if user == last_updated.fields.qc_status.user %}disabled{%endif%}"
+            data-value="reject">
+            Reject
+        </div>
+        <div class="ui right floated button worksheet-detail-close">Cancel</div>
+    </div>
+</div>
+
+<div class="ui segments confirm-status-modal" style="display: flex;min-width: 40%;max-width: 90%;max-height: 90%;">
+    <div class="ui left aligned clearing segment">
+        <h3 class="ui header" style="margin:0" data-worksheet="{{run.worksheet|upper }}"></h3>
+    </div>
+    <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
+        <span class="body-text"></span>
+    </div>
+    <div class="ui secondary left aligned clearing segment">
+        <input type="submit" value="Confirm" form="worksheet-detail-form" class="ui right floated negative button"
+            style="margin-left: 10px;">
+        <div class="ui right floated button cancel-submit">Cancel</div>
+    </div>
+</div>
+
+<style>
+    .check-option {
+        display: flex;
+        flex: 0 0 5%;
+        align-items: center;
+        justify-content: center;
+        background-color: grey;
+    }
+
+    .status-options {
+        display: flex;
+        flex: 0 0 10%;
+        flex-direction: column;
+        border-left: rgba(34, 36, 38, 0.15);
+        border-right: 0.25px solid #D5D5D6;
+
+    }
+
+    .option {
+        display: flex;
+        flex: 1;
+        opacity: 0.6;
+        align-items: center;
+        justify-content: center;
+        background-color: rgb(211, 211, 212);
+        cursor: pointer;
+        font-weight: 700;
+        transition: background-color 100ms linear;
+        transition: opacity 100ms ease-in;
+
+    }
+
+    .option:not(.selected):hover {
+        opacity: 1;
+        background-color: rgb(202, 203, 205);
+    }
+
+    .option:not(.selected):active {
+        opacity: 1;
+        box-shadow: inset 0px 0px 10px #88888867 !important;
+    }
+
+    .pass {
+        color: rgba(0, 128, 0, 0.7);
+    }
+
+    .fail {
+        color: rgba(255, 0, 0, 0.7);
+    }
+
+    .pass.option.selected {
+        background-color: rgba(66, 160, 66, 0.15);
+        transition: background-color 200ms linear;
+    }
+
+    .fail.option.selected {
+        background-color: rgb(212, 0, 0, 0.15);
+        transition: background-color 200ms linear;
+
+    }
+
+    .option.selected {
+        cursor: default;
+        -webkit-box-shadow: inset 0px 0px 5px #33333352 !important;
+        -moz-box-shadow: inset 0px 0px 5px #33333352 !important;
+        box-shadow: inset 0px 0px 5px #33333352 !important;
+        opacity: 1;
+        /* color: rgba(255, 255, 255, 0.9); */
+        /* border: 1px solid #555; */
+    }
+</style>
+
+<script>
+    $('.confirm-status-modal').hide()
+
+    $('.second-check-save').click(function () {
+        $('#qc_status_second_check_input').val($(this).attr('data-value'))
+
+        header = $(this).text() + ' ' + $('.option').attr('data-value') + ' classification of ' + $('.confirm-status-modal .header').attr('data-worksheet')
+        body_text = 'Are you sure you want to ' + $(this).attr('data-value') + ' the ' + $('.option').attr('data-value') + ' classification of this run?'
+        $('.confirm-status-modal .header').text(header)
+        $('.confirm-status-modal .body-text').text(body_text)
+
+        $('.set-status-modal').fadeOut(function () {
+            $('.confirm-status-modal').fadeIn();
+        })
+    })
+
+    $('.cancel-submit').click(function () {
+        $('.confirm-status-modal').fadeOut(function () {
+            $('.set-status-modal').fadeIn();
+        })
+    })
+</script>
