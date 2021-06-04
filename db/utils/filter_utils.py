@@ -293,6 +293,4 @@ def filter_variants(sample, run, filter=None):
 
         excluded_pinned_variants_count = None
 
-        STVs.filter(pinned=True).count()
-
     return {'pinned': STVs.filter(pinned=True), 'excluded_pinned_variants_count': excluded_pinned_variants_count, 'unpinned': STVs.filter(selected=True, pinned=False)}
