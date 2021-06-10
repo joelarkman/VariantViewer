@@ -114,7 +114,6 @@ class VariantManager:
 
         with open(self.record_csv.name, 'a+', newline='') as f:
             # with a list of all consequences for all variants, write to csv
-            print(vcf_values_list[0])
             writer = csv.writer(f)
             writer.writerows(vcf_values_list)
 
