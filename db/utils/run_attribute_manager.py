@@ -109,7 +109,7 @@ class RunAttributeManager:
     def related_instance(self, *args, **kwargs):
         """As above but ensure unique"""
         related_instances = self.related_instances(*args, **kwargs)
-        assert len(related_instances) == 1
+        assert len(related_instances) == 1, f"multiple: {related_instances}"
         return related_instances[0]
 
     def get_all_instances(self, model_type) -> List[Model]:
