@@ -215,7 +215,7 @@ class VariantManager:
                     "build": "category",
                     "POS": pd.UInt32Dtype(),
                     "REF": "category",
-                    "QUAL": pd.UInt8Dtype(),
+                    "QUAL": pd.UInt32Dtype(),
                     "DEPTH": pd.UInt16Dtype(),
                     "PF": "boolean",
                     "Feature_type": "category",
