@@ -107,7 +107,6 @@ class VariantManager:
             for csq in consequences:
                 # add a potential consequence for a variant to the main list
                 variant_info = meta + var + csq + var_info + var_filters
-                variant_info.extend(csq)
                 vcf_values_list.append(variant_info)
 
             # manage memory
