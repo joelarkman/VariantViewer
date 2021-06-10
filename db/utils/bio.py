@@ -99,7 +99,7 @@ class VariantManager:
             # add depth and pf here since we use it in the VariantReport model
             depth = record.INFO.get('DP')
             pf = True if record.FILTER in ['.', 'PASS'] else False
-            var = [chrom, pos, ref, alt, qual, depth]
+            var = [chrom, pos, ref, alt, qual, depth, pf]
 
             # fetch the INFO information for the variant, match to INFO headers
             var_info = [
