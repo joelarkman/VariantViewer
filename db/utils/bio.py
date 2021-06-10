@@ -69,9 +69,8 @@ class VariantManager:
         if not self.started_write:
             # set the headers of the csv file if haven't done so already
             csq_keys = info['CSQ'].desc.split('Format: ')[-1].split('|')
-            var_keys = ["CHROM", "POS", "REF", "ALT"]
+            var_keys = ["CHROM", "POS", "REF", "ALT", "QUAL", "DEPTH", "PF"]
             meta_keys = ["Sample", "VCF", "format", "VEP", "build"]
-
 
             headers = meta_keys + var_keys + csq_keys + info_keys + filter_keys
             with open(self.record_csv.name, 'w', newline='') as f:
@@ -92,7 +91,11 @@ class VariantManager:
             pos = record.POS
             ref = record.REF
             alt = record.ALT
-            var = [chrom, pos, ref, alt]
+            qual = record.QUAL
+            # add depth and pf here since we use it in the VariantReport model
+            depth = record.INFO.get('DP')
+            pf = True if record.FILTER in ['.', 'PASS'] else False
+            var = [chrom, pos, ref, alt, qual, depth]
 
             # fetch the INFO information for the variant, match to INFO headers
             var_info = [
@@ -190,6 +193,9 @@ class VariantManager:
                     "POS",
                     "REF",
                     "ALT",
+                    "QUAL",
+                    "DEPTH",
+                    "PF",
                     "Sample",
                     "Gene",
                     "SYMBOL",
@@ -205,6 +211,9 @@ class VariantManager:
                     "build": "category",
                     "POS": pd.UInt32Dtype(),
                     "REF": "category",
+                    "QUAL": pd.UInt8Dtype(),
+                    "DEPTH": pd.UInt16Dtype(),
+                    "PF": "boolean",
                     "Feature_type": "category",
                     "Feature": "category",
                     "Sample": "category",
