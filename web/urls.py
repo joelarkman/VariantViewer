@@ -23,9 +23,11 @@ urlpatterns = [
     ##### AJAX VIEWS #####
     ######################
 
-    # temp
-    path('ajax/load_worksheet_details/<int:pk>',
-         views.load_worksheet_details, name='load_worksheet_details'),
+    path('ajax/run_first_check/<int:pk>',
+         views.run_first_check, name='run_first_check'),
+
+    path('ajax/run_second_check/<int:pk>',
+         views.run_second_check, name='run_second_check'),
 
     path('ajax/modify_filters/<int:run>/<int:ss_sample>/<filter>',
          views.modify_filters, name='modify_filters'),

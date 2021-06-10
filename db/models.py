@@ -383,9 +383,9 @@ class VariantReport(BaseModel):
     depth = models.IntegerField()
 
     def __str__(self):
-        coords = self.variant.variantcoordinate_set
-        variant_coordinates = f"({', '.join(list(map(str, coords)))})"
-        return f"{variant_coordinates} record: {self.vcf.path}"
+        # coords = self.variant.variantcoordinate_set
+        # variant_coordinates = f"({', '.join(list(map(str, coords)))})"
+        return f"{self.variant} record: {self.vcf.path}"
 
 
 class VariantReportInfo(BaseModel):
@@ -557,7 +557,6 @@ class Exon(BaseModel):
         null=True,
         blank=True
     )
-
 
     def __str__(self):
         return f"{self.transcript} exon {self.number}"

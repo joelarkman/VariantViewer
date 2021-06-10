@@ -12,6 +12,7 @@ from django.db import transaction
 from db.utils.filter_utils import filter_variants, get_filters
 
 from .models import Comment, Document, Filter, FilterItem
+from .utils.model_utils import LastUpdated
 
 from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm
 
@@ -113,17 +114,6 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         context['run'] = run
         context['ss_sample'] = ss_sample
 
-        # filters = get_filters(ss_sample.sample, run, user=self.request.user)
-        # filtered_variants = filter_variants(
-        #     ss_sample.sample, run, filter=filters.get('active_filter'))
-
-        # context['variants'] = filtered_variants
-
-        # context['filters'] = filters
-
-        context['excelreport'] = ExcelReport.objects.get(
-            run=run, sample=ss_sample.sample)
-
         # Load files for jbrowse
         context['vcf'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz'
         context['tbi'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz.tbi'
@@ -140,16 +130,63 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         return context
 
 
-def load_worksheet_details(request, pk):
+def run_first_check(request, pk):
     # Define a data storage dictionary.
     data = dict()
 
     run = get_object_or_404(Run, pk=pk)
 
+    if request.method == 'POST':
+        qc_status = request.POST.get('qc_status')
+
+        if qc_status:
+            data['form_is_valid'] = True
+
+            if qc_status == 'pass':
+                run.qc_status = 1
+            else:
+                run.qc_status = 2
+
+            run.save()
+        else:
+            data['form_is_valid'] = False
+
     context = {
         'run': run}
     data['html_form'] = render_to_string(
-        'includes/worksheet-detail.html', context, request=request)
+        'includes/run-first-check.html', context, request=request)
+    # Send data as JsonResponse.
+    return JsonResponse(data)
+
+
+def run_second_check(request, pk):
+    # Define a data storage dictionary.
+    data = dict()
+
+    run = get_object_or_404(Run, pk=pk)
+    last_updated = LastUpdated(run, 'qc_status')
+
+    if request.method == 'POST':
+        qc_status_second_check = request.POST.get(
+            'qc_status_second_check')
+
+        if qc_status_second_check:
+            data['form_is_valid'] = True
+
+            if qc_status_second_check == 'accept':
+                run.checked = True
+            else:
+                run.qc_status = 0
+
+            run.save()
+        else:
+            data['form_is_valid'] = False
+
+    context = {
+        'run': run,
+        'last_updated': last_updated}
+    data['html_form'] = render_to_string(
+        'includes/run-second-check.html', context, request=request)
     # Send data as JsonResponse.
     return JsonResponse(data)
 
@@ -318,9 +355,9 @@ def load_variant_details(request, run, stv):
     stv = SampleTranscriptVariant.objects.get(id=stv)
     variant_report = stv.get_variant_report(run=run)
     documents = stv.evidence_files.filter(
-        archived=False).order_by('-date_created')
+        archived=False).order_by('-date_modified')
     archived_documents = stv.evidence_files.filter(
-        archived=True).order_by('-date_created')
+        archived=True).order_by('-date_modified')
 
     form = DocumentForm()
 
@@ -484,9 +521,9 @@ def save_evidence(request, stv):
             evidence_file.save()
 
             documents = stv.evidence_files.filter(
-                archived=False).order_by('-date_created')
+                archived=False).order_by('-date_modified')
             archived_documents = stv.evidence_files.filter(
-                archived=True).order_by('-date_created')
+                archived=True).order_by('-date_modified')
             data['is_valid'] = True
             data['documents'] = render_to_string('includes/evidence.html',
                                                  {'documents': documents,
@@ -557,9 +594,9 @@ def load_previous_evidence(request, current_stv, previous_stv):
                                                                         defaults={'archived': False})
 
         documents = current_stv.evidence_files.filter(
-            archived=False).order_by('-date_created')
+            archived=False).order_by('-date_modified')
         archived_documents = current_stv.evidence_files.filter(
-            archived=True).order_by('-date_created')
+            archived=True).order_by('-date_modified')
 
         data['is_valid'] = True
         data['documents'] = render_to_string('includes/evidence.html',

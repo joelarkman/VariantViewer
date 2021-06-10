@@ -13,22 +13,22 @@
 
     var applySearches = $.fn.dataTable.util.throttle(
         function () {
-            awaiting_table = $('.awaiting-list-table').DataTable()
-            pending_table = $('.pending-list-table').DataTable()
+            run_first_check_table = $('.run-first-check-table').DataTable()
+            run_second_check_table = $('.run-second-check-table').DataTable()
             search = $('#runSearch').val() // collect general search text
             pipeline = $('#pipeline-selection').val() // collect pipeline selection
             section = 'rare disease'
 
-            awaiting_table.search(search).column(0).search(pipeline).draw();
-            pending_table.search(search).column(0).search(pipeline).draw();
+            run_first_check_table.search(search).column(0).search(pipeline).draw();
+            run_second_check_table.search(search).column(0).search(pipeline).draw();
         },
         300
     );
 
     // Initiate sample table
-    var awaiting_table = $('.awaiting-list-table').DataTable({
+    var run_first_check_table = $('.run-first-check-table').DataTable({
         'serverSide': true,
-        'ajax': '/api/' + $('.awaiting-list-table').attr('data-section') + '/runs_awaiting_first_check_list?format=datatables',
+        'ajax': '/api/' + $('.run-first-check-table').attr('data-section') + '/runs_awaiting_first_check_list?format=datatables',
         "deferRender": true,
         'processing': false,
         'columns': [
@@ -61,9 +61,9 @@
 
     });
 
-    var pending_table = $('.pending-list-table').DataTable({
+    var run_second_check_table = $('.run-second-check-table').DataTable({
         'serverSide': true,
-        'ajax': '/api/' + $('.pending-list-table').attr('data-section') + '/runs_awaiting_second_check_list?format=datatables',
+        'ajax': '/api/' + $('.run-second-check-table').attr('data-section') + '/runs_awaiting_second_check_list?format=datatables',
         "deferRender": true,
         'processing': false,
         'columns': [
@@ -121,19 +121,25 @@
 
     // Load worksheet details
     $(function () {
-        $('#awaiting-list tbody').on('click', 'tr', function (event) {
-            var row = awaiting_table.row(this);
+        var loadQCForm = function () {
+            var table = $(this).closest('table').attr('id')
+            var url = $('#' + table).attr('data-url')
+            var row = $('#' + table).DataTable().row(this);
             $.ajax({
-                url: 'ajax/load_worksheet_details/' + row.data().id,
+                url: url + row.data().id,
                 type: 'get',
                 dataType: 'json',
                 beforeSend: function () {
-                    $('#worksheet-detail')
-                        .dimmer('show')
-                        ;
+                    $('#worksheet-detail').dimmer({
+                        closable: false
+                    }).dimmer('hide');
                 },
                 success: function (data) {
                     $("#worksheet-detail").html(data.html_form);
+
+                    $('#worksheet-detail').dimmer({
+                        closable: false
+                    }).dimmer('show');
 
                     $('#worksheet-detail .worksheet-detail-close').click(function () {
                         $('#worksheet-detail')
@@ -142,11 +148,10 @@
                     })
                 }
             });
-        })
+        }
 
 
-        $("#worksheet-detail").on("submit", ".js-worksheet-detail-form", function () {
-            alert('guohrqg')
+        var saveQCForm = function () {
             var form = $(this);
             $.ajax({
                 url: form.attr("action"),
@@ -156,15 +161,26 @@
                 success: function (data) {
                     if (data.form_is_valid) {
                         $('#worksheet-detail').dimmer("hide");
+
+                        run_first_check_table.ajax.reload();
+                        run_second_check_table.ajax.reload();
                     }
                     else {
                         $("#worksheet-detail").html(data.html_form);
+                        $('#worksheet-detail .worksheet-detail-close').click(function () {
+                            $('#worksheet-detail')
+                                .dimmer('hide')
+                                ;
+                        })
                     }
                 }
             });
             return false;
-        });
+        };
 
+        $('#run-first-check tbody').on('click', 'tr', loadQCForm);
+        $('#run-second-check tbody').on('click', 'tr', loadQCForm);
+        $("#worksheet-detail").on("submit", ".js-worksheet-detail-form", saveQCForm);
     });
 </script>
 {%endblock%}
@@ -205,7 +221,7 @@
 
     <div class="ui image label">
         <img src="{{user.avatar_url}}">
-        {{user.first_name}} {{user.last_name}}
+        {{user.get_full_name}}
         <div class="detail">Previous login: {{user.last_logged_in|naturaltime}}</div>
     </div>
 
@@ -217,147 +233,155 @@
 
 </div>
 
-<div style="display: flex;align-items: center;flex: 0 0 25%;">
-    <div class="ui four stretched raised link cards" style="padding: 20px;min-height: 85%;flex: 1;">
-        <a href="{% url 'search' section=section.slug %}" class="ui card" style="background-color: #00B5AD">
-            <div class="content"
-                style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
-                <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"> <i
-                        class="search icon"></i>Sample Search</div>
-                <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
-                    Search for a rare disease sample by ID, pipeline, QC status, etc.
+<div class="dimmable" style="display:flex;flex: 1;flex-direction: column;overflow: hidden;">
+    <div style="display: flex;align-items: center;flex: 0 0 28%;">
+        <div class="ui four stretched raised link cards" style="padding: 20px;min-height: 85%;flex: 1;">
+            <a href="{% url 'search' section=section.slug %}" class="ui card" style="background-color: #00B5AD">
+                <div class="content"
+                    style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+                    <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"> <i
+                            class="search icon"></i>Sample Search</div>
+                    <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
+                        Search for a rare disease sample by ID, pipeline, QC status, etc.
+                    </div>
+                </div>
+            </a>
+            <div class="ui card" style="background-color: #F14668;">
+                <div class="content"
+                    style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+                    <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"><i
+                            class="user icon"></i>
+                        Account settings</div>
+                    <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
+                        View/Edit settings associated with your Variant Viewer account.
+                    </div>
+                    <div class="description">
+                        <p></p>
+                    </div>
                 </div>
             </div>
-        </a>
-        <div class="ui card" style="background-color: #F14668;">
-            <div class="content"
-                style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
-                <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"><i class="user icon"></i>
-                    Account settings</div>
-                <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
-                    View/Edit settings associated with your Variant Viewer account.
+            <div class="ui card" style="background-color: #48C774;">
+                <div class="content"
+                    style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+                    <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"><i
+                            class="info icon"></i>
+                        Info</div>
+                    <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
+                        Access SOP and other app information via the about page.
+                    </div>
+                    <div class="description">
+                        <p></p>
+                    </div>
                 </div>
-                <div class="description">
-                    <p></p>
+            </div>
+            <div class="ui card" style="background-color: #F2711C;">
+                <div class="content"
+                    style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+                    <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"><i
+                            class="envelope icon"></i>
+                        Contact BI team</div>
+                    <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
+                        Request assistance or report an issue to the WMRGL Bioinformatics Team
+                    </div>
+                    <div class="description">
+                        <p></p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="ui card" style="background-color: #48C774;">
-            <div class="content"
-                style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
-                <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"><i class="info icon"></i>
-                    Info</div>
-                <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
-                    Access SOP and other app information via the about page.
-                </div>
-                <div class="description">
-                    <p></p>
-                </div>
-            </div>
+    </div>
+
+
+    <div id="tab-utility-bar" class="ui attached segment">
+        <span class="subtitle">SEARCH:</span>
+        <div class="ui small icon input">
+            <input type="search" placeholder="Search runs..." id="runSearch">
+            <i class="search icon"></i>
         </div>
-        <div class="ui card" style="background-color: #F2711C;">
-            <div class="content"
-                style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
-                <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"><i
-                        class="envelope icon"></i>
-                    Contact BI team</div>
-                <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);">
-                    Request assistance or report an issue to the WMRGL Bioinformatics Team
-                </div>
-                <div class="description">
-                    <p></p>
-                </div>
-            </div>
+
+        <div class="ui small icon button pipeline-choice-popup" style="margin-left: 15px;">
+            <i class="filter icon"></i>
         </div>
+        <div class="ui popup bottom center">
+            <h4 style="text-align: center;">Pipeline</h4>
+            <div class="ui small buttons">
+                <button class="ui active button pipeline-choice">All</button>
+
+                {% for pipeline in pipelines %}
+                <button class="ui button pipeline-choice">{{ pipeline.pipeline.name }}</button>
+                {% endfor %}
+
+            </div>
+            <input type="hidden" id="pipeline-selection" value="">
+        </div>
+        <div class="right-float"></div>
+        <div class="item-divider"></div>
+        <span class="subtitle">RUN QC</span>
+    </div>
+
+    <div style="display: flex;flex-direction: row;height: 100%;overflow: hidden;">
+        <div id="run-first-check" style="flex: 2;display: flex;;flex-direction: column;">
+
+            <div class="ui attached segment"
+                style="padding: 0;border: none;flex: 1;overflow-y: auto;overflow-x: hidden;background-color: #F8F8F8;">
+
+                <table class='ui run-first-check-table selectable celled structured table '
+                    data-section={{section.slug}} data-url='ajax/run_first_check/'
+                    style="width: 100%;table-layout: fixed;border: none;">
+                    <thead>
+                        <tr>
+                            <th colspan="3">Runs awaiting QC checks</th>
+                        </tr>
+                        <tr>
+                            <th> Pipeline </th>
+                            <th> Worksheet </th>
+                            <th> Completed </th>
+                        </tr>
+                    </thead>
+
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <div style="height: 100%;width: 1px;background-color: #D4D4D5;"></div>
+
+        <div id="run-second-check" style="flex: 2;display: flex;flex-direction: column;">
+
+            <div class="ui attached segment"
+                style="padding: 0;border-top: none;flex: 1;overflow-y: auto;overflow-x: hidden;background-color: #F8F8F8;">
+
+                <table class='ui run-second-check-table selectable celled structured table '
+                    data-section={{section.slug}} data-url='ajax/run_second_check/'
+                    style="width: 100%;table-layout: fixed;border: none;">
+                    <thead>
+                        <tr>
+                            <th colspan="4">Runs pending second check</th>
+                        </tr>
+                        <tr>
+                            <th> Pipeline </th>
+                            <th> Worksheet </th>
+                            <th> Completed </th>
+                            <th> QC Status </th>
+                        </tr>
+                    </thead>
+
+
+                </table>
+
+            </div>
+
+
+
+        </div>
+    </div>
+
+    <div id="worksheet-detail" class="ui light dimmer">
     </div>
 </div>
 
 
-<div id="tab-utility-bar" class="ui attached segment">
-    <span class="subtitle">SEARCH:</span>
-    <div class="ui small icon input">
-        <input type="search" placeholder="Search runs..." id="runSearch">
-        <i class="search icon"></i>
-    </div>
-
-    <div class="ui small icon button pipeline-choice-popup" style="margin-left: 15px;">
-        <i class="filter icon"></i>
-    </div>
-    <div class="ui popup bottom center">
-        <h4 style="text-align: center;">Pipeline</h4>
-        <div class="ui small buttons">
-            <button class="ui active button pipeline-choice">All</button>
-
-            {% for pipeline in pipelines %}
-            <button class="ui button pipeline-choice">{{ pipeline.pipeline.name }}</button>
-            {% endfor %}
-
-        </div>
-        <input type="hidden" id="pipeline-selection" value="">
-    </div>
-    <div class="right-float"></div>
-    <div class="item-divider"></div>
-    <span class="subtitle">RUN QC</span>
-</div>
-
-<div style="display: flex;flex-direction: row;height: 100%;overflow: hidden;">
-    <div id="awaiting-list" style="flex: 2;display: flex;;flex-direction: column;">
-
-        <div class="ui attached segment"
-            style="padding: 0;border: none;flex: 1;overflow-y: auto;overflow-x: hidden;background-color: #F8F8F8;">
-
-            <table class='ui awaiting-list-table selectable celled structured table ' data-section={{section.slug}}
-                style="width: 100%;table-layout: fixed;border: none;">
-                <thead>
-                    <tr>
-                        <th colspan="3">Runs awaiting QC checks</th>
-                    </tr>
-                    <tr>
-                        <th> Pipeline </th>
-                        <th> Worksheet </th>
-                        <th> Completed </th>
-                    </tr>
-                </thead>
-
-
-            </table>
-
-        </div>
-
-    </div>
-
-    <div style="height: 100%;width: 1px;background-color: #D4D4D5;"></div>
-
-    <div id="pending-list" style="flex: 2;display: flex;flex-direction: column;">
-
-        <div class="ui attached segment"
-            style="padding: 0;border-top: none;flex: 1;overflow-y: auto;overflow-x: hidden;background-color: #F8F8F8;">
-
-            <table class='ui pending-list-table selectable celled structured table ' data-section={{section.slug}}
-                style="width: 100%;table-layout: fixed;border: none;">
-                <thead>
-                    <tr>
-                        <th colspan="4">Runs pending second check</th>
-                    </tr>
-                    <tr>
-                        <th> Pipeline </th>
-                        <th> Worksheet </th>
-                        <th> Completed </th>
-                        <th> QC Status </th>
-                    </tr>
-                </thead>
-
-
-            </table>
-
-        </div>
-
-
-
-    </div>
-</div>
-
-<div id="worksheet-detail" class="ui light dimmer">
-</div>
 
 {% endblock %}

@@ -26,7 +26,7 @@
             search = $('#mySearch').val() // collect general search text
             pipeline = $('#pipeline-selection').val() // collect pipeline selection
             qc_status = $('#qc_status-selection').val() // collect pipeline selection
-            section = 'rare disease'
+            section = $('.section-name').text().toLowerCase()
 
             // connect all searches together and apply them.
             table.search(search).column(7).search(pipeline).column(9).search(qc_status).draw();
@@ -268,7 +268,7 @@
                 <span class="divider">|</span>
                 <div class="small-text-column-container">
                     <span class="small-text-top">SECTION:</span>
-                    <span class="small-text-bottom">{{section}}</span>
+                    <span class="small-text-bottom section-name">{{section}}</span>
                 </div>
                 <a href="{% url 'change_section' %}" class="ui mini button" style="margin-left: 5px;">Change</a>
             </div>

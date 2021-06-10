@@ -32,8 +32,7 @@
                             style="resize: none;margin-bottom: 5px;">{{previous_stv.comments.last.comment}}</textarea>
                         <span style="font-size:smaller;">Classified
                             {{previous_stv.comments.last.get_last_modified.classification.datetime|naturaltime}} by
-                            {{previous_stv.comments.last.get_last_modified.classification.user.first_name}}
-                            {{previous_stv.comments.last.get_last_modified.classification.user.last_name}}
+                            {{previous_stv.comments.last.get_last_modified.classification.user.get_full_name}}
                         </span>
                     </div>
 
@@ -88,7 +87,7 @@
                                 {% endif %}
 
                                 <div class="content" style="overflow: auto;max-height: 5cm;">
-                                    <div class="header">
+                                    <div class="header" style="max-width: 90%;">
                                         <h4>{{ doc.filename }}</h4>
                                     </div>
 
@@ -113,7 +112,7 @@
                                     <span
                                         style="display: flex;align-items: center;flex: 1;word-wrap: break-word;margin-right: auto;">
                                         <i style="margin-top: -3px;margin-right: 7px;" class="user icon"></i>
-                                        {{doc.get_user_created.first_name}} {{doc.get_user_created.last_name}}
+                                        {{doc.get_user_created.get_full_name}}
                                     </span>
                                     <span style="margin-left: 10px;">
                                         {{doc.date_modified|naturaltime}}

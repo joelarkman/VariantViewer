@@ -6,7 +6,7 @@ import datetime
 from factory.django import DjangoModelFactory
 from factory import fuzzy
 
-from db.models import BAM, CoverageInfo, ExcelReport, Exon, ExonReport, ExonSequence, Gene, GeneAlias, GeneReport, GenomeBuild, GenomicCoordinate, Patient, Pipeline, PipelineVersion, Run, Sample, SampleBAM, SampleTranscriptVariant, SampleVCF, SampleVariant, Samplesheet, SamplesheetSample, Section, Sequence, Transcript, TranscriptVariant, VCF, Variant, VariantCoordinate, VariantReport, VariantReportFilter, VariantReportInfo
+from db.models import BAM, CoverageInfo, ExcelReport, Exon, ExonReport, Gene, GeneAlias, GeneReport, GenomeBuild, Patient, Pipeline, PipelineVersion, Run, Sample, SampleBAM, SampleTranscriptVariant, SampleVCF, SampleVariant, Samplesheet, SamplesheetSample, Section, Transcript, TranscriptVariant, VCF, Variant, VariantReport, VariantReportFilter, VariantReportInfo
 
 ########################
 ### Section creation###
@@ -37,6 +37,7 @@ class PipelineFactory(DjangoModelFactory):
 class PipelineVersionFactory(DjangoModelFactory):
     class Meta:
         model = PipelineVersion
+        django_get_or_create = ('version', 'pipeline')
 
     version = 1
     pipeline = factory.SubFactory(PipelineFactory)
@@ -56,59 +57,28 @@ class GenomeBuildFactory(DjangoModelFactory):
     path = factory.Faker('file_path')
 
 
-class GenomicCoordinateFactory(DjangoModelFactory):
-    class Meta:
-        model = GenomicCoordinate
-
-    chrom = factory.LazyFunction(
-        lambda: "{:d}".format(random.randint(1, 22)))
-    pos = factory.Faker('numerify', text='%!!!!!!')
-    genome_build = fuzzy.FuzzyChoice(GenomeBuild.objects.all())
-
-
-class SequenceFactory(DjangoModelFactory):
-    class Meta:
-        model = Sequence
-
-    start_coord = factory.SubFactory(GenomicCoordinateFactory)
-    end_coord = factory.SubFactory(
-        GenomicCoordinateFactory, chrom=factory.SelfAttribute('..start_coord.chrom'), pos=factory.LazyAttribute(lambda coord: int(
-            coord.factory_parent.start_coord.pos) + 1000), genome_build=factory.SelfAttribute('..start_coord.genome_build'))
-    sequence = factory.Faker(
-        'lexify', text='?????????????????????????????????????????????????????????????????????????????', letters='ACGT')
-
-
 class ExonFactory(DjangoModelFactory):
     class Meta:
         model = Exon
+        django_get_or_create = ('transcript', 'number')
 
     number = factory.LazyAttribute(lambda exon: int(
         exon.transcript.exon_set.count()) + 1)
 
+    strand = factory.Faker(
+        'random_element', elements=('f', 'r'))
+    chrom = factory.LazyFunction(
+        lambda: "{:d}".format(random.randint(1, 22)))
+    start_pos = factory.Faker('numerify', text='%!!!!!!')
+    end_pos = factory.LazyAttribute(lambda exon: int(exon.start_pos) + 1000)
 
-class ExonSequenceFactory(DjangoModelFactory):
-    class Meta:
-        model = ExonSequence
-
-    exon = factory.SubFactory(ExonFactory)
-    # Ensure the sequence of each exon has the same genomebuild and chromosome value as its related transcript
-    sequence = factory.SubFactory(SequenceFactory,
-                                  start_coord=factory.SubFactory(GenomicCoordinateFactory,
-                                                                 chrom=factory.LazyAttribute(
-                                                                     lambda coord: coord.factory_parent.factory_parent.exon.transcript.sequence.start_coord.chrom),
-                                                                 genome_build=factory.LazyAttribute(lambda coord: coord.factory_parent.factory_parent.exon.transcript.sequence.start_coord.genome_build)))
-
-
-class ExonWithSequence(ExonFactory):
-    sequence1 = factory.RelatedFactory(
-        ExonSequenceFactory,
-        factory_related_name='exon'
-    )
+    genome_build = fuzzy.FuzzyChoice(GenomeBuild.objects.all())
 
 
 class TranscriptFactory(DjangoModelFactory):
     class Meta:
         model = Transcript
+        django_get_or_create = ('refseq_id',)
 
     refseq_id = factory.LazyFunction(
         lambda: f"NM_{random.randint(1,9999):06d}.{random.randint(1,9)}")
@@ -116,16 +86,12 @@ class TranscriptFactory(DjangoModelFactory):
     name = factory.LazyAttribute(lambda transcript: "transcript-{:04d}".format(int(
         transcript.gene.transcript_set.count()) + 1))
 
-    # name = factory.Sequence(lambda n: 'transcript-%04d' % n)
-
     canonical = False
 
     exons = factory.RelatedFactoryList(
-        ExonWithSequence,
+        ExonFactory,
         factory_related_name='transcript',
         size=lambda: random.randint(1, 5))
-
-    sequence = factory.SubFactory(SequenceFactory)
 
 
 class GeneAliasFactory(DjangoModelFactory):
@@ -139,6 +105,7 @@ class GeneAliasFactory(DjangoModelFactory):
 class GeneFactory(DjangoModelFactory):
     class Meta:
         model = Gene
+        django_get_or_create = ('hgnc_id',)
 
     # ensembl_id = factory.LazyFunction(
     #     lambda: "ENSG{:11d}".format(random.randint(1, 10000000)))
@@ -179,11 +146,13 @@ class ExcelReportFactory(DjangoModelFactory):
 class GeneReportFactory(DjangoModelFactory):
     class Meta:
         model = GeneReport
+        django_get_or_create = ('excel_report', 'gene')
 
 
 class ExonReportFactory(DjangoModelFactory):
     class Meta:
         model = ExonReport
+        django_get_or_create = ('excel_report', 'exon')
 
 
 class VCFFactory(DjangoModelFactory):
@@ -254,6 +223,7 @@ class RunFactory(DjangoModelFactory):
 class SamplesheetFactory(DjangoModelFactory):
     class Meta:
         model = Samplesheet
+        django_get_or_create = ('path',)
 
     path = factory.Faker('file_path')
 
@@ -295,6 +265,7 @@ class PatientFactory(DjangoModelFactory):
 class SampleFactory(DjangoModelFactory):
     class Meta:
         model = Sample
+        django_get_or_create = ('lab_no',)
 
     patient = factory.SubFactory(PatientFactory)
     lab_no = factory.Faker('bothify', text='?######', letters='GSD')
@@ -325,42 +296,50 @@ class SamplesheetWith4Samples(SamplesheetFactory):
 class VariantFactory(DjangoModelFactory):
     class Meta:
         model = Variant
+        django_get_or_create = ('chrom', 'pos', 'ref', 'alt', 'genome_build')
 
     ref = factory.Faker('random_element', elements=('A', 'C', 'G', 'T'))
     alt = factory.LazyAttribute(lambda alt: random.choice(
         [i for i in ['A', 'C', 'G', 'T'] if i not in alt.ref]))
 
-
-class VariantCoordinateFactory(DjangoModelFactory):
-    class Meta:
-        model = VariantCoordinate
-
-    variant = factory.SubFactory(VariantFactory)
-    coordinate = factory.SubFactory(GenomicCoordinateFactory)
+    chrom = factory.LazyFunction(
+        lambda: "{:d}".format(random.randint(1, 22)))
+    pos = factory.Faker('numerify', text='%!!!!!!')
+    genome_build = fuzzy.FuzzyChoice(GenomeBuild.objects.all())
 
 
 class SampleVariantFactory(DjangoModelFactory):
     class Meta:
         model = SampleVariant
+        django_get_or_create = ('sample', 'variant')
+
+    sample = factory.SubFactory(SampleFactory)
+    variant = factory.SubFactory(VariantFactory)
 
 
 class TranscriptVariantFactory(DjangoModelFactory):
     class Meta:
         model = TranscriptVariant
+        django_get_or_create = ('transcript', 'variant')
 
     hgvs_c = factory.LazyAttribute(
         lambda transcriptvariant: f"{transcriptvariant.transcript.refseq_id}:c.{random.randint(100,1500)}{transcriptvariant.variant.ref}>{transcriptvariant.variant.alt}")
     hgvs_p = factory.LazyFunction(
         lambda: f"NP_{random.randint(1,9999):06d}.{random.randint(1,9)}:p.{f'{random.randint(0,999)}'.join(map(str, random.sample(['A','B','C','D','E','F','G','H','I','K','L','M','N','P','Q','R','S','T','U','V','W','Y'],2)))}")
-    hgvs_g = factory.LazyAttribute(
-        lambda transcriptvariant: f"NG_{random.randint(1,9999):06d}.{random.randint(1,9)}:g.{transcriptvariant.variant.variantcoordinate_set.last().coordinate.pos}{transcriptvariant.variant.ref}>{transcriptvariant.variant.alt}")
+    # hgvs_g = factory.LazyAttribute(
+    #     lambda transcriptvariant: f"NG_{random.randint(1,9999):06d}.{random.randint(1,9)}:g.{transcriptvariant.variant.variantcoordinate_set.last().coordinate.pos}{transcriptvariant.variant.ref}>{transcriptvariant.variant.alt}")
 
 
 class SampleTranscriptVariantFactory(DjangoModelFactory):
     class Meta:
         model = SampleTranscriptVariant
+        django_get_or_create = ('transcript', 'sample_variant')
 
     sample_variant = factory.SubFactory(SampleVariantFactory)
+    impact = factory.Faker('random_element', elements=(
+        'HIGH', 'MODERATE', 'LOW', 'MODIFIER'))
+    consequence = factory.Faker('random_element', elements=(
+        'missense_variant', 'stop_gained', 'frameshift_variant', 'splice_acceptor_variant', 'splice_donor_variant', 'synonymous_variant'))
 
 
 class VariantReportFactory(DjangoModelFactory):
@@ -419,17 +398,19 @@ def create_genes(n):
 
 
 def create_variants():
-    for gene in Gene.objects.all():
+    for gene in tqdm(Gene.objects.all(), 'variants in genes'):
         for transcript in Transcript.objects.filter(
                 gene=gene):
             for variant in range(10):
-                variantcoordinate = VariantCoordinateFactory(coordinate__chrom=transcript.sequence.start_coord.chrom,
-                                                             coordinate__genome_build=transcript.sequence.start_coord.genome_build,
-                                                             coordinate__pos=random.randint(transcript.sequence.start_coord.pos, transcript.sequence.end_coord.pos))
+                # variantcoordinate = VariantCoordinateFactory(coordinate__chrom=transcript.sequence.start_coord.chrom,
+                #                                              coordinate__genome_build=transcript.sequence.start_coord.genome_build,
+                #                                              coordinate__pos=random.randint(transcript.sequence.start_coord.pos, transcript.sequence.end_coord.pos))
+
+                variant = VariantFactory()
 
                 # Create a transcriptvariant
                 transcriptvariant = TranscriptVariantFactory(
-                    transcript=transcript, variant=variantcoordinate.variant)
+                    transcript=transcript, variant=variant)
 
 
 def create_samplesheet():
@@ -467,8 +448,11 @@ def create_samplesheet():
                                            coverage_info=CoverageInfoFactory())
 
             # Create exonreport for each exon of the canonical transcript of each gene analyised.
-            exons = Transcript.objects.get(
-                gene=gene, canonical=True).exon_set.all()
+            try:
+                exons = Transcript.objects.get(
+                    gene=gene, canonical=True).exon_set.all()
+            except:
+                continue
 
             for exon in exons:
                 exonreport = ExonReportFactory(excel_report=excelreport, exon=exon,
@@ -485,29 +469,23 @@ def create_samplesheet():
                     #                                              coordinate__genome_build=transcript.sequence.start_coord.genome_build,
                     #                                              coordinate__pos=random.randint(transcript.sequence.start_coord.pos, transcript.sequence.end_coord.pos))
 
-                    potential_variants = TranscriptVariant.objects.filter(
-                        transcript=transcript).values_list('variant', flat=True)
+                    variant = Variant.objects.filter(
+                        transcriptvariant__transcript=transcript).order_by('?').first()
 
-                    variant = Variant.objects.filter(id__in=potential_variants).exclude(
-                        id__in=SampleTranscriptVariant.objects.filter(
-                            sample_variant__sample=sample).values_list('sample_variant__variant', flat=True)).order_by('?')[0]
+                    sample_variant = SampleVariantFactory(
+                        sample=sample,
+                        variant=variant)
 
                     if transcript.canonical:
                         SampleTranscriptVariantFactory(
-                            sample_variant__sample=sample,
-                            sample_variant__variant=variant,
+                            sample_variant=sample_variant,
                             transcript=transcript,
                             selected=True)
                     else:
                         SampleTranscriptVariantFactory(
-                            sample_variant__sample=sample,
-                            sample_variant__variant=variant,
+                            sample_variant=sample_variant,
                             transcript=transcript,
                             selected=False)
-
-                    # # Create a transcriptvariant
-                    # transcriptvariant = TranscriptVariantFactory(
-                    #     transcript=transcript, variant=variantcoordinate.variant)
 
                     variantreport = VariantReportFactory(vcf=samplevcf.vcf,
                                                          variant=variant)
@@ -565,3 +543,15 @@ def create_samplesheet():
 def create_samplesheets(n):
     for i in tqdm(range(n), desc="samplesheets"):
         create_samplesheet()
+
+
+def create_initial_data():
+    create_sections()
+    create_pipelines()
+    create_genome_builds()
+    create_genes(100)
+
+
+def create_samples():
+    create_variants()
+    create_samplesheets(15)

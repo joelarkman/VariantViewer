@@ -10,6 +10,11 @@
     height: 47px;
     align-items: center;
 }
+
+.active-filters-container.disabled {
+    z-index: 100;
+    overflow-x: hidden;
+}
    
 .active-filters-container::-webkit-scrollbar {
     display: none;

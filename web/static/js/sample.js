@@ -174,9 +174,9 @@ $(function () {
 
                 if ($(btn).hasClass('filter-preset-item')) {
                     $("#lightbox .filter-preset-item").removeClass("active blue");
-                    $("#lightbox .filter-preset-item > i").removeClass("check");
+                    $("#lightbox .filter-preset-item.option > i").removeClass("check").addClass('outline');
                     $(btn).addClass('active blue')
-                    $('> i', btn).addClass('check')
+                    $('> i', btn).addClass('check').removeClass('outline')
                 } else {
                     // Prevent mod_filter button from being selected.
                     $(btn).removeClass("selectable");
@@ -1146,36 +1146,191 @@ $('#browser-expand-collapse').click(function () {
 
 $(document).ready(function () {
 
-    // Initiate coverage tables
-    var cov_tables = $('.coverage-tables').DataTable({
+    function ColourCells(td, cellData) {
+        if (cellData > 95) {
+            $(td).addClass('positive');
+        } else if (cellData > 80) {
+            $(td).addClass('warning');
+        } else {
+            $(td).addClass('negative');
+        }
+    }
+
+    var gene_table = $('#gene-table').DataTable({
+        'serverSide': false,
+        'ajax': '/api/' + $('#gene-table').attr('data-run') + '/' + $('#gene-table').attr('data-ss_sample') + '/gene_report_list?format=datatables',
+        "deferRender": true,
+        'processing': true,
+        'columns': [
+            { 'data': 'gene_name', 'name': 'gene__hgnc_name' },
+            { 'data': 'coverage_info.cov_10x' },
+            { 'data': 'coverage_info.cov_20x' },
+            { 'data': 'coverage_info.cov_30x' },
+            { 'data': 'coverage_info.cov_40x' },
+            { 'data': 'coverage_info.cov_50x' },
+            { 'data': 'coverage_info.cov_100x' },
+            { 'data': 'coverage_info.cov_min' },
+            { 'data': 'coverage_info.cov_max' },
+            {
+                'data': 'coverage_info.cov_mean',
+                'render': function (data, type, full) {
+                    return parseFloat(data).toFixed(0);
+                }
+            },
+            {
+                'data': 'coverage_info.pct_10x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+            {
+                'data': 'coverage_info.pct_20x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+            {
+                'data': 'coverage_info.pct_30x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+            {
+                'data': 'coverage_info.pct_40x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+            {
+                'data': 'coverage_info.pct_50x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+            {
+                'data': 'coverage_info.pct_100x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+        ],
+        "scrollCollapse": true,
+        "ordering": true,
         "scrollCollapse": true,
         "paging": false,
+        "pageLength": 25,
         "footer": false,
-        "dom": '<"top">rt<"bottom"><"clear">'
+        "dom": '<"top">rt<"bottom"><"clear">',
+        "language": {
+            "emptyTable": "No gene coverage data",
+            'loadingRecords': '&nbsp;',
+            'processing': 'Loading...',
+            "zeroRecords": "No genes matching query",
+        },
+        "order": [[0, 'asc']]
+    });
+
+
+    var exon_table = $('#exon-table').DataTable({
+        'serverSide': false,
+        'ajax': '/api/' + $('#exon-table').attr('data-run') + '/' + $('#gene-table').attr('data-ss_sample') + '/exon_report_list?format=datatables',
+        "deferRender": true,
+        'processing': true,
+        'columns': [
+            { 'data': 'gene_name', 'name': 'exon__transcript__gene__hgnc_name' },
+            { 'data': 'exon_number', 'name': 'exon__number' },
+            { 'data': 'coverage_info.cov_10x' },
+            { 'data': 'coverage_info.cov_20x' },
+            { 'data': 'coverage_info.cov_30x' },
+            { 'data': 'coverage_info.cov_40x' },
+            { 'data': 'coverage_info.cov_50x' },
+            { 'data': 'coverage_info.cov_100x' },
+            { 'data': 'coverage_info.cov_min' },
+            { 'data': 'coverage_info.cov_max' },
+            {
+                'data': 'coverage_info.cov_mean',
+                'render': function (data, type, full) {
+                    return parseFloat(data).toFixed(0);
+                }
+            },
+            {
+                'data': 'coverage_info.pct_10x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+            {
+                'data': 'coverage_info.pct_20x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+            {
+                'data': 'coverage_info.pct_30x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+            {
+                'data': 'coverage_info.pct_40x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+            {
+                'data': 'coverage_info.pct_50x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+            {
+                'data': 'coverage_info.pct_100x',
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            },
+        ],
+        "scrollCollapse": true,
+        "ordering": true,
+        "scrollCollapse": true,
+        "paging": false,
+        "pageLength": 25,
+        "footer": false,
+        "dom": '<"top">rt<"bottom"><"clear">',
+        "language": {
+            "emptyTable": "No gene coverage data",
+            'loadingRecords': '&nbsp;',
+            'processing': 'Loading...',
+            "zeroRecords": "No genes matching query",
+        },
+        "order": [[0, 'asc']]
     });
 
     // Toggle visibility of raw values columns
     $('#columns-toggle').on('click', function () {
         $(this).toggleClass('red')
 
-        if (!cov_tables.tables(0).column(2).visible()) {
+        if (!gene_table.column(2).visible()) {
             $(this).attr("data-tooltip", "Hide Raw Depth Values");
         } else {
             $(this).attr("data-tooltip", "Show Raw Depth Values");
         }
 
-        cov_tables.tables(0).columns('.toggle-cols').visible(!cov_tables.tables(0).column(2).visible());
-        cov_tables.tables(1).columns('.toggle-cols').visible(!cov_tables.tables(1).column(2).visible());
+        gene_table.columns('.toggle-cols').visible(!gene_table.column(2).visible());
+        exon_table.columns('.toggle-cols').visible(!exon_table.column(2).visible());
+
     });
 
     // Set up custom search of both tables
     $('#mySearch').on('keyup click search', function () {
         $('#gene-table tbody tr').children('td').removeClass('row-selected')
-        cov_tables.tables().search($(this).val()).draw();
+        gene_table.search($(this).val()).draw();
+        exon_table.search($(this).val()).draw();
     });
 
     // Hide raw value columns by default
-    cov_tables.columns('.toggle-cols').visible(false)
+    gene_table.columns('.toggle-cols').visible(false)
+    exon_table.columns('.toggle-cols').visible(false)
 
     // Set up toggle button for min-depth-filter
     $('#min-read-filter-toggle').on('click', function () {
@@ -1190,27 +1345,29 @@ $(document).ready(function () {
         }
 
         $('#min-read-filter-input').toggle()
-        cov_tables.draw();
+        gene_table.draw();
+        exon_table.draw();
     })
 
     // Update tables when filter value modified
     $('#max-value').on('keyup click', function () {
-        cov_tables.draw();
+        gene_table.draw();
+        exon_table.draw();
     });
 
 
     // Search exon table when select gene
     $('#gene-table tbody').on('click', 'tr', function (event) {
-        var row = cov_tables.tables(0).row(this);
-        var selected_gene = row.data()[0]
+        var row = gene_table.row(this);
+        var selected_gene = row.data().gene_name
 
         if ($(this).children('td').hasClass('row-selected')) {
             $(this).children('td').removeClass('row-selected')
-            cov_tables.tables(1).search('').draw()
+            exon_table.search('').draw()
         } else {
-            $('#gene-table tbody tr').children('td').removeClass('row-selected')
-            $(this).children('td').addClass('row-selected')
-            cov_tables.tables(1).search(selected_gene).draw()
+            $('#gene-table tbody tr').children('td').removeClass('row-selected');
+            $(this).children('td').addClass('row-selected');
+            exon_table.search(selected_gene).draw();
         }
     });
 

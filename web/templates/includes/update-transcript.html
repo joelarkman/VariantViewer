@@ -4,7 +4,8 @@
     .transcript-modal-container {
         display: flex;
         width: 27cm;
-        height: 15cm;
+        max-height: 15cm;
+        margin: 0 !important;
     }
 
     @media (max-width: 38cm) {
@@ -15,7 +16,7 @@
 
     @media (max-height: 20cm) {
         .transcript-modal-container {
-            height: calc(80vh - 125.7656px)
+            max-height: calc(80vh - 125.7656px)
         }
     }
 
@@ -117,9 +118,9 @@
                         <td data-label="Change">
                             {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}}</td>
                         <td data-label="Chrom">
-                            {{variant.sample_variant.variant.variantcoordinate_set.last.coordinate.chrom}}</td>
+                            {{variant.sample_variant.variant.chrom}}</td>
                         <td data-label="Position">
-                            {{variant.sample_variant.variant.variantcoordinate_set.last.coordinate.pos}}</td>
+                            {{variant.sample_variant.variant.pos}}</td>
                     </tr>
                     {%endfor%}
                 </tbody>
