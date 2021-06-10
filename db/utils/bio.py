@@ -6,6 +6,9 @@ import pandas as pd
 import vcf as py_vcf
 
 
+CHROM_PATTERN = re.compile(r'chr(..?)')
+
+
 class VariantManager:
     """Collects information about all variants in a MRA operation into a csv.
 
@@ -200,7 +203,6 @@ class VariantManager:
                 ],
                 dtypes={
                     "build": "category",
-                    "CHROM": "category",
                     "POS": pd.UInt32Dtype(),
                     "REF": "category",
                     "Feature_type": "category",
@@ -214,6 +216,7 @@ class VariantManager:
                     "IMPACT": "category",
                 },
                 converters={
+                    "CHROM": lambda x: CHROM_PATTERN.match(x).groups()[0],
                     "ALT": lambda x: x.strip('[]'),
                     "CANONICAL": lambda x: True if x == "YES" else False,
                 }

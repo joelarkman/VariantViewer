@@ -199,9 +199,9 @@ class MultipleRunAdder:
     def managed_fields(self):
         return (
             GenomeBuild,
-            Gene,
             Exon,
             Transcript,
+            Gene,
             Variant,
             TranscriptVariant,
         )
