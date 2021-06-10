@@ -175,6 +175,7 @@ class VariantManager:
         if self._variant_df.empty:
             df = self.get_df_info(
                 cols=[
+                    "build",
                     "REF",
                     "ALT",
                     "Sample",
@@ -189,6 +190,7 @@ class VariantManager:
                     "CANONICAL",
                 ],
                 dtypes={
+                    "build": "category",
                     "REF": "category",
                     "Feature_type": "category",
                     "Feature": "category",

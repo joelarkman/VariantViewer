@@ -287,9 +287,8 @@ class RunAttributeManager:
     def get_genome_build(self) -> List[Dict[str, Any]]:
         genome_builds = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        d_type = {'build': 'category'}
-        build_df = variant_manager.get_df_info(cols=["build"], dtypes=d_type)
-        for build in build_df.build.unique():
+        variant_df = variant_manager.variant_df
+        for build in variant_df.build.unique():
             genome_build = {
                 'name': build
             }
