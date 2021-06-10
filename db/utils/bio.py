@@ -40,6 +40,7 @@ class VariantManager:
         self._transcript_variant_df = pd.DataFrame()
 
     def delete_csv(self):
+        self.record_csv.truncate()
         os.remove(self.record_csv.name)
 
     def update_records(self, vcf_filename):
