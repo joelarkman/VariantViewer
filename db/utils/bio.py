@@ -201,7 +201,7 @@ class VariantManager:
                 dtypes={
                     "build": "category",
                     "CHROM": "category",
-                    "POS": pd.UInt64Dtype(),
+                    "POS": pd.UInt32Dtype(),
                     "REF": "category",
                     "Feature_type": "category",
                     "Feature": "category",
