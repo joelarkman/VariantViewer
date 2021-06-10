@@ -67,7 +67,12 @@ class MultipleRunAdder:
         self.df = pd.DataFrame(columns=columns, data=data)
 
         # begin the process of bulk adding info to the database
-        self.add_runs(self.runs)
+        try:
+            self.add_runs(self.runs)
+        except:
+            self.variant_manager.delete_csv()
+            raise
+        self.variant_manager.delete_csv()
 
     def add_runs(self, runs):
         """The bulk update process.

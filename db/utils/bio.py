@@ -1,4 +1,5 @@
 import csv
+import os
 import re
 import tempfile
 
@@ -37,6 +38,9 @@ class VariantManager:
         self._transcript_df = pd.DataFrame()
         self._variant_df = pd.DataFrame()
         self._transcript_variant_df = pd.DataFrame()
+
+    def delete_csv(self):
+        os.remove(self.record_csv.name)
 
     def update_records(self, vcf_filename):
         """Add the records from a given VCF to the managed CSV of variant info.
