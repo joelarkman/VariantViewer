@@ -340,12 +340,15 @@ class RunAttributeManager:
         for index, row in transcript_rows:
             if not row.EXON:
                 continue
-            f = {'refseq_id': row.Feature}
-            db_transcript = self.related_instance(Transcript, f)
+            tx_f = {'refseq_id': row.Feature}
+            b_f = {'name': row.build}
+            db_transcript = self.related_instance(Transcript, tx_f)
+            db_genome_build = self.related_instance(GenomeBuild, b_f)
             for i in range(row.EXON):
                 exon = {
                     "number": i + 1,
                     "transcript": db_transcript,
+                    "genome_build": db_genome_build
                 }
                 exons.append(exon)
         transcript_rows.close()
@@ -361,9 +364,16 @@ class RunAttributeManager:
 
         variant_rows = tqdm(variant_df.iterrows(), leave=False)
         for index, row in variant_rows:
+            # fetch the genome build
+            b_f = {'name': row.build}
+            db_genome_build = self.related_instance(GenomeBuild, b_f)
+
             variant = {
+                "chrom": row.CHROM,
+                "pos": row.POS,
                 "ref": row.REF,
-                "alt": row.ALT
+                "alt": row.ALT,
+                "genome_build": db_genome_build
             }
             variants.append(variant)
         variant_rows.close()

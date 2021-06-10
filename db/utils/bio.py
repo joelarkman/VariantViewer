@@ -143,8 +143,16 @@ class VariantManager:
         if self._transcript_df.empty:
             df = self.get_df_info(
                 # read the hgnc_id, feature type, refseq ID, and canon status
-                cols=["Gene", "Feature_type", "Feature", "CANONICAL", "EXON"],
+                cols=[
+                    "build",
+                    "Gene",
+                    "Feature_type",
+                    "Feature",
+                    "CANONICAL",
+                    "EXON"
+                ],
                 dtypes={
+                    "build": "category",
                     "Gene": pd.UInt32Dtype(),
                     "Feature_type": "category",
                     "Feature": "category"
@@ -175,6 +183,8 @@ class VariantManager:
             df = self.get_df_info(
                 cols=[
                     "build",
+                    "CHROM",
+                    "POS",
                     "REF",
                     "ALT",
                     "Sample",
@@ -190,6 +200,8 @@ class VariantManager:
                 ],
                 dtypes={
                     "build": "category",
+                    "CHROM": "category",
+                    "POS": pd.UInt64Dtype(),
                     "REF": "category",
                     "Feature_type": "category",
                     "Feature": "category",
