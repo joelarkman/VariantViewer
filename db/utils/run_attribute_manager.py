@@ -429,8 +429,11 @@ class RunAttributeManager:
         # TODO: remember to talk about setting selected
         sample_transcript_variants = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        transcript_variant_df = variant_manager.transcript_variant_df
-        df_rows = tqdm(transcript_variant_df.iterrows(), leave=False)
+        tv_df = variant_manager.transcript_variant_df
+        lab_nos = list(map(lambda x: x.lab_no, self.related_instances(Sample)))
+        stv_df = tv_df[tv_df.Sample.isin(lab_nos)]
+
+        df_rows = tqdm(stv_df.iterrows(), leave=False)
 
         for index, row in df_rows:
             tx_f = {"refseq_id": row.Feature}
