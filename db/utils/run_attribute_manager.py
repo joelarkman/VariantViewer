@@ -39,6 +39,8 @@ class RunAttributeManager:
         model_str = model_type._meta.verbose_name.replace(' ', '_')
 
         # create a delegate function for parsing the correct data for type
+        # this essentially acts like a case switch, in which the particular
+        # RunAttributeManager object will only ever have 1 state.
         get_model_attrs = getattr(self, f"get_{model_str}")
 
         # create a dictionary of data values from the model
