@@ -476,7 +476,9 @@ class RunAttributeManager:
         variant_reports = []
         variant_manager = self.run.multiple_run_adder.variant_manager
         variant_df = variant_manager.variant_df
-        df_rows = tqdm(list(variant_df.iterrows()), leave=False)
+        lab_nos = list(map(lambda x: x.lab_no, self.related_instances(Sample)))
+        sv_df = variant_df[variant_df.Sample.isin(lab_nos)]
+        df_rows = tqdm(list(sv_df.iterrows()), leave=False)
         for index, row in df_rows:
             variant_f = {
                 "chrom": row.CHROM,
@@ -496,18 +498,15 @@ class RunAttributeManager:
                 "depth": row.DEPTH
             }
             variant_reports.append(variant_report)
-
-        def get_variant_report_info(self) -> List[Dict[str, Any]]:
-            raise NotImplementedError(
-                f"{self.model_type} has no attribute parser.")
-            pass
-
-        def get_variant_report_filter(self) -> List[Dict[str, Any]]:
-            raise NotImplementedError(
-                f"{self.model_type} has no attribute parser.")
-            pass
-
         return variant_reports
+
+    def get_variant_report_info(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
+        pass
+
+    def get_variant_report_filter(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
+        pass
 
     def get_coverage_info(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
