@@ -363,10 +363,6 @@ class RunAttributeManager:
         variants = []
         # create the models using vcf records added when VCFs had been added
         variant_manager = self.run.multiple_run_adder.variant_manager
-        variant_df = variant_manager.variant_df.drop_duplicates(
-            subset=['CHROM', 'POS', 'REF', 'ALT']
-        )
-
         variant_rows = tqdm(list(variant_df.iterrows()), leave=False)
         for index, row in variant_rows:
             # fetch the genome build
@@ -496,18 +492,18 @@ class RunAttributeManager:
                 "depth": row.depth
             }
             variant_reports.append(variant_report)
-
-        def get_variant_report_info(self) -> List[Dict[str, Any]]:
-            raise NotImplementedError(
-                f"{self.model_type} has no attribute parser.")
-            pass
-
-        def get_variant_report_filter(self) -> List[Dict[str, Any]]:
-            raise NotImplementedError(
-                f"{self.model_type} has no attribute parser.")
-            pass
-
         return variant_reports
+
+
+    def get_variant_report_info(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(
+            f"{self.model_type} has no attribute parser.")
+        pass
+
+    def get_variant_report_filter(self) -> List[Dict[str, Any]]:
+        raise NotImplementedError(
+            f"{self.model_type} has no attribute parser.")
+        pass
 
     def get_coverage_info(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
