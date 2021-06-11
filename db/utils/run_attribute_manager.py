@@ -461,10 +461,10 @@ class RunAttributeManager:
             db_variant = self.related_instance(Variant, filters=variant_f)
 
             sv_f = {"sample_id": db_sample.id, "variant_id": db_variant.id}
-            db_sample_variant = self.related_instance(SampleVariant, sv_f)
+            df_sv = self.related_instance(SampleVariant, filters=sv_f)
             sample_transcript_variant = {
                 "transcript": db_transcript,
-                "sample_variant": db_sample_variant,
+                "sample_variant": df_sv,
                 "selected": row.CANONICAL,
                 "consequence": row.Consequence,
                 "impact": row.IMPACT
