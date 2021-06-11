@@ -193,6 +193,7 @@ class VariantManager:
         if self._variant_df.empty:
             df = self.get_df_info(
                 cols=[
+                    "VCF",
                     "build",
                     "CHROM",
                     "POS",
@@ -213,6 +214,7 @@ class VariantManager:
                     "CANONICAL",
                 ],
                 dtypes={
+                    "VCF": "category",
                     "build": "category",
                     "POS": pd.UInt32Dtype(),
                     "REF": "category",
