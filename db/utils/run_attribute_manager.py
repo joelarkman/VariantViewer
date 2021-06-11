@@ -493,7 +493,7 @@ class RunAttributeManager:
                 "vcf": db_vcf,
                 "qual": row.QUAL,
                 "filter_pass": None,
-                "depth": row.depth
+                "depth": row.DEPTH
             }
             variant_reports.append(variant_report)
 
