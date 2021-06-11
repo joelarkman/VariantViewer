@@ -364,7 +364,7 @@ class RunAttributeManager:
         # create the models using vcf records added when VCFs had been added
         variant_manager = self.run.multiple_run_adder.variant_manager
         variant_df = variant_manager.variant_df.drop_duplicates(
-            subset=['CHROM', 'POS', 'REF', 'ALT']
+            subset=['CHROM', 'POS', 'REF', 'ALT', 'build']
         )
 
         variant_rows = tqdm(list(variant_df.iterrows()), leave=False)
@@ -391,7 +391,7 @@ class RunAttributeManager:
 
         variant_manager = self.run.multiple_run_adder.variant_manager
         variant_df = variant_manager.variant_df.drop_duplicates(
-            subset=["Sample", "REF", "ALT"]
+            subset=["Sample", "CHROM", "POS", "REF", "ALT", "build"]
         )
         worksheet_variant_df = variant_df[variant_df.Sample.isin(sample_labnos)]
         variant_rows = tqdm(list(worksheet_variant_df.iterrows()), leave=False)
