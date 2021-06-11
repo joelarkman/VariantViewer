@@ -395,7 +395,12 @@ class RunAttributeManager:
         variant_rows = tqdm(list(worksheet_variant_df.iterrows()), leave=False)
         for index, row in variant_rows:
             sample_f = {"lab_no": row.Sample}
-            variant_f = {"ref": row.REF, "alt": row.ALT}
+            variant_f = {
+                "chrom": row.CHROM,
+                "pos":   row.POS,
+                "ref":   row.REF,
+                "alt":   row.ALT
+            }
             sample_variant = {
                 "sample": self.related_instance(Sample, filters=sample_f),
                 "variant": self.related_instance(Variant, filters=variant_f)
