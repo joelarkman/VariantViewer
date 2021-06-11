@@ -363,6 +363,7 @@ class RunAttributeManager:
         variants = []
         # create the models using vcf records added when VCFs had been added
         variant_manager = self.run.multiple_run_adder.variant_manager
+        variant_df = variant_manager.variant_df
         variant_rows = tqdm(list(variant_df.iterrows()), leave=False)
         for index, row in variant_rows:
             # fetch the genome build
