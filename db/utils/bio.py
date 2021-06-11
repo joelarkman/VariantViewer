@@ -122,6 +122,7 @@ class VariantManager:
             # manage memory
             del record
 
+        # open the file in a+ so as to seek to end, do not load file in RAM
         with open(self.record_csv.name, 'a+', newline='') as f:
             # with a list of all consequences for all variants, write to csv
             writer = csv.writer(f)

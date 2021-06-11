@@ -70,6 +70,7 @@ class MultipleRunAdder:
         try:
             self.add_runs(self.runs)
         except:
+            print("parse failed, deleting csv...")
             self.variant_manager.delete_csv()
             raise
         self.variant_manager.delete_csv()
