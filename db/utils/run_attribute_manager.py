@@ -496,11 +496,26 @@ class RunAttributeManager:
                 "depth": row.depth
             }
             variant_reports.append(variant_report)
+
+        def get_variant_report_info(self) -> List[Dict[str, Any]]:
+            raise NotImplementedError(
+                f"{self.model_type} has no attribute parser.")
+            pass
+
+        def get_variant_report_filter(self) -> List[Dict[str, Any]]:
+            raise NotImplementedError(
+                f"{self.model_type} has no attribute parser.")
+            pass
+
         return variant_reports
 
     def get_coverage_info(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
+        coverage_infos = []
+        db_excel_reports = self.related_instances(ExcelReport)
+        for db_excel_report in db_excel_reports:
+            pass
+        return coverage_infos
 
     def get_exon_report(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
@@ -510,6 +525,3 @@ class RunAttributeManager:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         pass
 
-    def get_variant_report_info(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
