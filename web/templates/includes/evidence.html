@@ -76,13 +76,13 @@
     </div>
 
     <div id="archived-evidence" style="display: none;">
+
+        {% for document in archived_documents %}
         <div class="ui segment">
-            {% for document in archived_documents %}
-
-            <span>{{document.filename}}</span>
-
-            {% endfor %}
+            {{document.filename}}
         </div>
+        {% endfor %}
+
 
 
     </div>
@@ -122,7 +122,7 @@
     <script>
         $('.evidence-container').hide()
 
-        $('.card').click(function () {
+        $('.PdfCard, .PhotoCard').click(function () {
             if ($(event.target).hasClass("prevent-evidence-display")) {
                 null
             } else {
