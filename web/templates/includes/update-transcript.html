@@ -108,19 +108,16 @@
                 <thead>
                     <tr>
                         <th>Change</th>
-                        <th>Chrom</th>
-                        <th>Position</th>
+                        <th>Type</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for variant in variant_containing_transcripts %}
                     <tr class='variant-row' data-transcript-id="{{variant.transcript.id}}">
                         <td data-label="Change">
-                            {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}}</td>
-                        <td data-label="Chrom">
-                            {{variant.sample_variant.variant.chrom}}</td>
-                        <td data-label="Position">
-                            {{variant.sample_variant.variant.pos}}</td>
+                            {{variant.get_short_hgvs.hgvs_c}} / {{variant.get_short_hgvs.hgvs_p}}</td>
+                        <td data-label="Type">
+                            {{variant.consequence}}</td>
                     </tr>
                     {%endfor%}
                 </tbody>
