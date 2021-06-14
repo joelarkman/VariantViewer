@@ -1,0 +1,36 @@
+<!-- Tab Utility Bar -->
+<div id="tab-utility-bar" class="ui attached segment">
+
+    <span class="title">REPORT</span>
+
+    <div class="item-divider"></div>
+
+    <div class="ui grey right icon tag disabled label" data-position="bottom center"
+        data-html="<span>Modify filters</span>">
+        New Report
+        <i class="plus icon"></i>
+    </div>
+
+</div>
+
+<div class="report-main-panel" style="display: flex;flex: 1;">
+
+    <div id="report-form-container" style="display: flex;flex-direction: column;flex: 0 0 30%;">
+        {% include 'includes/report-form.html' %}
+    </div>
+
+
+    <div class="dimmable" style="display: flex;flex: 1;background-color: #525659;">
+        <object class="report-pdf" style="flex: 1;" data="" type="application/pdf">
+            <p>PDF cannot be displayed.</p>
+        </object>
+
+        <div class="ui report-dimmer medium dimmer">
+            <div class="ui large fast loader">
+            </div>
+        </div>
+    </div>
+
+
+
+</div>

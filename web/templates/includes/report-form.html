@@ -1,0 +1,67 @@
+{% load humanize %}
+<div class="ui attached segment" style="display: flex;flex-direction: column;flex: 1;border-top: none;">
+
+    {%if preview %}
+    <div class="ui warning message">
+        <div class="header">
+            Warning: Preview mode
+        </div>
+        <p>Unsaved changes are currently being previewed. These will be lost unless the report is saved.</p>
+    </div>
+    {%endif%}
+
+    <form class="ui form" id='js-report-form' method='POST'
+        action='{% if instance_status %}{% url "report_update_or_create" run=run.id ss_sample=ss_sample.id report=instance_status %}{%endif%}'>
+
+        {% csrf_token %}
+
+        <div class="ui segment" style="padding-top: 45px;margin-top: 0;">
+            <div class="ui top attached label">NAME:</div>
+            <div class="ui fluid input" style="margin-top: 0 !important;">
+                <input type="text" name="{{ form.name.html_name }}" placeholder="Report name"
+                    value="{{ form.name.value }}">
+            </div>
+
+        </div>
+        <div class="ui segment" style="padding-top: 45px;margin-top: 0;">
+            <div class="ui top attached label">RESULTS SUMMARY:</div>
+            <div class="ui fluid input" style="margin-top: 0 !important;">
+                <textarea id="id_summary" rows="6" maxlength="2000" type="text" name="summary"
+                    style="resize: none;">{{form.summary.value}}</textarea>
+            </div>
+
+        </div>
+
+        <div class="ui segment" style="padding-top: 45px;margin-top: 0;">
+            <div class="ui top attached label">RESULTS:</div>
+
+
+        </div>
+        <div class="ui segment" style="padding-top: 45px;margin-top: 0;">
+            <div class="ui top attached label">RECOMMENDATIONS:</div>
+            <div class="ui fluid input" style="margin-top: 0 !important;">
+                <textarea id="id_recommendations" rows="6" maxlength="2000" type="text" name="recommendations"
+                    style="resize: none;">{{form.recommendations.value}}</textarea>
+            </div>
+        </div>
+
+        <input type="hidden" id="commit-input" name="commit" value='false'>
+    </form>
+
+
+
+    <span style="font-size:smaller;margin-top: 5px;">Report created
+        {{report_instance.date_created|naturaltime}} by
+        {{report_instance.get_user_created.get_full_name}}
+    </span>
+</div>
+
+<div class="ui attached secondary segment" style="margin-top: auto;">
+    <!-- <input type="submit" form="js-report-form" class="ui right floated primary button js-save-report"
+        style="margin-left: 10px;" value="Save Report"> -->
+    <div class="ui right floated primary button js-save-report" style="margin-left: 10px;">
+        Save Report
+    </div>
+    <input type="submit" form="js-report-form" class="ui right floated button js-preview-report"
+        style="margin-left: 10px;" value="Preview">
+</div>

@@ -1394,6 +1394,64 @@ $.fn.dataTable.ext.search.push(
     }
 );
 
+// ==========
+// REPORT TAB
+// ========== 
+
+$(function () {
+
+    /* Functions */
+
+    var loadReportData = function () {
+        var btn = $(this);
+        $.ajax({
+            url: btn.attr("data-url"),
+            type: 'get',
+            dataType: 'json',
+            beforeSend: function () {
+                $('#report .report-dimmer').dimmer('show');
+            },
+            success: function (data) {
+                // $('#report-container').html(data.report_container)
+                $('#report #report-form-container').html($(data.report_container).find('#report-form-container').html())
+                $('#report .report-pdf').attr('data', '/ajax/generate_report/?context=' + data.report_context_string)
+                $('#report .report-dimmer').dimmer('hide');
+            }
+        });
+    };
+
+    var SaveReportData = function () {
+        var form = $(this);
+        $.ajax({
+            url: form.attr("action"),
+            data: form.serialize(),
+            type: form.attr("method"),
+            dataType: 'json',
+            beforeSend: function () {
+                $('#report .report-dimmer').dimmer('show');
+            },
+            success: function (data) {
+                if (data.is_valid) {
+                    $('#report #report-form-container').html($(data.report_container).find('#report-form-container').html())
+                    $('#report .report-pdf').attr('data', '/ajax/generate_report/?context=' + data.report_context_string)
+                    $('#report .report-dimmer').dimmer('hide');
+                }
+            }
+        });
+        return false;
+    };
+
+
+    /* Binding */
+    $('.main-tabs-link[data-tab="report"]').click(loadReportData)
+    $("#report").on("submit", "#js-report-form", SaveReportData);
+
+    $("#report").on("click", ".js-save-report", function () {
+        $("#report #js-report-form #commit-input").val('true')
+        $("#report #js-report-form").submit();
+    });
+
+});
 
 
 // ==============

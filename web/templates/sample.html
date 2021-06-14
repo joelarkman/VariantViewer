@@ -70,8 +70,10 @@
 
         <div id="page-header-title-right-buttons" class="ui three item menu">
             <a class="active item main-tabs-link active" data-tab='variants-tab'>Variants</a>
-            <a class="item main-tabs-link" data-tab="qc">QC Metrics</a>
+            <!-- <a class="item main-tabs-link" data-tab="qc">QC Metrics</a> -->
             <a class="item main-tabs-link" data-tab="coverage">Coverage</a>
+            <a class="item main-tabs-link" data-tab="report"
+                data-url="{% url 'report_update_or_create' run=run.id ss_sample=ss_sample.id report='default' %}">Report</a>
         </div>
 
     </div>
@@ -486,5 +488,15 @@
 
 
 </div>
+
+
+
+<!-- Report Tab -->
+<div class="main-tabs-content hidden" id="report">
+
+    {% include 'includes/report-container.html' %}
+
+</div>
+
 
 {% endblock %}
