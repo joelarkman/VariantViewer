@@ -1,0 +1,253 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+
+
+    <style>
+        @page {
+
+            @frame header_frame {
+                /* Static Frame */
+                -pdf-frame-content: header;
+                left: 40pt;
+                width: 515pt;
+                top: 40pt;
+                height: 40pt;
+            }
+
+            @frame content_frame {
+                /* Content Frame */
+                left: 40pt;
+                width: 515pt;
+                top: 76pt;
+                height: 672pt;
+            }
+
+            @frame footer_frame {
+                /* Another static Frame */
+                -pdf-frame-content: footer;
+                left: 40pt;
+                width: 515pt;
+                top: 762pt;
+                height: 40pt;
+            }
+        }
+
+        html {
+            margin: 0;
+            line-height: 0%;
+        }
+
+        h2,
+        p {
+            margin: 0;
+        }
+
+        h2 {
+            font-size: 15px;
+            margin-bottom: 7px;
+        }
+
+        p {
+            font-size: 13px;
+            text-align: justify;
+            line-height: 14px;
+        }
+
+        .tabler {
+            margin-top: 10px;
+            margin-bottom: 4px;
+            border-spacing: 0;
+            width: 100%;
+            font-size: 12px;
+            /* border: 1.5px solid black; */
+        }
+
+        .tabler,
+        .tabler th,
+        .tabler td {
+            text-align: left;
+            padding: 4px;
+        }
+
+        tr.even,
+        td.even {
+            background-color: #f2f2f2
+        }
+
+        td.odd {
+            background-color: #ffffff
+        }
+
+        .header {
+            background-color: #005EB8;
+            color: white;
+        }
+
+        td.header {
+            width: 40%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <table id="header" style="border-top: 1.5px solid black;border-bottom: 1.5px solid black">
+        <tr>
+            <td
+                style="width: 80%; text-align: center;font-size: 20px;font-weight: bold;padding-top: 5px;padding-bottom: 3px;background-color: #f2f2f2;border-left: 1.5px solid black;">
+                West Midlands Regional Genetics Laboratory
+            </td>
+            <td
+                style="width: 20%;text-align: right;padding-top: 2px;padding-bottom: 1px;padding-right: 2px;border-right: 1.5px solid black;">
+                <img id="page-header-background" src="static/glh_logo.jpg" style="height: 47px;width: 150px;">
+            </td>
+        </tr>
+    </table>
+
+    <table style="width: 100%;font-size: 9px;margin-bottom: 30px;border: 1.5px solid black;">
+        <tr>
+            <td>
+                <table style="padding: 4px;">
+                    <tr>
+                        <td class="header">Patient:</td>
+                        <td class="even">{{patient}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="header">Sample ID:</td>
+                        <td class="odd">{{sample_id}}</td>
+                    </tr>
+                    <tr>
+                        <td class="header">Lab No:</td>
+                        <td class="even">{{lab_no}}</td>
+                    </tr>
+                </table>
+            </td>
+
+            <td>
+                <table style="padding: 4px;">
+                    <tr>
+                        <td class="header">Pipeline:</td>
+                        <td class="even">{{pipeline}}</td>
+                    </tr>
+                    <tr>
+                        <td class="header">Worksheet:</td>
+                        <td class="odd">{{worksheet}}</td>
+                    </tr>
+                    <tr>
+                        <td class=" header">Completion date:</td>
+                        <td class="even">{{completion_date}}</td>
+                    </tr>
+                </table>
+            </td>
+
+            <td>
+                <table style="padding: 4px;">
+                    <tr>
+                        <td class="header">Gene key:</td>
+                        <td class="even">{{gene_key}}</td>
+                    </tr>
+                    <tr>
+                        <td class="header">Reported by:</td>
+                        <td class="odd">{{reported_by}}</td>
+                    </tr>
+                    <tr>
+                        <td class=" header">Report created:</td>
+                        <td class="even">{{report_creation_date}}</td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div>
+        <h2>RESULTS SUMMARY:</h2>
+        <p>{{report_summary}}</p>
+    </div>
+
+    <br>
+    <div>
+        <h2>RESULTS:</h2>
+
+        <table style="border: 1.5px solid black;margin-top: 10px;
+            margin-bottom: 4px;">
+            <tr>
+                <td>
+                    <table class="tabler">
+                        <tr class="header">
+                            <th>Gene</th>
+                            <th>Transcript</th>
+                            <th>Nucleotide Change</th>
+                            <th>Protein Change</th>
+                            <th>Classification</th>
+                        </tr>
+                        {% for stv in stvs %}
+                        <tr class="{% cycle 'even' 'odd' %}">
+                            <td>{{stv.gene}}</td>
+                            <td>{{stv.transcript}}</td>
+                            <td>{{stv.hgvs_c}}</td>
+                            <td>{{stv.hgvs_p}}</td>
+                            <td>{{stv.classification}}</td>
+                        </tr>
+                        {%endfor%}
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+
+    </div>
+    <br>
+    <div>
+        <h2>INTERPRETATION:</h2>
+
+        {% for interpretation in interpretations %}
+        <p style="margin-bottom: 5px;">{{interpretation}}</p>
+        {%endfor%}
+    </div>
+    <br>
+    <div>
+        <h2>RECOMMENDATIONS:</h2>
+
+        <p>{{report_recommendations}}</p>
+    </div>
+
+    <div id="footer">
+        <table style="padding: 1px;text-align: center;padding-top: 2px;">
+            <tr style="border-top: 1.5px solid black;">
+                <td colspan="4" style="font-weight: bold;">West Midlands Regional Genetics Laboratory, BWC NHS
+                    Foundation Trust, Mindelsohn Way, Birmingham, B15 2TG</td>
+            </tr>
+            <tr>
+                <td>
+                    bwc.genetics.lab@nhs.net
+                </td>
+                <td>
+                    https://www.bwc.nhs.uk/wmrgl
+                </td>
+                <td>
+                    Tel: 0121 335 8036
+                </td>
+                <td>
+                    Tax: 0121 335 8028
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4">page <pdf:pagenumber>
+                        of <pdf:pagecount>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+
+</html>
