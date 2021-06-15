@@ -378,7 +378,7 @@ class VariantReport(BaseModel):
         on_delete=models.CASCADE
     )
     # also store essential VCF info
-    qual = models.IntegerField()
+    qual = models.IntegerField(null=True)
     filter_pass = models.BooleanField(null=True)
     depth = models.IntegerField()
 
