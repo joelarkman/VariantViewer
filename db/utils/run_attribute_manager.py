@@ -4,6 +4,7 @@ from typing import Dict
 from typing import List
 from typing import Type
 
+import pandas as pd
 from django.db.models import Model
 from sample_sheet import SampleSheet as IlluminaSampleSheet
 
@@ -493,7 +494,7 @@ class RunAttributeManager:
             variant_report = {
                 "variant": db_variant,
                 "vcf": db_vcf,
-                "qual": row.QUAL,
+                "qual": None if pd.isnull(row.QUAL) else row.QUAL,
                 "filter_pass": None,
                 "depth": row.DEPTH
             }
