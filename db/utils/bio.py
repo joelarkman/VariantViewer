@@ -1,7 +1,6 @@
 import csv
 import os
 import re
-import sys
 import tempfile
 
 import pandas as pd
@@ -33,9 +32,6 @@ class VariantManager:
         self.keys = []
         self.record_csv = tempfile.NamedTemporaryFile(delete=False)
         self.record_csv.close()
-
-        # hold values before writing, checking memory consumption
-        self.vcf_values_list = []
 
         # various dataframes for accessing data without bloating memory
         self._gene_df = pd.DataFrame()
@@ -121,28 +117,19 @@ class VariantManager:
             for csq in consequences:
                 # add a potential consequence for a variant to the main list
                 variant_info = meta + var + csq + var_info + var_filters
-                self.add_to_vcf_values_list(variant_info)
+                vcf_values_list.append(variant_info)
 
             # manage memory
             del record
 
-        # noinspection PyProtectedMember
-        reader._reader.close()
-
-    def add_to_vcf_values_list(self, variant_info):
-        self.vcf_values_list.append(variant_info)
-        if sys.getsizeof(self.vcf_values_list) / 1048576 > 100:
-            print("writing file")
-            self.commit_to_csv()
-
-    def commit_to_csv(self):
         # open the file in a+ so as to seek to end, do not load file in RAM
         with open(self.record_csv.name, 'a+', newline='') as f:
             # with a list of all consequences for all variants, write to csv
             writer = csv.writer(f)
-            writer.writerows(self.vcf_values_list)
-            self.vcf_values_list = []
+            writer.writerows(vcf_values_list)
 
+        # noinspection PyProtectedMember
+        reader._reader.close()
 
     def get_df_info(self, cols, dtypes=None, converters=None):
         return pd.read_csv(
