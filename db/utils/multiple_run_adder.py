@@ -204,10 +204,13 @@ class MultipleRunAdder:
     @property
     def managed_fields(self):
         return (
+            BAM,
+            VCF,
             GenomeBuild,
             Exon,
             Transcript,
             Gene,
             Variant,
             TranscriptVariant,
+            VariantReport,
         )
