@@ -479,7 +479,9 @@ class RunAttributeManager:
     def get_variant_report(self) -> List[Dict[str, Any]]:
         variant_reports = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        variant_df = variant_manager.variant_df
+        variant_df = variant_manager.variant_df.drop_duplicates(
+            subset=["Sample", "CHROM", "POS", "REF", "ALT", "build"]
+        )
         lab_nos = list(map(lambda x: x.lab_no, self.related_instances(Sample)))
         sv_df = variant_df[variant_df.Sample.isin(lab_nos)]
         df_rows = tqdm(list(sv_df.iterrows()), leave=False)
