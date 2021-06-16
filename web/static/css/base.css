@@ -23,7 +23,7 @@
        background-color: #F8F8F8;
    }
    
-    .ui.label.orange {
+    .ui.label.orange:not(.basic) {
         background-color: rgb(255, 167, 108) !important;
         /* color: rgb(75, 75, 75) !important; */
     }
