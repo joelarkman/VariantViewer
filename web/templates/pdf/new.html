@@ -53,12 +53,14 @@
         h2 {
             font-size: 15px;
             margin-bottom: 7px;
+            margin-top: 15px;
         }
 
         p {
             font-size: 13px;
             text-align: justify;
             line-height: 14px;
+            margin-bottom: 7px;
         }
 
         .tabler {
@@ -112,7 +114,7 @@
         </tr>
     </table>
 
-    <table style="width: 100%;font-size: 9px;margin-bottom: 30px;border: 1.5px solid black;">
+    <table style="width: 100%;font-size: 9px;margin-bottom: 20px;border: 1.5px solid black;">
         <tr>
             <td>
                 <table style="padding: 4px;">
@@ -171,15 +173,14 @@
 
     <div>
         <h2>RESULTS SUMMARY:</h2>
-        <p>{{report_summary}}</p>
+        {{report_summary|linebreaks}}
     </div>
 
-    <br>
     <div>
         <h2>RESULTS:</h2>
 
         <table style="border: 1.5px solid black;margin-top: 10px;
-            margin-bottom: 4px;">
+            margin-bottom: 10px;">
             <tr>
                 <td>
                     <table class="tabler">
@@ -199,6 +200,12 @@
                             <td>{{stv.classification}}</td>
                         </tr>
                         {%endfor%}
+
+                        {%if not stvs%}
+                        <tr class="even">
+                            <td colspan="5">No results reported</td>
+                        </tr>
+                        {%endif%}
                     </table>
                 </td>
             </tr>
@@ -206,19 +213,16 @@
 
 
     </div>
-    <br>
     <div>
         <h2>INTERPRETATION:</h2>
 
         {% for interpretation in interpretations %}
-        <p style="margin-bottom: 5px;">{{interpretation}}</p>
+        {{interpretation|linebreaks}}
         {%endfor%}
     </div>
-    <br>
     <div>
         <h2>RECOMMENDATIONS:</h2>
-
-        <p>{{report_recommendations}}</p>
+        {{report_recommendations|linebreaks}}
     </div>
 
     <div id="footer">
