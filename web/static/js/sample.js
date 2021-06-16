@@ -1398,12 +1398,62 @@ $.fn.dataTable.ext.search.push(
 // REPORT TAB
 // ========== 
 
+
+function SetupReportForm() {
+
+
+    $('.results-cards .card').click(function () {
+        if ($(event.target).hasClass("prevent-comment-display")) {
+            null
+        } else {
+            alert('ebreberb')
+        }
+    })
+
+
+    $('.report-result-toggle').click(function () {
+        var value = $(this).attr('data-id')
+        // If item already checked
+        if ($('i', this).hasClass('check')) {
+            // Find the hidden input with the relevent value and remove it.
+            $("input[name=selected-stvs][value='" + value + "']").remove();
+            // Remove the check
+            $('i', this).removeClass('check').addClass('outline')
+            $(this).parents('.result-stv').removeClass('selected').addClass('deselected');
+        } else {
+            // If item not already checked
+            // Create a hidden input with the relevent value
+            $('<input>', {
+                type: 'hidden',
+                name: 'selected-stvs',
+                value: value
+            }).appendTo('#js-report-form');
+            // Add check
+            $('i', this).addClass('check').removeClass('outline')
+            $(this).parents('.result-stv').removeClass('deselected').addClass('selected');
+        }
+
+        // UpdateCopyButton()
+    })
+}
+
+
 $(function () {
 
     /* Functions */
 
     var loadReportData = function () {
         var btn = $(this);
+        full_refresh = true
+        if (btn.attr('data-tab') == 'report') {
+            if ($("#report .existing-report.active-instance")[0]) {
+                var full_refresh = false
+            } else {
+                $('.report-main-panel, .new-report').hide()
+                $('.report-create-panel').show()
+            }
+        }
+
         $.ajax({
             url: btn.attr("data-url"),
             type: 'get',
@@ -1413,11 +1463,29 @@ $(function () {
             },
             success: function (data) {
                 // $('#report-container').html(data.report_container)
-                $('#report #report-form-container').html($(data.report_container).find('#report-form-container').html())
+
+                if (full_refresh) {
+                    if (data.show_new_button == 'true') {
+                        $('.report-main-panel').hide()
+                        $('.report-create-panel, .new-report').show()
+                    } else {
+                        $('.report-create-panel').hide()
+                        $('.report-main-panel').show()
+                    }
+                    $('#report #tab-utility-bar').html($(data.report_container).filter('#tab-utility-bar').html())
+                    $('#report #report-form-container').html($(data.report_container).find('#report-form-container').html())
+                } else {
+                    $('#report #report-form-container .results-section').html($(data.report_container).find('#report-form-container .results-section').html())
+                    $('#report #report-form-container .report-hidden-inputs').html($(data.report_container).find('#report-form-container .report-hidden-inputs').html())
+
+                }
                 $('#report .report-pdf').attr('data', '/ajax/generate_report/?context=' + data.report_context_string)
                 $('#report .report-dimmer').dimmer('hide');
+                SetupReportForm()
             }
         });
+
+
     };
 
     var SaveReportData = function () {
@@ -1432,9 +1500,15 @@ $(function () {
             },
             success: function (data) {
                 if (data.is_valid) {
+
+
+                    $('#report #tab-utility-bar').html($(data.report_container).filter('#tab-utility-bar').html())
+
+
                     $('#report #report-form-container').html($(data.report_container).find('#report-form-container').html())
                     $('#report .report-pdf').attr('data', '/ajax/generate_report/?context=' + data.report_context_string)
                     $('#report .report-dimmer').dimmer('hide');
+                    SetupReportForm()
                 }
             }
         });
@@ -1444,11 +1518,16 @@ $(function () {
 
     /* Binding */
     $('.main-tabs-link[data-tab="report"]').click(loadReportData)
+    $("#report").on("click", ".existing-report:not(.active-instance)", loadReportData);
+    $("#report").on("click", ".new-report:not(.disabled)", loadReportData);
     $("#report").on("submit", "#js-report-form", SaveReportData);
 
     $("#report").on("click", ".js-save-report", function () {
         $("#report #js-report-form #commit-input").val('true')
-        $("#report #js-report-form").submit();
+        if ($("#report #js-report-form")[0].reportValidity()) {
+            $("#report #js-report-form").submit();
+        }
+
     });
 
 });

@@ -1,8 +1,9 @@
 {% load humanize %}
-<div class="ui attached segment" style="display: flex;flex-direction: column;flex: 1;border-top: none;">
+<div class="ui attached segment"
+    style="display: flex;flex-direction: column;border-top: none;overflow-y: auto;height: 100%">
 
     {%if preview %}
-    <div class="ui warning message">
+    <div class="ui warning message" style="min-height: auto !important;">
         <div class="header">
             Warning: Preview mode
         </div>
@@ -15,52 +16,149 @@
 
         {% csrf_token %}
 
-        <div class="ui segment" style="padding-top: 45px;margin-top: 0;">
+        <div class="ui segment" style="margin-top: 0;">
             <div class="ui top attached label">NAME:</div>
-            <div class="ui fluid input" style="margin-top: 0 !important;">
-                <input type="text" name="{{ form.name.html_name }}" placeholder="Report name"
-                    value="{{ form.name.value }}">
+            <div class="ui fluid input">
+                <input required type="text" name="{{ form.name.html_name }}"
+                    value="{%if form.name.value %}{{form.name.value}}{% else %}{{default_name}}{% endif %}">
             </div>
 
         </div>
-        <div class="ui segment" style="padding-top: 45px;margin-top: 0;">
+        <div class="ui segment">
             <div class="ui top attached label">RESULTS SUMMARY:</div>
-            <div class="ui fluid input" style="margin-top: 0 !important;">
-                <textarea id="id_summary" rows="6" maxlength="2000" type="text" name="summary"
-                    style="resize: none;">{{form.summary.value}}</textarea>
+            <div class="ui fluid input">
+                <textarea id="id_summary" rows="6" maxlength="1990" type="text" name="summary"
+                    style="resize: none;">{{form.summary.value|default_if_none:""}}</textarea>
             </div>
 
         </div>
+        <div class="ui segment results-section" style="margin-top: 0;padding-bottom: 18px;">
+            <div class="ui top attached label">RESULTS (PINNED VARIANTS):
+            </div>
 
-        <div class="ui segment" style="padding-top: 45px;margin-top: 0;">
-            <div class="ui top attached label">RESULTS:</div>
+            {% if report_results.stvs %}
 
+            <div class="ui center aligned message" style="padding: 10px;">
+                Click on a variant to view and version control it's interpretation comment. Use the checkboxes to toggle
+                report inclusion.
+            </div>
+            <div class="ui raised link one cards results-cards" style="margin-left: -5px;margin-right: -5px;">
+                {% for stv in report_results.stvs %}
+                <a class="ui card result-stv {%if stv.selected %}selected{%else%}deselected{%endif%}">
+                    <div style="display: flex;padding: 0;">
+                        <div style="display: flex;flex: 1;flex-direction: column;padding: 10px;gap: 5px;">
+
+                            <div style="display: flex;gap: 15px;">
+                                <div style="display: flex;flex-direction: column;justify-content: center;">
+                                    <div
+                                        style="font-size: 16px;font-weight: 700;line-height: 1.28571429em;color: black;">
+                                        {{stv.hgvs}}</div>
+                                    <div
+                                        style="font-size: 14px;margin-top: -.1em;line-height: 1.28571429em;color: black;">
+                                        {{stv.gene}} | {{stv.transcript}}</div>
+                                </div>
+
+                                <div class="ui basic {{stv.classification_colour}} label"
+                                    style="display: flex;align-items: center;justify-content: center;margin-left: auto;width: 117px;height:36px;align-self: flex-start;">
+                                    {{stv.classification}}</div>
+                            </div>
+
+
+                            {%if stv.unpinned %}
+                            <div
+                                style="display: flex;border-radius: 4px;border: 1px dashed rgba(34, 36, 38, 0.15);color: rgba(219, 16, 16, 0.68);align-items: center;">
+                                <i style="margin: 5px;margin-right: 6px;" class="info circle icon"></i>
+                                <span>
+                                    <b>Warning:</b>
+                                    This variant has been unpinned since it was added to report.
+                                </span>
+                            </div>
+                            {% elif stv.updated %}
+                            <div
+                                style="display: flex;border-radius: 4px;border: 1px dashed rgba(34, 36, 38, 0.15);color: rgba(180, 98, 4, 0.68);align-items: center;">
+                                <i style="margin: 5px;margin-right: 6px;" class="info circle icon"></i>
+                                <span>
+                                    <b>Warning:</b>
+                                    {%if stv.updated == 'comment'%}Comment{%elif stv.updated == 'classification' %}Classification{%else%}Classification
+                                    and comment{%endif%} has been updated for this variant since it was added to report.
+                                    Save or preview the report to view changes.
+                                </span>
+
+
+                            </div>
+                            {% elif stv.comment %}
+                            <!-- <div
+                                style="display: flex;border-radius: 4px;border: 1px dashed rgba(34, 36, 38, 0.15);color: rgba(0, 0, 0, .68);justify-content: center;align-items: center;">
+                                <i style="margin: 5px;margin-right: 6px;" class="info circle icon"></i>
+                                Click to generate a PDF report using the set of pinned variants defined for this
+                                sample.
+                            </div> -->
+                            {% endif %}
+                        </div>
+
+
+
+                        <div class="report-result-toggle prevent-comment-display" data-id="{{stv.id}}">
+                            <i style="margin: 0;"
+                                class="{%if stv.selected%}check selected{%else%}outline{%endif%} circle blue icon prevent-comment-display"></i>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+
+            {%if report_results.excluded_pinned_variants_count %}
+            <div style="padding-top: 18px;">
+                <span style="margin-left: 10px;">
+                    {{report_results.excluded_pinned_variants_count}} pinned variant(s) excluded
+                    by current filters
+                </span>
+            </div>
+            {% endif %}
+
+            {%else%}
+            <div style="padding-top: 4px;">
+                <span style="margin-left: 10px;">
+                    No pinned variants
+                </span>
+            </div>
+            {% endif %}
 
         </div>
-        <div class="ui segment" style="padding-top: 45px;margin-top: 0;">
+
+        <div class="ui segment">
             <div class="ui top attached label">RECOMMENDATIONS:</div>
-            <div class="ui fluid input" style="margin-top: 0 !important;">
-                <textarea id="id_recommendations" rows="6" maxlength="2000" type="text" name="recommendations"
-                    style="resize: none;">{{form.recommendations.value}}</textarea>
+            <div class="ui fluid input">
+                <textarea id="id_recommendations" rows="6" maxlength="1990" type="text" name="recommendations"
+                    placeholder="" style="resize: none;">{{form.recommendations.value|default_if_none:""}}</textarea>
             </div>
         </div>
 
-        <input type="hidden" id="commit-input" name="commit" value='false'>
+        <div class="report-hidden-inputs">
+            <input type="hidden" id="commit-input" name="commit" value='false'>
+
+            {% for stv in report_results.stvs %}
+            {% if stv.selected %}
+            <input type="hidden" name="selected-stvs" value='{{stv.id}}'>
+            {%endif%}
+            {% endfor %}
+        </div>
+
     </form>
 
 
-
-    <span style="font-size:smaller;margin-top: 5px;">Report created
-        {{report_instance.date_created|naturaltime}} by
+    {%if report_instance.date_created%}
+    <span style="font-size:smaller;margin-top: 5px;">
+        Report created {{report_instance.date_created|naturaltime}} by
         {{report_instance.get_user_created.get_full_name}}
     </span>
+    {%endif%}
 </div>
 
-<div class="ui attached secondary segment" style="margin-top: auto;">
-    <!-- <input type="submit" form="js-report-form" class="ui right floated primary button js-save-report"
-        style="margin-left: 10px;" value="Save Report"> -->
+<div class="ui attached secondary segment" style="margin-top: auto;flex: 1;">
+
     <div class="ui right floated primary button js-save-report" style="margin-left: 10px;">
-        Save Report
+        {%if instance_status == 'new' %}Save{%else%}Update{%endif%} Report
     </div>
     <input type="submit" form="js-report-form" class="ui right floated button js-preview-report"
         style="margin-left: 10px;" value="Preview">

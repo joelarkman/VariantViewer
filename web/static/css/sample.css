@@ -312,3 +312,62 @@
     background: #E0E0E0 !important;
     color: black !important;
 }
+
+/* ==========
+   REPORT TAB
+   ========== */
+
+.existing-reports-container {
+    display: flex;
+    flex-direction: row;
+    overflow-x: scroll;
+    max-width: 38%;
+    height: 47px;
+    align-items: center;
+}
+
+.existing-reports-container.disabled {
+    z-index: 100;
+    overflow-x: hidden;
+}
+   
+.existing-reports-container::-webkit-scrollbar {
+    display: none;
+}
+
+
+.results-cards .card.selected {
+    background-color: rgb(247, 247, 247);
+}
+
+.results-cards .card.selected:hover {
+    background: rgb(247, 247, 247) !important;
+}
+
+.results-cards .card.deselected {
+    opacity: 50%;
+}
+
+.results-cards .card.deselected:hover {
+    opacity: 100%;
+}
+
+.report-result-toggle {
+    margin-left: auto;
+    display: flex;
+    flex: 0 0 40px;
+    background-color: #E8E8E8;
+    color: black;
+    align-items: center;
+    justify-content: center;
+    transition: background-color .2s ease-out;
+}
+
+.report-result-toggle:hover {
+    background-color: rgb(33, 133, 208);
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.report-result-toggle:hover i {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
