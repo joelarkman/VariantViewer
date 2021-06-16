@@ -258,6 +258,8 @@ class RunAttributeManager:
             # keep track of all variants found in these VCFs for later addition
             variant_manager.update_records(vcf_filename)
         vcf_files.close()
+        # commit any unwritten values
+        variant_manager.commit_to_csv()
         return vcfs
 
     def get_sample_vcf(self) -> List[Dict[str, Any]]:
