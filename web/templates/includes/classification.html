@@ -1,6 +1,6 @@
 {% load humanize %}
 
-<div class="ui raised inverted {% if stv.comments.last.classification == 0 %}blue{% elif stv.comments.last.classification == 1 %}red{% elif stv.comments.last.classification == 2 %}orange{% elif stv.comments.last.classification == 3 %}yellow{% elif stv.comments.last.classification == 4 %}olive{% elif stv.comments.last.classification == 5 %}green{% else %}blue{%endif%} segment variant-classification"
+<div class='ui raised inverted {{stv.comments.last.classification_colour|default:"blue"}} segment variant-classification'
     style="display: flex;flex-direction: column;padding: 5px;min-width: 120px;text-align: right;align-items: center;"
     data-position='bottom right'>
     <span style="font-size: smaller;margin-top: -2px;">CLASSIFICATION:</span>

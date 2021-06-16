@@ -39,7 +39,7 @@
 
                     <div class="field" style="flex: 0 0 30%;margin-left: 15px;">
                         <label>Pathogenicity Classification</label>
-                        <div class="ui raised inverted {% if previous_stv.comments.last.classification == 0 %}blue{% elif previous_stv.comments.last.classification == 1 %}red{% elif previous_stv.comments.last.classification == 2 %}orange{% elif previous_stv.comments.last.classification == 3 %}yellow{% elif previous_stv.comments.last.classification == 4 %}olive{% elif previous_stv.comments.last.classification == 5 %}green{% else %}blue{%endif%} segment variant-classification"
+                        <div class="ui raised inverted {{previous_stv.comments.last.classification_colour}} segment variant-classification"
                             style="display: flex;flex-direction: column;margin: 0px;padding: 5px;min-width: 120px;min-height: 40px;align-items: center;justify-content: center;">
                             <span
                                 style="font-weight: bold;font-size:larger;margin-top: -2px;margin-left: 5px;margin-right: 5px;">{{previous_stv.comments.last.get_classification_display}}</span>

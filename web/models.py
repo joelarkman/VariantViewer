@@ -104,16 +104,26 @@ class Comment(BaseModel):
     # Choice field for run QC status
     class Classification(models.IntegerChoices):
         UNCLASSIFIED = 0
-        PATHOGENIC = 1
-        LIKELY_PATHOGENIC = 2
+        BENIGN = 1
+        LIKELY_BENIGN = 2
         VUS = 3
-        LIKELY_BENIGN = 4
-        BENIGN = 5
+        LIKELY_PATHOGENIC = 4
+        PATHOGENIC = 5
 
     classification = models.IntegerField(
         choices=Classification.choices,
         default=0,
     )
+
+    @property
+    def classification_colour(self):
+        colours = {0: 'blue',
+                   1: 'green',
+                   2: 'olive',
+                   3: 'yellow',
+                   4: 'orange',
+                   5: 'red'}
+        return colours[self.classification]
 
     def get_last_modified(self):
         cruds = CRUDEvent.objects.filter(object_repr=self)
