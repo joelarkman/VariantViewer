@@ -1,3 +1,4 @@
+import math
 import re
 from typing import Any
 from typing import Dict
@@ -487,7 +488,8 @@ class RunAttributeManager:
                 "chrom": row.CHROM,
                 "pos": row.POS,
                 "ref": row.REF,
-                "alt": row.ALT
+                "alt": row.ALT,
+                "build": row.build
             }
             vcf_f = {"path": row.VCF}
             db_variant = self.related_instance(Variant, filters=variant_f)
@@ -504,8 +506,10 @@ class RunAttributeManager:
         return variant_reports
 
     def get_variant_report_info(self) -> List[Dict[str, Any]]:
+        variant_report_infos = []
+        variant_manager = self.run.multiple_run_adder.variant_manager
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
+
 
     def get_variant_report_filter(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")

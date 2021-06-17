@@ -2,6 +2,7 @@ import csv
 import os
 import re
 import tempfile
+from typing import List
 
 import pandas as pd
 import vcf as py_vcf
@@ -33,6 +34,9 @@ class VariantManager:
         self.record_csv = tempfile.NamedTemporaryFile(delete=False)
         self.record_csv.close()
 
+        self.info_keys : List[str] = []
+        self.filter_keys : List[str] = []
+
         # various dataframes for accessing data without bloating memory
         self._gene_df = pd.DataFrame()
         self._transcript_df = pd.DataFrame()
@@ -58,12 +62,16 @@ class VariantManager:
             )
             if header is not None
         ]
+        self.info_keys = info_keys
+
         filter_keys = [
             header for header in map(
                 lambda x: f"FILTER|{x.id}|{x.desc}",
                 filters.values()
             )
         ]
+        self.filter_keys = filter_keys
+
         vep_meta = reader.metadata.get('VEP')[0]
         build_re = re.compile(r'assembly="?([^"]+)"?')
         build = build_re.search(vep_meta).groups()[0]
