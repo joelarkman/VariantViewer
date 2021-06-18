@@ -99,7 +99,7 @@ class SampleTranscriptVariantSerializer(serializers.ModelSerializer):
         return stv.comments.last().comment
 
     def get_evidence_file_count(self, stv):
-        return stv.evidence_files.count()
+        return stv.evidence_files.exclude(archived=True).count()
 
     def get_classification(self, stv):
         return stv.comments.last().get_classification_display()
