@@ -12,7 +12,8 @@
 
     <div class="existing-reports-container">
         {%if instance_status == 'new' %}
-        <div class="ui orange label existing-report active-instance unsaved-report" style="flex-shrink: 0;">
+        <div class="ui orange label existing-report active-instance unsaved-report" style="flex-shrink: 0;"
+            data-name="{%if default_name %}{{default_name}}{%else%}{{unsaved_name}}{%endif%}">
             UNSAVED: {%if default_name %}{{default_name}}{%else%}{{unsaved_name}}{%endif%}
             <div class="detail"><i class="edit icon"></i></div>
         </div>
@@ -20,13 +21,14 @@
 
         {% for report in reports %}
         {%if report.id == instance_status %}
-        <div class="ui orange label existing-report active-instance" style="flex-shrink: 0;">
-            {{report.name}}
+        <div class="ui orange label existing-report active-instance {%if preview%}modified-report{%endif%}"
+            style="flex-shrink: 0;" data-name="{{report.name}}">
+            {%if preview%}MODIFIED: {%endif%}{{report.name}}
             <div class="detail"><i class="edit icon"></i></div>
         </div>
 
         {% else %}
-        <a class="ui label existing-report"
+        <a class="ui label existing-report" data-name="{{report.name}}"
             data-url="{% url 'report_update_or_create' run=run.id ss_sample=ss_sample.id report=report.id %}"
             style="flex-shrink: 0;">
             {{report.name}}
@@ -62,7 +64,7 @@
 </div>
 
 
-<div class="report-main-panel" style="display: flex;flex: 1;overflow: hidden;">
+<div class="report-main-panel dimmable" style="display: flex;flex: 1;overflow: hidden;">
 
     <div id="report-form-container" style="display: flex;flex-direction: column;flex: 0 0 480px;">
         {% include 'includes/report-form.html' %}
@@ -80,6 +82,10 @@
         </div>
     </div>
 
+
+    <div id="report-lightbox" class="ui light dimmer">
+        <!-- populated by js -->
+    </div>
 </div>
 
 <div class="report-create-panel"
@@ -95,4 +101,62 @@
             </div>
         </div>
     </a>
+</div>
+
+<div class="report-confirm-discard-container" style="display: none;">
+    <div class="ui segments" style="display: flex;min-width: 40%;max-width: 90%;max-height: 90%;">
+        <div class="ui left aligned clearing segment">
+            <h3 class="ui header title-text" style="margin:0">Unsaved changes</h3>
+        </div>
+        <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
+            <span class='content-text'></span>
+        </div>
+        <div class="ui secondary left aligned clearing segment">
+            <div class="ui right floated negative button report-confirm-discard-submit">Discard changes</div>
+            <div class="ui right floated button report-confirm-discard-close">Cancel</div>
+        </div>
+    </div>
+</div>
+
+<div class="report-info-container" style="display: none;">
+    <div class="ui segments" style="display: flex;min-width: 55%;max-width: 65%;max-height: 90%;">
+        <div class="ui left aligned clearing segment">
+            <h3 class="ui header title-text" style="margin:0"></h3>
+        </div>
+        <div class="ui left aligned segment">
+            <div class="ui message report-info-message">
+
+            </div>
+        </div>
+        <div class="ui left aligned segment" style="display: flex;flex-direction: row;flex: 1;overflow: auto;">
+
+            <div style="flex: 1;">
+                <span class="report-info-label">Interpretation Comment</span>
+                <div style="height: 160px;margin-top: 4px;" class="fake-textarea report-info-comment"
+                    contenteditable="true" oncut="return false" onpaste="return false"
+                    onkeydown="if(event.metaKey) return true; return false;">
+                    rshnwrjrtjtwjtj
+                </div>
+            </div>
+
+            <div style="display: flex;flex-direction: column;flex: 0 0 30%;margin-left: 15px;">
+                <span class="report-info-label">Pathogenicity
+                    Classification</span>
+                <div class="previous-classification-container hidden" style="display: flex;flex-direction: column;">
+                    <div class="ui raised inverted segment previous report-info-classification">
+                        <span class="text">qffwef</span>
+                    </div>
+                    <div class="ui grey circular icon label" style="margin: 10px;align-self: center;"><i
+                            class="angle down icon" style="margin-right: 0.5px;"></i></div>
+                </div>
+
+                <div class="ui raised inverted segment report-info-classification">
+                    <span class="text">qffwef</span>
+                </div>
+            </div>
+        </div>
+        <div class="ui secondary left aligned clearing segment">
+            <div class="ui right floated button report-confirm-discard-close">Close</div>
+        </div>
+    </div>
 </div>
