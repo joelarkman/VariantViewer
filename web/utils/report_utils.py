@@ -35,14 +35,20 @@ def string_to_context(string):
     return context
 
 
-def create_report_context(run, ss_sample, selected_stvs, report=None, user=None):
+def create_report_context(run, ss_sample, selected_stvs, report=None, user=None, commit=False):
     if ss_sample.sample.patient.first_name:
         patient = ss_sample.sample.patient.first_name + \
             ' ' + ss_sample.sample.patient.last_name
     else:
         patient = 'Not available'
 
+    if commit:
+        preview = None
+    else:
+        preview = 'static/placeholder1.pdf'
+
     context = {
+        'preview': preview,
         'patient': patient,
         'sample_id': ss_sample.sample_identifier,
         'lab_no': ss_sample.sample.lab_no,
@@ -60,7 +66,7 @@ def create_report_context(run, ss_sample, selected_stvs, report=None, user=None)
             report_creation_date = report.date_created.strftime(
                 "%Y-%m-%d")
     else:
-        context['title'] = 'draft_report_' + \
+        context['title'] = 'report_' + \
             str(Report.objects.filter(
                 run=run, samplesheetsample=ss_sample).count() + 1)
 
@@ -93,9 +99,11 @@ def create_report_context(run, ss_sample, selected_stvs, report=None, user=None)
         comment = None
         if stv.comments.exists():
             classification = stv.comments.last().get_classification_display()
+            classification_colour = stv.comments.last().classification_colour
             if stv.comments.last().comment:
                 comment = stv.comments.last().comment
-                stv_interpretations.append(comment)
+                stv_interpretations.append({'hgvs_c': stv.get_short_hgvs()[
+                                           'hgvs_c'], 'comment': comment})
         else:
             classification = 'Unclassified'
 
@@ -105,19 +113,22 @@ def create_report_context(run, ss_sample, selected_stvs, report=None, user=None)
                     'hgvs_c': stv.get_short_hgvs()['hgvs_c'],
                     'hgvs_p': stv.get_short_hgvs()['hgvs_p'],
                     'classification': classification,
+                    'classification_colour': classification_colour,
                     'comment': comment}
 
         stv_context.append(stv_dict)
 
-    if not stv_interpretations:
-        stv_interpretations.append('No interpretation provided')
+    if stv_interpretations:
+        context['interpretations'] = stv_interpretations
+    else:
+        context['no_interpretations'] = 'No interpretation provided'
 
     context['stvs'] = stv_context
-    context['interpretations'] = stv_interpretations
+
     return context
 
 
-def get_report_results(run, ss_sample, user, report=None):
+def get_report_results(run, ss_sample, user, context=None):
 
     filters = get_filters(ss_sample.sample, run, user=user)
     filtered_variants = filter_variants(
@@ -125,10 +136,10 @@ def get_report_results(run, ss_sample, user, report=None):
 
     results = []
 
-    if report:
+    if context:
         current_pinned_stvs = filtered_variants['pinned'].values_list(
             'id', flat=True)
-        stvs_in_report = [item.get('id') for item in report.data['stvs']]
+        stvs_in_report = [item.get('id') for item in context['stvs']]
 
         for reported_unpinned_stv in list(set(stvs_in_report)-set(current_pinned_stvs)):
             stv = SampleTranscriptVariant.objects.get(id=reported_unpinned_stv)
@@ -161,11 +172,12 @@ def get_report_results(run, ss_sample, user, report=None):
                 .order_by('-num_comments', '-comments__classification'):
             stv = reported_pinned_stv
             stv_report_version = next(
-                (item for item in report.data['stvs'] if item["id"] == stv.id))
+                (item for item in context['stvs'] if item["id"] == stv.id))
 
             updated = None
             comment = None
             previous_classification = None
+            previous_classification_colour = None
             previous_comment = None
             if stv.comments.exists():
                 classification = stv.comments.last().get_classification_display()
@@ -174,6 +186,8 @@ def get_report_results(run, ss_sample, user, report=None):
                     updated = 'classification'
                     previous_classification = stv_report_version.get(
                         'classification')
+                    previous_classification_colour = stv_report_version.get(
+                        'classification_colour')
 
                 if stv.comments.last().comment:
                     comment = stv.comments.last().comment
@@ -194,6 +208,7 @@ def get_report_results(run, ss_sample, user, report=None):
                     'classification': classification,
                     'classification_colour': classification_colour,
                     'previous_classification': previous_classification,
+                    'previous_classification_colour': previous_classification_colour,
                     'comment': comment,
                     'previous_comment': previous_comment,
                     'selected': True,
@@ -260,6 +275,18 @@ def get_report_results(run, ss_sample, user, report=None):
             results.append(data)
 
     return {'stvs': results, 'excluded_pinned_variants_count': filtered_variants['excluded_pinned_variants_count']}
+
+
+def update_selected_results(report_results, selected_stvs):
+    for stv in report_results['stvs']:
+        if stv['id'] in [int(i) for i in selected_stvs]:
+            stv['selected'] = True
+        else:
+            stv['selected'] = False
+    # report_results['stvs'] = sorted(
+    #     report_results['stvs'], key=lambda k: k['selected'], reverse=True)
+
+    return report_results
 
 
 # from db.utils.filter_utils import filter_variants, get_filters

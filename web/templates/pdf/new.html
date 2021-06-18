@@ -12,6 +12,9 @@
 
     <style>
         @page {
+            size: a4 portrait;
+
+            background-image: url('{{preview}}');
 
             @frame header_frame {
                 /* Static Frame */
@@ -35,7 +38,7 @@
                 -pdf-frame-content: footer;
                 left: 40pt;
                 width: 515pt;
-                top: 762pt;
+                top: 782pt;
                 height: 40pt;
             }
         }
@@ -84,6 +87,7 @@
             background-color: #f2f2f2
         }
 
+        tr.odd,
         td.odd {
             background-color: #ffffff
         }
@@ -180,7 +184,7 @@
         <h2>RESULTS:</h2>
 
         <table style="border: 1.5px solid black;margin-top: 10px;
-            margin-bottom: 10px;">
+            margin-bottom: 18px;">
             <tr>
                 <td>
                     <table class="tabler">
@@ -216,9 +220,25 @@
     <div>
         <h2>INTERPRETATION:</h2>
 
-        {% for interpretation in interpretations %}
-        {{interpretation|linebreaks}}
-        {%endfor%}
+        {%if interpretations%}
+
+        <table style="width: 100%;margin-top: 10px;margin-bottom: 17px;">
+            {% for interpretation in interpretations %}
+            <tr {%if not forloop.last %}style="padding-bottom: 7px;" {%endif%}>
+                <td style="width: 14%;vertical-align: top;">
+                    <p style="font-weight: bold;">{{interpretation.hgvs_c}}</p>
+                </td>
+                <td>
+                    {{interpretation.comment|linebreaks}}
+                </td>
+            </tr>
+            {%endfor%}
+        </table>
+
+        {%else%}
+        <p>{{no_interpretations}}</p>
+        {%endif%}
+
     </div>
     <div>
         <h2>RECOMMENDATIONS:</h2>
@@ -243,11 +263,6 @@
                 </td>
                 <td>
                     Tax: 0121 335 8028
-                </td>
-            </tr>
-            <tr>
-                <td colspan="4">page <pdf:pagenumber>
-                        of <pdf:pagecount>
                 </td>
             </tr>
         </table>
