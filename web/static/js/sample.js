@@ -1406,7 +1406,46 @@ function SetupReportForm() {
         if ($(event.target).hasClass("prevent-comment-display")) {
             null
         } else {
-            alert('ebreberb')
+            $('#report #report-lightbox').html($('#report .report-info-container').html())
+
+            $(this).addClass('info-active')
+            var hgvs = $(this).attr('data-hgvs')
+            var unpinned = $(this).attr('data-unpinned')
+            var updated = $(this).attr('data-updated')
+            var comment = $(this).attr('data-comment')
+            var previous_comment = $(this).attr('data-previous-comment')
+            var classification = $(this).attr('data-classification')
+            var classification_colour = $(this).attr('data-classification-colour')
+            var previous_classification = $(this).attr('data-previous-classification')
+            var previous_classification_colour = $(this).attr('data-previous-classification-colour')
+
+            $('#report #report-lightbox .title-text').text('Variant information: ' + hgvs)
+
+            $('#report #report-lightbox .report-info-comment').html(comment)
+
+            $('#report #report-lightbox .report-info-classification .text').text(classification)
+            $('#report #report-lightbox .report-info-classification').addClass(classification_colour)
+
+            if (updated == 'classification' || updated == 'both') {
+                $('#report #report-lightbox .previous-classification-container').removeClass('hidden')
+                $('#report #report-lightbox .previous.report-info-classification .text').text(previous_classification)
+                $('#report #report-lightbox .previous.report-info-classification').addClass(previous_classification_colour)
+            }
+
+            if (updated == 'comment' || updated == 'both') {
+                var dmp = new diff_match_patch();
+                var text1 = previous_comment.trim()
+                var text2 = comment.trim()
+                var d = dmp.diff_main(text1, text2);
+                dmp.diff_cleanupSemantic(d);
+                var ds = dmp.diff_prettyHtml(d);
+                $('#report #report-lightbox .report-info-comment').html(ds)
+            }
+
+            $('.existing-report,.new-report').addClass('existing-confirm-check disabled')
+            $('#report #report-lightbox').dimmer({
+                closable: false
+            }).dimmer('show');
         }
     })
 
@@ -1432,8 +1471,6 @@ function SetupReportForm() {
             $('i', this).addClass('check').removeClass('outline')
             $(this).parents('.result-stv').removeClass('deselected').addClass('selected');
         }
-
-        // UpdateCopyButton()
     })
 }
 
@@ -1444,15 +1481,6 @@ $(function () {
 
     var loadReportData = function () {
         var btn = $(this);
-        full_refresh = true
-        if (btn.attr('data-tab') == 'report') {
-            if ($("#report .existing-report.active-instance")[0]) {
-                var full_refresh = false
-            } else {
-                $('.report-main-panel, .new-report').hide()
-                $('.report-create-panel').show()
-            }
-        }
 
         $.ajax({
             url: btn.attr("data-url"),
@@ -1463,23 +1491,18 @@ $(function () {
             },
             success: function (data) {
                 // $('#report-container').html(data.report_container)
-
-                if (full_refresh) {
-                    if (data.show_new_button == 'true') {
-                        $('.report-main-panel').hide()
-                        $('.report-create-panel, .new-report').show()
-                    } else {
-                        $('.report-create-panel').hide()
-                        $('.report-main-panel').show()
-                    }
-                    $('#report #tab-utility-bar').html($(data.report_container).filter('#tab-utility-bar').html())
-                    $('#report #report-form-container').html($(data.report_container).find('#report-form-container').html())
+                if (data.show_new_button) {
+                    $('.report-main-panel').hide()
+                    $('.report-create-panel, .new-report').show()
                 } else {
-                    $('#report #report-form-container .results-section').html($(data.report_container).find('#report-form-container .results-section').html())
-                    $('#report #report-form-container .report-hidden-inputs').html($(data.report_container).find('#report-form-container .report-hidden-inputs').html())
-
+                    $('.report-create-panel').hide()
+                    $('.report-main-panel').show()
                 }
+                $('#report #tab-utility-bar').html($(data.report_container).filter('#tab-utility-bar').html())
+                $('#report #report-form-container').html($(data.report_container).find('#report-form-container').html())
+
                 $('#report .report-pdf').attr('data', '/ajax/generate_report/?context=' + data.report_context_string)
+                $('#report .report-pdf').attr('data-context', data.report_context_string)
                 $('#report .report-dimmer').dimmer('hide');
                 SetupReportForm()
             }
@@ -1501,14 +1524,27 @@ $(function () {
             success: function (data) {
                 if (data.is_valid) {
 
+                    // If info modal is active store the relevent stv id
+                    if ($("#report .results-cards .card.info-active")[0]) {
+                        var active_stv_id = $("#report .results-cards .card.info-active .report-result-toggle").attr('data-id')
+                    }
 
-                    $('#report #tab-utility-bar').html($(data.report_container).filter('#tab-utility-bar').html())
+                    if (data.refresh) {
+                        $('#report #report-form-container .results-section').html($(data.report_container).find('#report-form-container .results-section').html())
+                        $('#report #report-form-container .report-hidden-inputs').html($(data.report_container).find('#report-form-container .report-hidden-inputs').html())
+                        $("input[name=refresh-results]").remove();
+                    } else {
+                        $('#report #tab-utility-bar').html($(data.report_container).filter('#tab-utility-bar').html())
+                        $('#report #report-form-container').html($(data.report_container).find('#report-form-container').html())
 
-
-                    $('#report #report-form-container').html($(data.report_container).find('#report-form-container').html())
+                    }
                     $('#report .report-pdf').attr('data', '/ajax/generate_report/?context=' + data.report_context_string)
+                    $('#report .report-pdf').attr('data-context', data.report_context_string)
                     $('#report .report-dimmer').dimmer('hide');
                     SetupReportForm()
+
+                    // Find updated card with right id and simulate clicking on card to reload updated info.
+                    $('#report .report-result-toggle[data-id="' + active_stv_id + '"]').parents('.card').addClass('info-active').trigger('click')
                 }
             }
         });
@@ -1517,9 +1553,84 @@ $(function () {
 
 
     /* Binding */
-    $('.main-tabs-link[data-tab="report"]').click(loadReportData)
-    $("#report").on("click", ".existing-report:not(.active-instance)", loadReportData);
-    $("#report").on("click", ".new-report:not(.disabled)", loadReportData);
+    $('.main-tabs-link[data-tab="report"]').click(function () {
+        if ($("#report .existing-report.active-instance")[0]) {
+            $('<input>', {
+                type: 'hidden',
+                name: 'refresh-results',
+                value: $('#report .report-pdf').attr('data-context')
+            }).appendTo('#js-report-form');
+            $("#report #js-report-form").submit();
+        } else {
+            $('.report-main-panel, .new-report').hide()
+            $('.report-create-panel').show()
+            loadReportData.call($(this))
+        }
+    })
+
+    $("#report").on("click", ".new-report:not(.disabled)", function () {
+
+        if ($("#report .existing-report.active-instance.modified-report")[0]) {
+
+            $('#report #report-lightbox').html($('#report .report-confirm-discard-container').html())
+
+            var active_report = $('#report .existing-report.active-instance').attr('data-name')
+            text = "Are you sure you want to discard the changes made to '" + active_report + "' and create a new report?"
+            $('#report #report-lightbox .title-text').text('Unsaved changes')
+            $('#report #report-lightbox .content-text').text(text)
+            $('#report #report-lightbox .report-confirm-discard-submit').addClass('open-report').attr('data-url', $(this).attr('data-url'))
+            $(this).addClass('new-confirm-check disabled')
+            $('.existing-report').addClass('new-confirm-check disabled')
+            $('#report #report-lightbox').dimmer({
+                closable: false
+            }).dimmer('show');
+        } else {
+            $('.report-main-panel, .new-report').show()
+            $('.report-create-panel').hide()
+            loadReportData.call($(this))
+        }
+
+    });
+
+    $("#report").on("click", ".existing-report:not(.active-instance,.disabled)", function () {
+        if ($("#report .existing-report.active-instance.modified-report")[0] || $("#report .existing-report.active-instance.unsaved-report")[0]) {
+
+            $('#report #report-lightbox').html($('#report .report-confirm-discard-container').html())
+
+            var active_report = $('#report .existing-report.active-instance').attr('data-name')
+            var new_report = $(this).attr('data-name')
+
+            if ($("#report .existing-report.active-instance.unsaved-report")[0]) {
+                text = "Are you sure you want to discard the unsaved report '" + active_report + "' and open '" + new_report + "'?"
+                $('#report #report-lightbox .title-text').text('Unsaved report')
+                $('.existing-report').addClass('existing-confirm-check disabled')
+            } else {
+                text = "Are you sure you want to discard the changes  made to  '" + active_report + "' and open '" + new_report + "'?"
+                $('#report #report-lightbox .title-text').text('Unsaved changes')
+                $('.existing-report,.new-report').addClass('existing-confirm-check disabled')
+            }
+            $('#report #report-lightbox .content-text').text(text)
+            $('#report #report-lightbox .report-confirm-discard-submit').addClass('open-report').attr('data-url', $(this).attr('data-url'))
+            $(this).addClass('grey')
+            // Show lightbox
+            $('#report #report-lightbox').dimmer({
+                closable: false
+            }).dimmer('show');
+        } else {
+            $('.report-main-panel, .new-report').show()
+            $('.report-create-panel').hide()
+            loadReportData.call($(this))
+        }
+    });
+
+
+    $("#report").on("click", ".open-report", function () {
+        $('#report #report-lightbox').dimmer('hide');
+        loadReportData.call($(this))
+    });
+
+
+    $("#report").on("click", ".js-revert-form", loadReportData);
     $("#report").on("submit", "#js-report-form", SaveReportData);
 
     $("#report").on("click", ".js-save-report", function () {
@@ -1528,6 +1639,14 @@ $(function () {
             $("#report #js-report-form").submit();
         }
 
+    });
+
+    $("#report #report-lightbox").on("click", ".report-confirm-discard-close", function () {
+        $('#report .new-confirm-check').removeClass('new-confirm-check disabled')
+        $('#report .existing-confirm-check').removeClass('existing-confirm-check disabled')
+        $('#report .existing-report').removeClass('grey')
+        $('#report #report-lightbox').dimmer('hide');
+        $('.results-cards .card').removeClass('info-active')
     });
 
 });

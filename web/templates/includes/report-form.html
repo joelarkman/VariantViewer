@@ -44,7 +44,14 @@
             </div>
             <div class="ui raised link one cards results-cards" style="margin-left: -5px;margin-right: -5px;">
                 {% for stv in report_results.stvs %}
-                <a class="ui card result-stv {%if stv.selected %}selected{%else%}deselected{%endif%}">
+                <a class="ui card result-stv {%if stv.selected %}selected{%else%}deselected{%endif%}"
+                    data-unpinned='{{stv.unpinned}}' data-updated='{{stv.updated}}' data-comment='{{stv.comment}}'
+                    data-previous-comment="{{stv.previous_comment|default_if_none:''}}"
+                    data-classification='{{stv.classification}}'
+                    data-classification-colour='{{stv.classification_colour}}'
+                    data-previous-classification='{{stv.previous_classification}}'
+                    data-previous-classification-colour='{{stv.previous_classification_colour}}'
+                    data-hgvs='{{stv.hgvs}}'>
                     <div style="display: flex;padding: 0;">
                         <div style="display: flex;flex: 1;flex-direction: column;padding: 10px;gap: 5px;">
 
@@ -63,7 +70,6 @@
                                     {{stv.classification}}</div>
                             </div>
 
-
                             {%if stv.unpinned %}
                             <div
                                 style="display: flex;border-radius: 4px;border: 1px dashed rgba(34, 36, 38, 0.15);color: rgba(219, 16, 16, 0.68);align-items: center;">
@@ -80,19 +86,10 @@
                                 <span>
                                     <b>Warning:</b>
                                     {%if stv.updated == 'comment'%}Comment{%elif stv.updated == 'classification' %}Classification{%else%}Classification
-                                    and comment{%endif%} has been updated for this variant since it was added to report.
-                                    Save or preview the report to view changes.
+                                    and comment{%endif%} has been updated for this variant since it was added to this
+                                    report. Save or preview the report to view changes.
                                 </span>
-
-
                             </div>
-                            {% elif stv.comment %}
-                            <!-- <div
-                                style="display: flex;border-radius: 4px;border: 1px dashed rgba(34, 36, 38, 0.15);color: rgba(0, 0, 0, .68);justify-content: center;align-items: center;">
-                                <i style="margin: 5px;margin-right: 6px;" class="info circle icon"></i>
-                                Click to generate a PDF report using the set of pinned variants defined for this
-                                sample.
-                            </div> -->
                             {% endif %}
                         </div>
 
@@ -147,7 +144,7 @@
     </form>
 
 
-    {%if report_instance.date_created%}
+    {%if  instance_status != 'new' %}
     <span style="font-size:smaller;margin-top: 5px;">
         Report created {{report_instance.date_created|naturaltime}} by
         {{report_instance.get_user_created.get_full_name}}
@@ -162,4 +159,11 @@
     </div>
     <input type="submit" form="js-report-form" class="ui right floated button js-preview-report"
         style="margin-left: 10px;" value="Preview">
+
+    {%if preview or instance_status == 'new' %}
+    <div class="ui negative button js-revert-form"
+        data-url="{% url 'report_update_or_create' run=run.id ss_sample=ss_sample.id report='default' %}">
+        {%if instance_status == 'new' %}Cancel{%else%}Revert{%endif%}
+    </div>
+    {%endif%}
 </div>

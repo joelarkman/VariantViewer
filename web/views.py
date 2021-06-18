@@ -14,7 +14,7 @@ from db.utils.filter_utils import filter_variants, get_filters
 
 from .models import Comment, Document, Filter, FilterItem, Report
 from .utils.model_utils import LastUpdated
-from .utils.report_utils import context_to_string, get_report_results, render_to_pdf, create_report_context, string_to_context
+from .utils.report_utils import context_to_string, get_report_results, render_to_pdf, create_report_context, string_to_context, update_selected_results
 
 from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm, ReportForm
 
@@ -701,41 +701,61 @@ def report_update_or_create(request, run, ss_sample, report=None):
         report_context = instance.data
         instance_status = instance.id
     else:
+        report_context = None
         instance_status = 'new'
 
     if request.method == "POST":
         form = ReportForm(request.POST, instance=instance)
 
         if form.is_valid():
-            report = form.save(commit=False)
-            report.run = run
-            report.samplesheetsample = ss_sample
+            instance = form.save(commit=False)
+            instance.run = run
+            instance.samplesheetsample = ss_sample
 
             selected_stvs = request.POST.getlist('selected-stvs')
 
-            report.data = create_report_context(
-                run, ss_sample, selected_stvs, report, request.user)
+            if request.POST.get('commit') == 'true':
+                commit = True
+                instance.save()
+            else:
+                commit = False
 
-            report_results = get_report_results(
-                run, ss_sample, request.user, report)
+            instance.data = create_report_context(run, ss_sample,
+                                                  selected_stvs, instance,
+                                                  request.user, commit)
+
+            if request.POST.get('refresh-results'):
+                # If refreshing report tab, generate report data using values from PDF
+                # already on the page (sent via hidden field) not values in form.
+                report_context_string = request.POST.get('refresh-results')
+                report_context_data = string_to_context(report_context_string)
+            else:
+                report_context_data = instance.data
+                report_context_string = context_to_string(report_context_data)
+
+            report_results = get_report_results(run, ss_sample,
+                                                request.user, report_context_data)
+
+            if request.POST.get('refresh-results'):
+                data['refresh'] = True
+                report_results = update_selected_results(
+                    report_results, selected_stvs)
+
+            if commit:
+                instance.save()
+                instance_status = instance.id
+
+            if report_context_data['preview']:
+                context.update({'preview': True})
+                context.update({'unsaved_name': instance.data['title']})
 
             data['is_valid'] = True
-            report_context_string = context_to_string(report.data)
-
-            commit_status = request.POST.get('commit')
-            if commit_status == 'true':
-                report.save()
-                instance_status = report.id
-            else:
-                context.update({'preview': True})
-                context.update({'unsaved_name': report.data['title']})
-
     else:
         # Populate report form using existing or blank instance.
         form = ReportForm(instance=instance)
 
         report_results = get_report_results(
-            run, ss_sample, request.user, instance)
+            run, ss_sample, request.user, context=report_context)
 
         if not instance:
             auto_selected_stvs = [
@@ -745,10 +765,8 @@ def report_update_or_create(request, run, ss_sample, report=None):
             context.update({'default_name': report_context['title']})
 
         if report == 'default' and not instance:
-            data['show_new_button'] = 'true'
+            data['show_new_button'] = True
             context.update({'show_new_button': True})
-        else:
-            data['show_new_button'] = 'false'
 
         # Use custom function to convert context needed to generate report to a URL compatible string.
         report_context_string = context_to_string(report_context)
