@@ -50,6 +50,34 @@
    .hidden {
        display: none !important;
    }
+
+   .fake-textarea:focus {
+    color: rgba(0, 0, 0, .95);
+    border-color: #85b7d9;
+    border-radius: .28571429rem;
+    background: #fff;
+}
+
+.fake-textarea {
+    margin: 0;
+    -webkit-appearance: none;
+    padding: .78571429em 1em;
+    background: #fff;
+    border: 1px solid rgba(34, 36, 38, .15);
+    outline: 0;
+    color: rgba(0, 0, 0, .87);
+    border-radius: .28571429rem;
+    -webkit-box-shadow: 0 0 0 0 transparent inset;
+    box-shadow: 0 0 0 0 transparent inset;
+    -webkit-transition: color .1s ease, border-color .1s ease;
+    transition: color .1s ease, border-color .1s ease;
+    font-size: 1em;
+    line-height: 1.2857;
+    height: 100%;
+    overflow-y: auto;
+    text-align: left;
+    caret-color: transparent;
+}
    
    /* ===========
       PAGE HEADER 
