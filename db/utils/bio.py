@@ -268,7 +268,8 @@ class VariantManager:
         if self._transcript_variant_df.empty:
             df = self.variant_df
             self._transcript_variant_df = df[
-                df.Feature_type == "Transcript"
+                (df.Gene.isin(self.gene_df.Gene.unique()))
+                & (df.Feature_type == "Transcript")
             ].drop_duplicates(
                 subset=["Feature", "REF", "ALT"]
             )
