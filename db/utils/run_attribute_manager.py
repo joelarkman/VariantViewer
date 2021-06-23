@@ -534,7 +534,10 @@ class RunAttributeManager:
             db_variant = self.related_instance(Variant, filters=variant_f)
             db_vcf = self.related_instance(VCF, filters=vcf_f)
             vr_f = {'variant_id': db_variant.id, 'vcf_id': db_vcf.id}
-            db_variant_report = self.related_instance(Variant, filters=vr_f)
+            db_variant_report = self.related_instance(
+                VariantReport,
+                filters=vr_f
+            )
 
             if filters:
                 keys = variant_manager.filter_keys
