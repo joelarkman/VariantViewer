@@ -265,7 +265,7 @@ class VariantManager:
 
     @property
     def transcript_variant_df(self):
-        if self._transcript_variant_df.empty:
+        if len(self._transcript_variant_df.index) == 0:
             df = self.variant_df
             self._transcript_variant_df = df[
                 (df.Gene.isin(self.gene_df.Gene.unique()))
