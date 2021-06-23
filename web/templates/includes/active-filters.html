@@ -1,0 +1,91 @@
+<div class="subtitle">FILTERS:</div>
+{% if filters.active_filter %}
+
+{% if filters.active_filter == filters.blank_filter %}
+
+<a class="ui red right  icon tag label selectable" id="mod_filter" data-position="bottom center"
+    data-html="<span>Add filters</span>"
+    data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filters.active_filter.id %}">
+    ALL FILTERS DISABLED
+    <i class="sliders horizontal icon"></i>
+</a>
+
+{% else %}
+
+<!-- Scrollable filters display -->
+<a id="left-button" class="ui circular icon label" style="margin-right: 5px;">
+    <i class="arrow alternate left icon"></i>
+</a>
+
+<div id='left-ellipses' style='display: inline-flex;align-items: center;position: relative;pointer-events: none;'>
+    <div
+        style="position: absolute;left: 2px;width: 60px;background-color: #5c5c5cde;text-align: center;color: white;border-radius: 5px;border: 1px white solid;">
+        <span style="font-size: smaller; font-weight: bold;">{{filters.active_filter.items.count}} items</span>
+    </div>
+</div>
+
+
+
+<!-- Make sure content has flex-shrink:0 -->
+<div class="active-filters-container">
+    {% for item in filters.active_filter.items.all %}
+    <div class="ui label" style="flex-shrink: 0;">
+        {{item.field}}
+        <div class="detail">{{item.get_filter_type_display}}</div>
+        <div class="detail">{{item.value}}</div>
+    </div>
+
+    {% if not forloop.last %}
+    <div class="ui grey circular label" style="margin-left: 3px;margin-right: 3px;">
+        {% if filters.active_filter.match == 'all' %}
+        &
+        {% else %}
+        or
+        {%endif%}
+    </div>
+    {%endif%}
+    {% endfor %}
+</div>
+
+<div id='right-ellipses' style='display: inline-flex;align-items: center;position: relative;pointer-events: none;'>
+    <div
+        style="position: absolute;right: 2px;width: 60px;background-color: #5c5c5cde;text-align: center;color: white;border-radius: 5px;border: 1px white solid;">
+        <span style="font-size: smaller; font-weight: bold;">{{filters.active_filter.items.count}} items</span>
+    </div>
+</div>
+
+<a id="right-button" class="ui circular icon label" style="margin-left:5px;margin-right: 15px;">
+    <i class="arrow alternate right icon"></i>
+</a>
+
+{% if filters.active_filter == filters.pipeline_default_filter %}
+<a class="ui grey right icon tag label selectable" data-position="bottom center" data-html="<span>Modify filters</span>"
+    id="mod_filter"
+    data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filters.active_filter.id %}">
+    DEFAULT PRESET:
+    <div class="detail">'{{filters.active_filter.name}}'</div>
+    <i class="sliders horizontal icon"></i>
+</a>
+
+{% else %}
+<a class="ui orange right icon tag label selectable" data-position="bottom center"
+    data-html="<span>Modify filters</span>" id="mod_filter"
+    data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filters.active_filter.id %}">
+    USER PRESET:
+    <div class="detail">'{{filters.active_filter.name}}'</div>
+    <i class="sliders horizontal icon"></i>
+</a>
+{% endif %}
+
+{%endif%}
+
+{%else%}
+
+<a class="ui grey right  icon tag label selectable" id="mod_filter" data-position="bottom center"
+    data-html="<span>Add filters</span>"
+    data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter='None' %}">
+    ADD FILTERS
+    <i class="sliders horizontal icon"></i>
+</a>
+
+{%endif%}

@@ -1,0 +1,191 @@
+<style>
+    .set-status-modal {
+        display: flex;
+        width: 33cm;
+        height: 20cm;
+        margin: 0 !important;
+    }
+
+    @media (max-width: 45cm) {
+        .set-status-modal {
+            width: 80%
+        }
+    }
+
+    @media (max-height: 30cm) {
+        .set-status-modal {
+            height: 80%
+        }
+    }
+</style>
+
+
+<div class="ui segments set-status-modal">
+    <div class="ui left aligned clearing segment">
+        <h3 class="ui header" style="margin:0">Run QC Check: {{run.worksheet}} </h3>
+    </div>
+    <div class="ui left aligned segment" style="display: flex;flex: 1;overflow: auto;padding: 0;">
+
+        <div class="status-options">
+            <div class="pass option" data-value="pass">
+                Pass
+            </div>
+
+            <div style="background-color: #D5D5D6;height: 1px;"></div>
+            <div class="fail option" data-value="fail">
+                Fail
+            </div>
+        </div>
+
+        <div style="flex: 1;padding: 0px;">
+            <!-- <div class="ui segment" style="align-self: stretch;">qc stuff!</div>
+
+            {% for sample in run.samplesheet.sample_set.all %}
+            <div class="ui raised segment">{{sample}}</div>
+            {% endfor %} -->
+
+            <iframe src="https://multiqc.info/examples/wgs/multiqc_report.html" width="100%" height="100%"
+                style="border: 0;">
+                <p>Your browser does not support iframes.</p>
+            </iframe>
+        </div>
+
+
+
+
+        <form id='worksheet-detail-form' method="post" action="{% url 'run_first_check' pk=run.id %}"
+            class="js-worksheet-detail-form">
+
+            {% csrf_token %}
+
+            <input type="hidden" id="qc_status_input" name="qc_status" value="">
+
+        </form>
+        <!-- <span class='ui grey small text' style="text-align: left"> Last modified by </span> -->
+
+
+    </div>
+    <div class="ui secondary left aligned clearing segment">
+        <div style="margin-left: 10px;" class="ui right floated primary disabled button worksheet-detail-save">Save
+        </div>
+        <div class="ui right floated button worksheet-detail-close">Cancel</div>
+    </div>
+</div>
+
+
+
+<div class="ui segments confirm-status-modal" style="display: flex;min-width: 40%;max-width: 90%;max-height: 90%;">
+    <div class="ui left aligned clearing segment">
+        <h3 class="ui header" style="margin:0" data-worksheet="{{run.worksheet|upper }}"></h3>
+    </div>
+    <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
+        <span class="body-text"></span>
+    </div>
+    <div class="ui secondary left aligned clearing segment">
+        <input type="submit" value="Confirm" form="worksheet-detail-form" class="ui right floated negative button"
+            style="margin-left: 10px;">
+        <div class="ui right floated button cancel-submit">Cancel</div>
+    </div>
+</div>
+
+<style>
+    .check-option {
+        display: flex;
+        flex: 0 0 5%;
+        align-items: center;
+        justify-content: center;
+        background-color: grey;
+    }
+
+    .status-options {
+        display: flex;
+        flex: 0 0 10%;
+        flex-direction: column;
+        border-left: rgba(34, 36, 38, 0.15);
+        border-right: 2.25px solid #D5D5D6;
+
+    }
+
+    .option {
+        display: flex;
+        flex: 1;
+        opacity: 0.6;
+        align-items: center;
+        justify-content: center;
+        background-color: rgb(211, 211, 212);
+        cursor: pointer;
+        font-weight: 700;
+        transition: background-color 100ms linear;
+        transition: opacity 100ms ease-in;
+
+    }
+
+    .option:not(.selected):hover {
+        opacity: 1;
+        background-color: rgb(202, 203, 205);
+    }
+
+    .option:not(.selected):active {
+        opacity: 1;
+        box-shadow: inset 0px 0px 10px #88888867 !important;
+    }
+
+    .pass {
+        color: rgba(0, 128, 0, 0.7);
+    }
+
+    .fail {
+        color: rgba(255, 0, 0, 0.7);
+    }
+
+    .pass.option.selected {
+        background-color: rgba(66, 160, 66, 0.15);
+        transition: background-color 200ms linear;
+    }
+
+    .fail.option.selected {
+        background-color: rgb(212, 0, 0, 0.15);
+        transition: background-color 200ms linear;
+
+    }
+
+    .option.selected {
+        cursor: default;
+        -webkit-box-shadow: inset 0px 0px 5px #33333352 !important;
+        -moz-box-shadow: inset 0px 0px 5px #33333352 !important;
+        box-shadow: inset 0px 0px 5px #33333352 !important;
+        opacity: 1;
+        /* color: rgba(255, 255, 255, 0.9); */
+        /* border: 1px solid #555; */
+    }
+</style>
+
+<script>
+    $('.confirm-status-modal').hide()
+
+    $('.option').click(function () {
+        $('.option').removeClass('selected')
+        $(this).addClass('selected')
+        $('.worksheet-detail-save').removeClass('disabled')
+
+        $('#qc_status_input').val($(this).attr('data-value'))
+
+        header = $(this).text() + ' ' + $('.confirm-status-modal .header').attr('data-worksheet') + ' QC'
+        body_text = 'Are you sure you want to ' + $(this).attr('data-value') + ' this run?'
+        $('.confirm-status-modal .header').text(header)
+        $('.confirm-status-modal .body-text').text(body_text)
+    })
+
+    $('.cancel-submit').click(function () {
+        $('.confirm-status-modal').fadeOut(function () {
+            $('.set-status-modal').fadeIn();
+        })
+    })
+
+    $('.worksheet-detail-save').click(function () {
+        $('.set-status-modal').fadeOut(function () {
+            $('.confirm-status-modal').fadeIn();
+        })
+    })
+
+</script>

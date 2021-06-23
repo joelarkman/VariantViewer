@@ -1,0 +1,25 @@
+{% load humanize %}
+
+<div class='ui raised inverted {{stv.comments.last.classification_colour|default:"blue"}} segment variant-classification'
+    style="display: flex;flex-direction: column;padding: 5px;min-width: 120px;text-align: right;align-items: center;"
+    data-position='bottom right'>
+    <span style="font-size: smaller;margin-top: -2px;">CLASSIFICATION:</span>
+    <span
+        style="font-weight: bold;font-size:larger;margin-top: -2px;margin-left: 5px;margin-right: 5px;">{% if stv.comments.last %}{{stv.comments.last.get_classification_display}}{%else%}Unclassified{%endif%}</span>
+</div>
+
+<div class="ui popup" style="padding: 0;">
+    <div style="padding: 15px;padding-bottom: 10px;padding-top: 10px;width:max-content;text-align: center;">
+        <span style="font-size: smaller;">{% if stv.comments.last %}Last modified
+            {{stv.comments.last.get_last_modified.classification.datetime|naturaltime}} by
+            {{stv.comments.last.get_last_modified.classification.user.get_full_name}}
+            {%else%}
+            No classification provided yet
+            {%endif%}
+        </span>
+    </div>
+    <div class="ui attached button update-classification-button"
+        style="padding:15px;padding-top: 8px;padding-bottom: 8px;">
+        <span style='font-size:smaller;'>Update classification</span>
+    </div>
+</div>

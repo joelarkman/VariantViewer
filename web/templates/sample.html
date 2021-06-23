@@ -8,8 +8,11 @@
 
 {% block javascript %}
 <script src="{% static 'dependencies/jbrowse/jbrowse-linear-genome-view.js' %}"></script>
+<script src="{% static 'dependencies/diff_match_patch/diff_match_patch.js' %} "></script>
+<script src="{% static 'dependencies/jquery-panzoom/panzoom.min.js' %}"></script>
 
 <script src="{% static 'js/sample.js' %}"></script>
+
 {% endblock %}
 
 {% block content %}
@@ -21,24 +24,56 @@
     <div id='page-header-title'>
 
         <div id="page-header-title-leftstack">
-            <h1 id="page-header-title-text">NGS Results: Sample No. 273721 </h1>
-            <div class="ui large breadcrumb">
-                <a class="ui compact tiny grey basic inverted button">Home</a>
+            <div id="page-header-title-text">
+                <span class="large-text">NGS Results</span>
+                <span class="divider">|</span>
+                <div class="small-text-column-container">
+                    <span class="small-text-top">PATIENT:</span>
+                    <span class="small-text-bottom">{{ss_sample.sample.patient.first_name}}
+                        {{ss_sample.sample.patient.last_name}}</span>
+                </div>
+                <span class="divider">|</span>
+                <div class="small-text-column-container">
+                    <span class="small-text-top">SAMPLE (LAB NO):</span>
+                    <span class="small-text-bottom">{{ ss_sample.sample_identifier }}
+                        ({{ss_sample.sample.lab_no }})</span>
+                </div>
+                <span class="divider">|</span>
+                <div class="small-text-column-container">
+                    <span class="small-text-top">WORKSHEET:</span>
+                    <span class="small-text-bottom">{{run.worksheet}}</span>
+                </div>
+                <span class="divider">|</span>
+                <div class="small-text-column-container">
+                    <span class="small-text-top">PIPELINE:</span>
+                    <span class="small-text-bottom">{{run.pipeline_version.pipeline}}
+                        (v.{{run.pipeline_version.version}}) </span>
+                </div>
+                <span class="divider">|</span>
+                <div class="small-text-column-container">
+                    <span class="small-text-top">GENE KEY:</span>
+                    <span class="small-text-bottom">{{ss_sample.gene_key}} </span>
+                </div>
+            </div>
+
+            <div class="ui small breadcrumb">
+                <a href="{% url 'home' section=section.slug %}"
+                    class="ui compact tiny grey basic inverted button">{{section}}</a>
                 <i class="right chevron icon divider"></i>
-                <a class="ui compact tiny grey basic inverted button">Rare disease</a>
+                <a href="{% url 'search' section=section.slug %}"
+                    class="ui compact tiny grey basic inverted button">Search</a>
                 <i class="right chevron icon divider"></i>
-                <a href="{% url 'search' %}" class="ui compact tiny grey basic inverted button">Search</a>
-                <i class="right chevron icon divider"></i>
-                <a class="ui compact tiny grey basic inverted button">Joe Bloggs</a>
-                <i class="right chevron icon divider"></i>
-                <div class="ui compact tiny grey basic inverted disabled button">Sample 2</div>
+                <div class="ui compact tiny grey basic inverted disabled button">{{ ss_sample.sample_identifier }}
+                    ({{ss_sample.sample.lab_no }})</div>
             </div>
         </div>
 
         <div id="page-header-title-right-buttons" class="ui three item menu">
             <a class="active item main-tabs-link active" data-tab='variants-tab'>Variants</a>
-            <a class="item main-tabs-link" data-tab="qc">QC Metrics</a>
+            <!-- <a class="item main-tabs-link" data-tab="qc">QC Metrics</a> -->
             <a class="item main-tabs-link" data-tab="coverage">Coverage</a>
+            <a class="item main-tabs-link" data-tab="report"
+                data-url="{% url 'report_update_or_create' run=run.id ss_sample=ss_sample.id report='default' %}">Report</a>
         </div>
 
     </div>
@@ -54,48 +89,7 @@
 
         <div class="item-divider"></div>
 
-        <div class="subtitle">FILTERS:</div>
-
-        <!-- Scrollable filters display -->
-        <a id="left-button" class="ui circular icon label" style="margin-right: 5px;">
-            <i class="arrow alternate left icon"></i>
-        </a>
-
-        <!-- Make sure content has flex-shrink:0 -->
-        <div class="active-filters-container">
-            <div class="ui label" style="flex-shrink: 0;">
-                Param1
-                <div class="detail">value</div>
-            </div>
-            <div class="ui label" style="flex-shrink: 0;">
-                Param2
-                <div class="detail">455</div>
-            </div>
-            <div class="ui label" style="flex-shrink: 0;">
-                Param3
-                <div class="detail">va564564lue</div>
-            </div>
-            <div class="ui label" style="flex-shrink: 0;">
-                Param1
-                <div class="detail">value</div>
-            </div>
-            <div class="ui label" style="flex-shrink: 0;">
-                Param1
-                <div class="detail">value</div>
-            </div>
-            <div class="ui label" style="flex-shrink: 0;">
-                Param1
-                <div class="detail">value</div>
-            </div>
-        </div>
-
-        <a id="right-button" class="ui circular icon label" style="margin-left:5px">
-            <i class="arrow alternate right icon"></i>
-        </a>
-
-        <div id="mod_filter" class="ui small icon button" data-tooltip='Modify filters' data-position="bottom right"
-            style="margin-left: 15px;">
-            <i class="filter icon"></i>
+        <div class="filters-sub-menu-container" style="display:flex; align-items: center;flex: 1;">
         </div>
 
         <div class="right-float">
@@ -125,104 +119,28 @@
     <!-- Main Variant Panel -->
     <div id="variants-main-panel">
 
-        <div class="ui vertical menu mini_tabs" id="variant-menu">
-
-            <div id="variant-menu-topper">
-                <button id="menu-toggle-open" class="active circular ui icon button">
-                    <i class="icon bars"></i>
-                </button>
+        <div class="ui dimmable vertical menu" id="variant-menu"
+            data-url="{% url 'load_variant_list' run=run.id ss_sample=ss_sample.id %}">
+            <div id="variant-list-content-loader" class="ui inverted dimmer">
+                <div class="ui large fast loader"></div>
             </div>
-
-
-            <!-- when adding for loop, first loop use margin top of 10px and all others use 15px, last item needs bottom border -->
-
-            <div class="gene">
-                <div class='title' style="margin-top: 10px;">
-                    <b>ABRA</b>
-                    <a class="ui horizontal right icon label" style="margin-left: 5px;">
-                        NM_012654.3
-                        <i class="sync icon"></i>
-                    </a>
-                </div>
-
-                <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' %}" data-chr="3"
-                    data-location="121973128" style="border-bottom:0.5px solid #E8E9E9;">
-
-                    <div class="variant-title">
-                        c.20876G>T / p.W6889L
-                    </div>
-
-                    <div class="variant-attribute-container">
-                        <div class="variant-attribute">
-                            <span style="font-weight: bold;">Exonic SNV</span>
-                            <span
-                                style="font-weight: lighter;font-style: italic;font-size: small;color: #5D5D5D;">Non-synonymous</span>
-                        </div>
-                    </div>
-
-                </a>
-            </div>
-
-            <div class="gene">
-                <div class="title" style='margin-top:15px'>
-                    <b>BRCA 1</b>
-                    <a class="ui horizontal right icon label" style="margin-left: 5px;">
-                        NM_012654.3
-                        <i class="sync icon"></i>
-                    </a>
-                </div>
-
-                <a class="item mini-tabs-link" data-tab="second">
-                    <div class="variant-title">
-                        c.20876G>T / p.W6889L
-                    </div>
-
-                    <div class="variant-attribute-container">
-
-                        <div class="variant-attribute">
-                            <span style="font-weight: bold;">Intronic</span>
-                            <!-- <span
-                                style="font-weight: lighter;font-style: italic;font-size: small;color: #5D5D5D;">-</span> -->
-                        </div>
-
-                    </div>
-                </a>
-
-                <a class="item mini-tabs-link" data-tab='third' style="border-bottom:0.5px solid #E8E9E9;">
-
-                    <div class="variant-title">
-                        c.20876G>T / p.W6889L
-                    </div>
-
-                    <div class="variant-attribute-container">
-
-                        <div class="variant-attribute">
-                            <span style="font-weight: bold;">Exonic SNV</span>
-                            <span style="font-weight: lighter;font-style: italic;font-size: small;color: #5D5D5D;">
-                                Synonymous
-                            </span>
-                        </div>
-
-                    </div>
-
-                </a>
-            </div>
-
         </div>
 
 
-        <div class="ui left attached segment mini-tabs-content-container" id="variant-content-container">
+        <div class="ui left attached segment" id="variant-content-container">
 
             <div id="variant-content-loader" class="ui inverted dimmer">
                 <div class="ui large fast loader"></div>
             </div>
 
+            <!-- This div is populated with variant details using AJAX -->
             <div class="mini-tabs-content" style="padding: 15px;"></div>
 
             <div class="basic_message" style="display: flex;flex-direction: column;flex: 1; min-height: 100%;">
 
                 <button class="ui circular icon button menu-toggle-closed circular"
-                    style="margin:15px;margin-top: 15px;margin-left: 16px;align-self: flex-start;display: none;">
+                    style="margin:15px;margin-top: 15px;margin-left: 16px;align-self: flex-start;display: none;"
+                    data-tooltip="Expand Menu" data-position="bottom left">
                     <i class="icon bars"></i>
                 </button>
 
@@ -234,7 +152,7 @@
 
 
                     <!-- Placeholder sample summary values.... -->
-                    <span style="font: italic;text-align: center;color: #aaaaaa;">
+                    <!-- <span style="font: italic;text-align: center;color: #aaaaaa;">
                         <strong> Variants: </strong>
                         {{summary.total}} 3/27
                         {{total_summary.total}} |
@@ -250,7 +168,7 @@
                         <strong> Synonymous: </strong>
                         {{summary.synonymous}} 7/20
                         {{total_summary.synonymous}}
-                    </span>
+                    </span> -->
 
 
                 </div>
@@ -258,54 +176,6 @@
             </div>
 
         </div>
-
-        <!-- Filter settings content (this gets loaded into lightbox dimmer when activated) -->
-        <div id='filter-settings' style="display:none">
-
-            <div class="ui segments" style="display: flex;min-width: 60%;max-width: 90%;max-height: 90%;">
-                <div class="ui left aligned clearing segment">
-                    <h3 class="ui header" style="margin:0">Modify Filters</h3>
-                </div>
-                <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
-
-                    <div class="ui horizontal segments">
-                        <div class="ui segment">
-                            <p></p>
-                        </div>
-                        <div class="ui segment">
-                            <form class="ui form">
-                                <div class="field">
-                                    <label>First Name</label>
-                                    <input type="text" name="first-name" placeholder="First Name">
-                                </div>
-                                <div class="field">
-                                    <label>Last Name</label>
-                                    <input type="text" name="last-name" placeholder="Last Name">
-                                </div>
-                                <div class="field">
-                                    <div class="ui checkbox">
-                                        <input type="checkbox" tabindex="0" class="hidden">
-                                        <label>I agree to the Terms and Conditions</label>
-                                    </div>
-                                </div>
-                                <button class="ui button" type="submit">Submit</button>
-                            </form>
-                        </div>
-                        <div class="ui segment">
-                            <p></p>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="ui secondary left aligned clearing segment">
-                    <div class="ui right floated primary button">Save</div>
-                    <div class="ui right floated button filter-settings-close">Cancel</div>
-
-                </div>
-            </div>
-
-        </div>
-
 
         <!-- Lightbox dimmer populated with images/pdfs or filter settings via js. -->
         <div id="lightbox" class="ui light dimmer">
@@ -314,11 +184,12 @@
     </div>
 
     <!-- Genome Browser -->
-    <div class="browser-collapsed hidden" id="browser">
+    <div class="browser-collapsed" style="display: none;" id="browser">
         <div class="ui attached segment" style="padding: 5px;border: none;">
-            <!-- <div id="igv-div"></div> -->
-            <div id="jbrowse_linear_view" data-sample='testing' data-vcf='{{ vcf }}' data-tbi='{{ tbi }}'
-                data-bam='{{ bam }}' data-bai='{{ bai }}' data-media-url='{{ MEDIA_URL }}'>
+            <div id="jbrowse_linear_view" data-sample='{{ss_sample.sample.patient.first_name}}
+            {{ss_sample.sample.patient.last_name}} - {{ ss_sample.sample_identifier }}
+            ({{ss_sample.sample.lab_no }})' data-vcf='{{ vcf }}' data-tbi='{{ tbi }}' data-bam='{{ bam }}'
+                data-bai='{{ bai }}' data-media-url='{{ MEDIA_URL }}'>
             </div>
 
         </div>
@@ -373,7 +244,7 @@
         </span>
 
         <div class="ui small icon input">
-            <input type="text" placeholder="" id="mySearch">
+            <input type="search" placeholder="" id="mySearch">
             <i class="search icon"></i>
         </div>
 
@@ -393,9 +264,10 @@
 
 
         <div class="ui attached segment"
-            style="padding: 0;border-top: none;flex: 1;overflow-y: auto;background-color: #F8F8F8;">
+            style="padding: 0;border-top: none;flex: 1;overflow-y:scroll;background-color: #F8F8F8;">
 
-            <table class='ui coverage-tables selectable celled table ' style="width: 100%;">
+            <table id='gene-table' class='ui coverage-tables selectable celled table ' style="width: 100%;"
+                data-run={{run.id}} data-ss_sample='{{ss_sample.id}}'>
 
                 <colgroup>
                     <col style="width: 220px;">
@@ -421,76 +293,69 @@
                     <tr>
                         <th> Gene </th>
 
+                        <th class="toggle-cols"> 10x </th>
+                        <th class="toggle-cols"> 20x </th>
+                        <th class="toggle-cols"> 30x </th>
+                        <th class="toggle-cols"> 40x </th>
+                        <th class="toggle-cols"> 50x </th>
                         <th class="toggle-cols"> 100x </th>
-                        <th class="toggle-cols"> 200x </th>
-                        <th class="toggle-cols"> 300x </th>
-                        <th class="toggle-cols"> 400x </th>
-                        <th class="toggle-cols"> 500x </th>
-                        <th class="toggle-cols"> 600x </th>
+
 
                         <th> Min </th>
                         <th> Max </th>
                         <th> Mean </th>
 
+                        <th> pct > 10x </th>
+                        <th> pct > 20x </th>
+                        <th> pct > 30x </th>
+                        <th> pct > 40x </th>
+                        <th> pct > 50x </th>
                         <th> pct > 100x </th>
-                        <th> pct > 200x </th>
-                        <th> pct > 300x </th>
-                        <th> pct > 400x </th>
-                        <th> pct > 500x </th>
-                        <th> pct > 600x </th>
-
                     </tr>
 
                 </thead>
 
-                <tbody>
+                <!-- <tbody>
+
+                    {% for gene in excelreport.genereport_set.all %}
 
                     <tr>
+                        <td> {{gene.gene.hgnc_name}} </td>
 
-                        <td> test </td>
+                        <td> {{gene.coverage_info.cov_10x}} </td>
+                        <td> {{gene.coverage_info.cov_20x}} </td>
+                        <td> {{gene.coverage_info.cov_30x}} </td>
+                        <td> {{gene.coverage_info.cov_40x}} </td>
+                        <td> {{gene.coverage_info.cov_50x}} </td>
+                        <td> {{gene.coverage_info.cov_100x}} </td>
 
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
+                        <td> {{gene.coverage_info.cov_min}} </td>
+                        <td> {{gene.coverage_info.cov_max}} </td>
+                        <td> {{gene.coverage_info.cov_mean|floatformat}} </td>
 
-                        <td> 150 </td>
-                        <td> 490 </td>
-                        <td> 312 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="warning"> 86 </td>
-                        <td class="warning"> 85 </td>
-                        <td class="negative"> 70 </td>
+                        {% for percentage in gene.coverage_info.get_percentages %}
+
+                        {% if percentage > 95 %}
+
+                        <td class='positive'> {{percentage}} </td>
+
+                        {% elif percentage > 80 %}
+
+                        <td class='warning'> {{percentage}} </td>
+
+                        {% else %}
+
+                        <td class='negative'> {{percentage}} </td>
+
+                        {% endif %}
+
+                        {% endfor %}
 
                     </tr>
 
-                    <tr>
+                    {% endfor %}
 
-                        <td> second </td>
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
-
-                        <td> 250 </td>
-                        <td> 350 </td>
-                        <td> 300 </td>
-                        <td class="positive"> 94 </td>
-                        <td class="positive"> 93 </td>
-                        <td class="positive"> 90 </td>
-                        <td class="warning"> 80 </td>
-                        <td class="warning"> 72 </td>
-                        <td class="negative"> 60 </td>
-
-                    </tr>
-
-                </tbody>
+                </tbody> -->
 
             </table>
 
@@ -513,9 +378,6 @@
 
 
             <div class="right-float">
-                <!-- <div id='max' class="ui button">test</div> -->
-
-                <!-- <input type="text" id="max" name="max"> -->
                 <div class="item-divider"></div>
                 <span class="subtitle">EXON COVERAGE</span>
             </div>
@@ -523,9 +385,10 @@
         </div>
 
         <div class="ui attached segment"
-            style="padding: 0;border-top: none;flex: 1;overflow-y: auto;background-color: #F8F8F8;">
+            style="padding: 0;border-top: none;flex: 1;overflow-y: scroll;background-color: #F8F8F8;">
 
-            <table id="exon-table" class='ui coverage-tables selectable celled table ' style="width: 100%;">
+            <table id="exon-table" class='ui coverage-tables selectable celled table ' style="width: 100%;"
+                data-run={{run.id}} data-ss_sample='{{ss_sample.id}}'>
                 <colgroup>
                     <col style="width: 110px;">
                     <col style="width: 110px;">
@@ -551,294 +414,68 @@
                         <th> Gene </th>
                         <th> Exon </th>
 
+                        <th class="toggle-cols"> 10x </th>
+                        <th class="toggle-cols"> 20x </th>
+                        <th class="toggle-cols"> 30x </th>
+                        <th class="toggle-cols"> 40x </th>
+                        <th class="toggle-cols"> 50x </th>
                         <th class="toggle-cols"> 100x </th>
-                        <th class="toggle-cols"> 200x </th>
-                        <th class="toggle-cols"> 300x </th>
-                        <th class="toggle-cols"> 400x </th>
-                        <th class="toggle-cols"> 500x </th>
-                        <th class="toggle-cols"> 600x </th>
+
 
                         <th> Min </th>
                         <th> Max </th>
                         <th> Mean </th>
 
+                        <th> pct > 10x </th>
+                        <th> pct > 20x </th>
+                        <th> pct > 30x </th>
+                        <th> pct > 40x </th>
+                        <th> pct > 50x </th>
                         <th> pct > 100x </th>
-                        <th> pct > 200x </th>
-                        <th> pct > 300x </th>
-                        <th> pct > 400x </th>
-                        <th> pct > 500x </th>
-                        <th> pct > 600x </th>
-
                     </tr>
 
                 </thead>
 
                 <tbody>
 
+                    {% for exon in excelreport.exonreport_set.all %}
+
                     <tr>
+                        <td> {{exon.exon.transcript.gene.hgnc_name}} </td>
+                        <td> {{exon.exon.number}} </td>
 
-                        <td> test </td>
-                        <td> exon 1</td>
+                        <td> {{exon.coverage_info.cov_10x}} </td>
+                        <td> {{exon.coverage_info.cov_20x}} </td>
+                        <td> {{exon.coverage_info.cov_30x}} </td>
+                        <td> {{exon.coverage_info.cov_40x}} </td>
+                        <td> {{exon.coverage_info.cov_50x}} </td>
+                        <td> {{exon.coverage_info.cov_100x}} </td>
 
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
+                        <td> {{exon.coverage_info.cov_min}} </td>
+                        <td> {{exon.coverage_info.cov_max}} </td>
+                        <td> {{exon.coverage_info.cov_mean|floatformat}} </td>
 
-                        <td> 150 </td>
-                        <td> 490 </td>
-                        <td> 312 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="warning"> 86 </td>
-                        <td class="warning"> 85 </td>
-                        <td class="negative"> 70 </td>
+                        {% for percentage in exon.coverage_info.get_percentages %}
+
+                        {% if percentage > 95 %}
+
+                        <td class='positive'> {{percentage}} </td>
+
+                        {% elif percentage > 80 %}
+
+                        <td class='warning'> {{percentage}} </td>
+
+                        {% else %}
+
+                        <td class='negative'> {{percentage}} </td>
+
+                        {% endif %}
+
+                        {% endfor %}
 
                     </tr>
 
-                    <tr>
-
-                        <td> test </td>
-                        <td> exon 2</td>
-
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
-
-                        <td> 150 </td>
-                        <td> 490 </td>
-                        <td> 312 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="warning"> 86 </td>
-                        <td class="warning"> 85 </td>
-                        <td class="negative"> 70 </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td> test </td>
-                        <td> exon 3</td>
-
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
-
-                        <td> 150 </td>
-                        <td> 490 </td>
-                        <td> 312 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="warning"> 86 </td>
-                        <td class="warning"> 85 </td>
-                        <td class="negative"> 70 </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td> test </td>
-                        <td> exon 4</td>
-
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
-
-                        <td> 150 </td>
-                        <td> 490 </td>
-                        <td> 312 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="warning"> 86 </td>
-                        <td class="warning"> 85 </td>
-                        <td class="negative"> 70 </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td> test </td>
-                        <td> exon 5</td>
-
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
-
-                        <td> 50 </td>
-                        <td> 490 </td>
-                        <td> 312 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="positive"> 99 </td>
-                        <td class="warning"> 86 </td>
-                        <td class="warning"> 85 </td>
-                        <td class="negative"> 70 </td>
-
-                    </tr>
-
-
-                    <tr>
-
-                        <td> second </td>
-                        <td> exon 1</td>
-
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
-
-                        <td> 250 </td>
-                        <td> 350 </td>
-                        <td> 300 </td>
-                        <td class="positive"> 94 </td>
-                        <td class="positive"> 93 </td>
-                        <td class="positive"> 90 </td>
-                        <td class="warning"> 80 </td>
-                        <td class="warning"> 72 </td>
-                        <td class="negative"> 60 </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td> second </td>
-                        <td> exon 2</td>
-
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
-
-                        <td> 250 </td>
-                        <td> 350 </td>
-                        <td> 300 </td>
-                        <td class="positive"> 94 </td>
-                        <td class="positive"> 93 </td>
-                        <td class="positive"> 90 </td>
-                        <td class="warning"> 80 </td>
-                        <td class="warning"> 72 </td>
-                        <td class="negative"> 60 </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td> second </td>
-                        <td> exon 3</td>
-
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
-
-                        <td> 250 </td>
-                        <td> 350 </td>
-                        <td> 300 </td>
-                        <td class="positive"> 94 </td>
-                        <td class="positive"> 93 </td>
-                        <td class="positive"> 90 </td>
-                        <td class="warning"> 80 </td>
-                        <td class="warning"> 72 </td>
-                        <td class="negative"> 60 </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td> second </td>
-                        <td> exon 4</td>
-
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
-
-                        <td> 250 </td>
-                        <td> 350 </td>
-                        <td> 300 </td>
-                        <td class="positive"> 94 </td>
-                        <td class="positive"> 93 </td>
-                        <td class="positive"> 90 </td>
-                        <td class="warning"> 80 </td>
-                        <td class="warning"> 72 </td>
-                        <td class="negative"> 60 </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td> second </td>
-                        <td> exon 5</td>
-
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
-
-                        <td> 250 </td>
-                        <td> 350 </td>
-                        <td> 300 </td>
-                        <td class="positive"> 94 </td>
-                        <td class="positive"> 93 </td>
-                        <td class="positive"> 90 </td>
-                        <td class="warning"> 80 </td>
-                        <td class="warning"> 72 </td>
-                        <td class="negative"> 60 </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td> second </td>
-                        <td> exon 6</td>
-
-                        <td> 1000 </td>
-                        <td> 1200</td>
-                        <td> 1100 </td>
-                        <td> 900 </td>
-                        <td> 980</td>
-                        <td> 1200 </td>
-
-                        <td> 250 </td>
-                        <td> 350 </td>
-                        <td> 300 </td>
-                        <td class="positive"> 94 </td>
-                        <td class="positive"> 93 </td>
-                        <td class="positive"> 90 </td>
-                        <td class="warning"> 80 </td>
-                        <td class="warning"> 72 </td>
-                        <td class="negative"> 60 </td>
-
-                    </tr>
+                    {% endfor %}
 
                 </tbody>
 
@@ -851,5 +488,15 @@
 
 
 </div>
+
+
+
+<!-- Report Tab -->
+<div class="main-tabs-content hidden" id="report">
+
+    {% include 'includes/report-container.html' %}
+
+</div>
+
 
 {% endblock %}

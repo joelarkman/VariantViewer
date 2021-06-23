@@ -1,4 +1,6 @@
-<div class="ui three horizontal link cards" style="margin-top:3px">
+{% load humanize %}
+{% if documents %}
+<div class="ui three horizontal link cards">
 
     {% for doc in documents %}
 
@@ -23,52 +25,166 @@
             {% endif %}
 
             <div class="content" style="overflow: auto;max-height: 5cm;">
-                <div class="header">
+                <div class="header" style="max-width: 90%;">
                     <h4>{{ doc.filename }}</h4>
                 </div>
+
+                <div class="ui right corner label prevent-evidence-display archive-evidence"
+                    data-url="{% url 'archive_evidence' document=doc.id%}">
+                    <i class="trash icon prevent-evidence-display"></i>
+                </div>
+
                 <div class="meta">
                     Click to view
                 </div>
                 <div class="description">
+                    {% if doc.description%}
                     {{ doc.description }}
+                    {% else %}
+                    No description provided
+                    {% endif %}
                 </div>
             </div>
-            <div class="extra content" style="flex-shrink: 0;">
-                <span class="right floated">
-                    {{doc.uploaded_at}}
+            <div class="extra content" style="display: flex;align-items: center;flex-shrink: 0;">
+
+                <span style="display: flex;align-items: center;flex: 1;word-wrap: break-word;margin-right: auto;">
+                    <i style="margin-top: -3px;margin-right: 7px;" class="user icon"></i>
+                    {{doc.get_user_created.get_full_name}}
                 </span>
-                <span>
-                    <i class="user icon"></i>
-                    JHLN
+                <span style="margin-left: 10px;">
+                    {{doc.date_modified|naturaltime}}
                 </span>
             </div>
         </div>
 
         {% endfor %}
-
     </div>
 
+    {% endif %}
+
+
+    <div style="display: flex;align-items: center;">
+        {% if not documents %}
+        <span style="font-size:smaller;">No evidence files uploaded yet</span>
+        {% endif %}
+        {% if archived_documents %}
+        <a id="show-archived-evidence" href="#" style="font-size: smaller;margin-left: auto;">Archived files</a>
+        <!-- <div class="ui circular icon button" style="margin-left: auto;">
+            <i class="history icon"></i>
+        </div> -->
+        {% endif %}
+    </div>
+
+    <div id="archived-evidence" style="display: none;">
+        <div class="ui segments" style="display: flex;max-width: 20cm;max-height: 12cm;width: 60%;height: 60%;">
+            <div class="ui left aligned clearing segment">
+                <h3 class="ui header title-text" style="margin:0">Archived evidence files</h3>
+            </div>
+            <div class="ui left aligned segment report-info-message-container hidden">
+                <div class="ui message report-info-message">
+
+                </div>
+            </div>
+            <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
+                {% for document in archived_documents %}
+                <div class="ui segment">
+                    {{document.filename}}
+                </div>
+                {% endfor %}
+
+            </div>
+            <div class="ui secondary left aligned clearing segment">
+                <div class="ui right floated button evidence-container-close-icon">Close</div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="evidence-container">
+        <div class="ui inverted raised tertiary segment image-hover-container"
+            style="margin: 0;display: flex;flex-direction: column;padding: 0;width: 80%;height: 80%;">
+            <div class="ui top attached fluid compact button evidence-container-close-icon"
+                style="text-align: right;position: relative;z-index: 1000;">
+                <i class="big times icon" style="margin: 0;"></i>
+            </div>
+
+            <div id="main-sub-container" class="sub-container"
+                style="display: flex;flex: 1;align-items: center;justify-content: center;max-height: calc(100% -  44.5px);">
+            </div>
+
+            <div class="ui raised segment image-buttons"
+                style="display: flex;flex-direction: row;position: absolute;z-index: 1000;margin: 30px;align-items: center;justify-content: center;bottom:0;align-self: center;gap: 7px;">
+                <div class="ui icon buttons">
+                    <button class="ui button zoom-in">
+                        <i class="search plus icon"></i>
+                    </button>
+                    <button class="ui button zoom-out">
+                        <i class="search minus icon"></i>
+                    </button>
+                </div>
+                <button class="ui icon button reset">
+                    <i class="undo icon"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
     <script>
-        // Code to view existing files in lightbox
-        $('.PhotoCard').click(function () {
-            var image = $(this).attr('data-file');
+        $('.evidence-container').hide()
+
+        $('.PdfCard, .PhotoCard').click(function () {
+            if ($(event.target).hasClass("prevent-evidence-display")) {
+                null
+            } else {
+                var data = $(this).attr('data-file');
+                if ($(this).hasClass('PhotoCard')) {
+                    $('.evidence-container .sub-container').html('<img class="lightbox-img" src="' + data + '"/>');
+                    $('.image-buttons').show()
+                    $('#lightbox').html($('.evidence-container').html());
+
+                    const elem = $('#lightbox .sub-container').get(0)
+                    const parent = $('#lightbox .sub-container').parent().get(0)
+                    const rangeZoom = $('#lightbox #rangeZoom').get(0)
+                    const panzoom = Panzoom(elem)
+                    $(".zoom-in").click(panzoom.zoomIn)
+                    $(".zoom-out").click(panzoom.zoomOut)
+                    $(".reset").click(panzoom.reset)
+                    // parent.addEventListener('wheel', panzoom.zoomWithWheel)
+                    // rangeZoom.addEventListener('input', (event) => {
+                    //     panzoom.zoom(event.target.valueAsNumber)
+                    // })
+
+                } else if ($(this).hasClass('PdfCard')) {
+                    $('.evidence-container .sub-container').html('<object class="lightbox-pdf previous" data="' + data + '" type="application/pdf"><p>PDF cannot be displayed.</p></object>');
+                    $('.image-buttons').hide()
+                    $('#lightbox').html($('.evidence-container').html());
+                }
 
 
-            $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <img class="lightbox-img" src="' + image + '"/>');
+                $('#lightbox').dimmer({
+                    closable: false
+                }).dimmer('show');
 
+            }
+
+        })
+
+        $("#lightbox").on("click", ".evidence-container-close-icon", function () {
             $('#lightbox').dimmer({
-                closable: true
-            }).dimmer('show');
+                closable: false
+            }).dimmer('hide');
         })
 
         // Code to view existing files in lightbox
-        $('.PdfCard').click(function () {
-            var pdf = $(this).attr('data-file');
+        $('#show-archived-evidence').click(function () {
 
-            $('#lightbox').html('<i class="big inverted times icon close-icon"></i> <object class="lightbox-pdf" data="' + pdf + '" type="application/pdf"><iframe src="https://docs.google.com/viewer?url=' + pdf + '&embedded=true"></iframe></object>');
+            $('#lightbox').html($("#archived-evidence").html());
 
             $('#lightbox').dimmer({
-                closable: true
+                closable: false
             }).dimmer('show');
+
         })
     </script>

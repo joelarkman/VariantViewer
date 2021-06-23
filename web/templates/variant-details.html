@@ -12,151 +12,199 @@
 <!-- Variant-details header -->
 <div class="variant-details-header">
 
-    <button class="circular ui icon button menu-toggle-closed">
-        <i class="icon bars"></i>
-    </button>
+    <div class="top-row-container">
+
+        <button class="circular ui icon button menu-toggle-closed" data-tooltip="Expand Menu"
+            data-position="bottom left">
+            <i class="icon bars"></i>
+        </button>
+
+        <div id="variant-title" class="ui segment {% if stv.pinned %}ischecked{%endif%} title-container">
+
+            <div class="col-container">
+
+                <h2 class="ui header">
+                    <i id="pinned-icon"
+                        class="tiny inverted circular pin icon {% if not stv.pinned %}hidden{%endif%}"></i>
+                    {{stv.get_long_hgvs.hgvs_c}}
+                </h2>
 
 
-    <a class="ui right corner label tabCloser">
-        <i class="close icon"></i>
-    </a>
+                <div class="info-labels-container">
+                    <div class="info-label">
+                        <span class="title">GENE SYMBOL:</span>
+                        <span class="value">{{stv.transcript.gene.hgnc_name}}</span>
+                    </div>
 
-    <div class="title container">
+                    <div class="info-label">
+                        <span class="title">PROTEIN HGVS:</span>
+                        <span class="value">{{stv.get_long_hgvs.hgvs_p}}</span>
+                    </div>
 
-        <div>
-            <h2 class="ui header">
-                Variant 98429
-                <div class="sub header">(Last updated by JHDL just now)</div>
-            </h2>
+                    <div class="info-label">
+                        <span class="title">VARIATION TYPE:</span>
+                        <span class="value">{{stv.consequence}}</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="pin-variant-checkbox" class="ui toggle checkbox"
+                data-url="{% url 'pin_variant' run=run.id stv=stv.id %}" data-stv="{{stv.id}}"
+                data-csrf="{{ csrf_token }}" data-tooltip="Pin variant" data-position="bottom left">
+                <input type="checkbox" {% if stv.pinned %}checked="checked" {%endif%}>
+                <label></label>
+            </div>
         </div>
 
-        <div class="ui secondary menu details-tabs">
-            <a class="item active" data-tab="details">
-                Variant Details
-            </a>
-            <a class="item " data-tab="databases">
-                Databases
-            </a>
-            <a class="item" data-tab="evidence">
-                Evidence
-            </a>
+        <div id='variant-classification-container'>
+            {% include 'includes/classification.html' %}
         </div>
 
     </div>
 
-    <div class="dropdown container">
-
-        <span class="dropdown title">Classification</span>
-
-        <div class="ui small selection dropdown classification">
-            <input type="hidden" name="gender">
-            <i class="dropdown icon"></i>
-            <div class="default text">Small</div>
-            <div class="menu">
-                <div class="item" data-value="1">Male</div>
-                <div class="item" data-value="0">Female</div>
-            </div>
-        </div>
-    </div>
-
-
-    <div class="dropdown container">
-
-        <span class="dropdown title">Include in Report</span>
-
-        <div class="ui small selection dropdown report inclusion">
-            <input type="hidden" name="gender">
-            <i class="dropdown icon"></i>
-            <div class="default text">No</div>
-            <div class="menu">
-                <div class="item" data-value="1">Yes</div>
-                <div class="item" data-value="0">No</div>
-            </div>
-        </div>
+    <div class="ui secondary pointing menu details-tabs">
+        <a class="item active" data-tab="details">
+            Variant Details
+        </a>
+        <a class="item " data-tab="databases">
+            Databases
+        </a>
+        <a class="item" data-tab="evidence">
+            Evidence
+        </a>
+        <a class="right item" data-tab="previous-classifications">
+            Previous classifications
+        </a>
     </div>
 
 </div>
+
+
 
 <!-- Details Tab -->
 <div class="ui tab" data-tab="details">
-    <div class="ui stackable stretched compact grid" style="margin: -7px;">
 
-        <div class="sixteen wide column">
+    <div class="ui top attached segment">
+        <h4>Summary</h4>
+    </div>
 
-            <div class="ui top attached segment" style="margin-top:4px">
-                <h4>Summary</h4>
-            </div>
-
-            <div class="ui bottom attached segment" style="background-color: #eeeeee;">
-                <div class="ui four centered cards">
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Chromosome</div>
-                            <div class="center aligned description">Chr 9</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Position</div>
-                            <div class="center aligned description">95491490</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Alleles</div>
-                            <div class="center aligned description">G>T</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Variation Type</div>
-                            <div class="center aligned description">Exonic SNV</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Gene(s) | Transcript</div>
-                            <div class="center aligned description">ABRA (NM_012654.3 )</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">Worst Consequence</div>
-                            <div class="center aligned description">Missense</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">ClinVar Clin Sig</div>
-                            <div class="center aligned description">Likely Pathogenic</div>
-                        </div>
-                    </div>
-
-                    <div class="teal card">
-                        <div class="content">
-                            <div class="center aligned header">WMRGL AF</div>
-                            <div class="center aligned description">2/100</div>
-                        </div>
-                    </div>
-
+    <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+        <div class="ui five centered cards">
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Chromosome</div>
+                    <div class="center aligned description">
+                        {{stv.sample_variant.variant.chrom}}</div>
                 </div>
             </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Position</div>
+                    <div class="center aligned description">
+                        {{stv.sample_variant.variant.pos}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Alleles</div>
+                    <div class="center aligned description">
+                        {{stv.sample_variant.variant.ref}}>{{stv.sample_variant.variant.alt}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Quality</div>
+                    <div class="center aligned description">{{variant_report.qual}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Filter pass</div>
+                    <div class="center aligned description">{{variant_report.filter_pass}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Depth</div>
+                    <div class="center aligned description">{{variant_report.depth}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Variation Type</div>
+                    <div class="center aligned description">{{stv.consequence}}</div>
+                </div>
+            </div>
+
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">Impact</div>
+                    <div class="center aligned description">{{stv.impact}}</div>
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">ClinVar Clin Sig</div>
+                    <!-- <div class="center aligned description">Likely Pathogenic</div> -->
+                </div>
+            </div>
+
+            <div class="teal card">
+                <div class="content">
+                    <div class="center aligned header">WMRGL AF</div>
+                    <!-- <div class="center aligned description">2/100</div> -->
+                </div>
+            </div>
+
         </div>
-
-
     </div>
+
+
+    <div class="ui top attached segment">
+        <h4>Other Info</h4>
+    </div>
+
+
+    <table class="ui bottom attached compact celled table" style="background-color: #eeeeee;">
+        <thead>
+            <tr>
+                <th style="background-color: white !important;border-radius: 0;">Tag</th>
+                <th style="background-color: white !important;">Description</th>
+                <th style="background-color: white !important;border-radius: 0;">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for info in variant_report.variantreportinfo_set.all %}
+            <tr>
+                <td>{{info.tag}}</td>
+                <td>{{info.description}}</td>
+                <td>{{info.value}}</td>
+            </tr>
+            {%endfor%}
+        </tbody>
+    </table>
+    <!-- <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+
+
+
+    </div> -->
+
 </div>
+
 
 <!-- Databases tab -->
 <div class="ui tab" data-tab="databases">
 
-    <div class="ui top attached segment" style="margin-top: 14px;">
+    <div class="ui top attached segment">
         <h4>Databases</h4>
     </div>
 
@@ -171,21 +219,51 @@
 <!-- Evidence tab -->
 <div class="ui tab" data-tab="evidence">
 
-    <div class="ui top attached segment" style="margin-top: 14px;">
-        <h4>Evidence</h4>
+    <div class="ui top attached segment action-header js-update-create-comment"
+        data-url="{% url 'comment_update_or_create' stv=stv.id %}" style="display: flex;align-items: center;">
+        <h4 style="margin: 0;">Variant Information</h4>
+
+        <div class="ui right icon link label"
+            style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">
+            Click here to {% if stv.comments.last %}update{%else%}add{%endif%} variant information
+            <i class="pen icon"></i>
+        </div>
+    </div>
+
+    <!-- Shown when comment is being edited to remove button. -->
+    <div class="ui top attached segment  js-update-create-comment-active-header">
+        <h4>Variant Information</h4>
+    </div>
+
+    <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+        <div id="comment-form" class="ui segment " style="margin:0px;">
+            <!-- populated using ajax -->
+        </div>
+
+        <div id="readonly-comment-form">
+            {% include 'includes/comment-display.html' %}
+        </div>
+    </div>
+
+    <div id="target" class="ui top attached segment action-header js-upload-photos" style="display: flex;">
+        <h4 style="margin: 0;">Evidence </h4>
+        <div class="ui right icon label"
+            style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">
+            Paste, Drop or Click here to upload evidence
+            <i class="upload icon"></i>
+        </div>
+    </div>
+
+    <!-- Shown when files are being uploaded to remove button. -->
+    <div id="target-uploading" class="ui top attached segment">
+        <h4>Evidence </h4>
     </div>
 
     <div class=" ui bottom attached segment" style="background-color: #eeeeee;">
 
-        <div id="target" class="ui fluid card js-upload-photos">
-            <span style="user-select: none;color: #7C7B7C; font-size: 15px;">
-                PASTE, DROP OR BROWSE FOR EVIDENCE TO UPLOAD
-            </span>
-        </div>
-
-        <div id="upload-form" class="ui segment" style="margin:0px;">
+        <div id="upload-form" class="ui segment" style="margin:0px;margin-bottom: 15px;">
             <div style="display: flex;align-items: stretch; margin-bottom: 15px;height: 224px;">
-                <form id="fileupload" class="ui form" action="{% url 'save_evidence' %}" method="POST"
+                <form id="fileupload" class="ui form" action="{% url 'save_evidence' stv=stv.id %}" method="POST"
                     enctype="multipart/form-data" csrf_token="{{ csrf_token }}"
                     style="flex: 1;display: flex;flex-direction: column;">
                     <input id="file-dialog" type="file" name="document" style="display: none;">
@@ -219,17 +297,39 @@
 
         </div>
 
-        <div id="evidence-container">
-            {% if documents %}
+        <div id="evidence-container" style="display: flex;flex-direction: column;gap: 10px;">
             {% include 'includes/evidence.html' %}
-            {% endif %}
         </div>
 
     </div>
 
 </div>
 
-<!-- Lightbox dimmer populated with images/pdfs via js. -->
-<!-- Relocated this to sample page to ensure it ocupies the correct div. -->
-<!-- <div id="lightbox" class="ui page dimmer">
-</div> -->
+<div class="ui tab" data-tab="previous-classifications">
+
+    <div class="ui top attached segment" style="border-bottom:none">
+        <h4>Previous classifications of this variant</h4>
+    </div>
+
+    <table class="ui selectable bottom attached compact celled table previous-classification-table" data-stv={{stv.id}}
+        style="background-color: #eeeeee;width: calc(100% + 2px);table-layout:auto;">
+        <thead>
+            <tr>
+                <th style="background-color: white !important;border-radius: 0;">First name</th>
+                <th style="background-color: white !important;">Last name</th>
+                <th style="background-color: white !important;border-radius: 0;">Sample ID(s)</th>
+                <th style="background-color: white !important;border-radius: 0;">Lab no</th>
+                <th style="background-color: white !important;border-radius: 0;">Worksheet(s)</th>
+                <th style="background-color: white !important;border-radius: 0;">Pipeline(s)</th>
+                <th style="background-color: white !important;border-radius: 0;">Date classified</th>
+                <th style="background-color: white !important;border-radius: 0;">Comment</th>
+                <th style="background-color: white !important;border-radius: 0;"># Evidence files</th>
+
+
+                <th style="background-color: white !important;border-radius: 0;">Classification</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>

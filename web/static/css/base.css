@@ -23,6 +23,15 @@
        background-color: #F8F8F8;
    }
    
+    .ui.label.orange:not(.basic) {
+        background-color: rgb(255, 167, 108) !important;
+        /* color: rgb(75, 75, 75) !important; */
+    }
+
+    .ui.label.orange.disabled {
+        background-color: rgb(216, 131, 75) !important;
+    }
+
    #main-sidebar {
        background-color: #2c2c2c;
        box-shadow: 1px 0 2px rgba(0,0,0,0.07), 
@@ -39,8 +48,36 @@
    
    /* Create a hidden class to hide non-default tabs. This is removed and readded when tabs are selected/deselected */
    .hidden {
-       display: none;
+       display: none !important;
    }
+
+   .fake-textarea:focus {
+    color: rgba(0, 0, 0, .95);
+    border-color: #85b7d9;
+    border-radius: .28571429rem;
+    background: #fff;
+}
+
+.fake-textarea {
+    margin: 0;
+    -webkit-appearance: none;
+    padding: .78571429em 1em;
+    background: #fff;
+    border: 1px solid rgba(34, 36, 38, .15);
+    outline: 0;
+    color: rgba(0, 0, 0, .87);
+    border-radius: .28571429rem;
+    -webkit-box-shadow: 0 0 0 0 transparent inset;
+    box-shadow: 0 0 0 0 transparent inset;
+    -webkit-transition: color .1s ease, border-color .1s ease;
+    transition: color .1s ease, border-color .1s ease;
+    font-size: 1em;
+    line-height: 1.2857;
+    height: 100%;
+    overflow-y: auto;
+    text-align: left;
+    caret-color: transparent;
+}
    
    /* ===========
       PAGE HEADER 
@@ -72,10 +109,6 @@
        margin-left: 15px;
    }
    
-   #page-header-title-text {
-       margin: 0;
-       margin-bottom: 3px;
-   }
    
    #page-header-title-leftstack {
        display: flex;
@@ -93,6 +126,44 @@
        color: white;
    }
    
+   #page-header-title-text {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 6px;
+    margin-top: 2px;
+    align-items: center;
+    flex-wrap: wrap;
+    height: 35px;
+    overflow: hidden;
+   }
+
+   #page-header-title-text .large-text {
+    font-size: 28px;
+    font-weight: bold;
+   }
+
+   #page-header-title-text .divider {
+    font-size: 28px;
+    font-weight: bold;
+    margin-left: 5px;
+    margin-right: 5px;
+   }
+
+   #page-header-title-text .small-text-column-container {
+    display: flex;
+    flex-direction: column;
+   }
+
+   #page-header-title-text .small-text-top {
+    font-size: 12px;
+    font-weight: lighter;
+    margin-bottom: -3px;
+   }
+
+   #page-header-title-text .small-text-bottom {
+    font-size: 18px;
+   }
+
    #page-header-title-right-buttons { 
        margin: 0;
        width: 350px;
@@ -112,6 +183,7 @@
        padding-right: 15px;
        align-items: center;
        height: 46.4062px;
+       flex-shrink: 0;
    }
    
    #tab-utility-bar .item-divider {
@@ -140,8 +212,39 @@
    
    }
    
+   /* ====
+      MISC 
+      ==== */
+
+    /* Search Clear Button */
+       input[type="search"] {
+        border: 1px solid gray;
+        padding: .2em .4em;
+        border-radius: .2em;
+    }
+
+    input[type="search"].light {
+        background: #fff;
+        color: #222;
+    }
+
+    input[type="search"]::-webkit-search-cancel-button {
+        -webkit-appearance: none;
+        height: 1.3em;
+        width: 1.3em;
+        border-radius: 50em;
+        background: url(https://pro.fontawesome.com/releases/v5.10.0/svgs/solid/times-circle.svg) no-repeat 50% 50%;
+        background-size: contain;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    input[type="search"]:focus::-webkit-search-cancel-button {
+        opacity: .3;
+        pointer-events: all;
+    }
    
-   
+ 
    /* Sidebar stuff */
    
    .ui.inverted.menu .active.item {

@@ -1,0 +1,47 @@
+<div style="display: flex;align-items: stretch; margin-bottom: 15px">
+    <form method="POST" id="js-comment-update-create-form" class="ui form"
+        action="{% url 'comment_update_or_create' stv=stv.id %}" style="flex: 1;display: flex;flex-direction: row;">
+
+        {% csrf_token %}
+
+        <div class="field" style="flex: 1;margin: 0;">
+            <label>Comment</label>
+            <textarea id="id_comment" rows="8" maxlength="2000" type="text" name="comment"
+                style="resize: none;">{{form.initial.comment}}</textarea>
+        </div>
+
+
+        <div class="field" style="flex: 0 0 30%;margin-left: 15px;">
+            <label>Pathogenicity Classification</label>
+            <div class="ui fluid selection dropdown">
+                <input type="hidden" name="classification" id="id_classification"
+                    value="{% if form.initial.classification %}{{form.initial.classification}}{%else%}0{%endif%}">
+                <i class="dropdown icon"></i>
+                <div class="default text">Select classification</div>
+                <div class="menu">
+                    {% for value, key in form.fields.classification.choices %}
+                    <div class="item" data-value="{{ value }}">
+                        <div class="ui {% cycle 'blue' 'green' 'olive' 'yellow' 'orange' 'red' %} empty circular label">
+                        </div>
+                        {{ key }}
+                    </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+        </div>
+
+    </form>
+
+</div>
+
+<input type="submit" form="js-comment-update-create-form"
+    class="ui small primary button js-comment-update-create-submit" value="Save changes">
+
+<div class="ui small button js-comment-update-create-cancel">
+    Cancel
+</div>
+
+<!-- <div class="ui right floated icon button" data-tooltip="View comment history" data-position="bottom right">
+    <i class="history icon"></i>
+</div> -->

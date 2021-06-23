@@ -21,10 +21,10 @@
 
     <!-- Dependencies -->
     <link rel="stylesheet" type="text/css" href="{% static 'dependencies/fomantic/css/fomantic.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/se/dt-1.10.22/datatables.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'dependencies/datatables/css/datatables.min.css' %}">
 
     <script src="{% static 'dependencies/jquery/js/jquery.min.js' %}"></script>
-    <script src="https://cdn.datatables.net/v/se/dt-1.10.22/datatables.min.js"></script>
+    <script src="{% static 'dependencies/datatables/js/datatables.min.js' %}"></script>
     <script src="{% static 'dependencies/fomantic/js/fomantic.min.js' %}"></script>
 
     <!-- Project Files -->
@@ -35,7 +35,7 @@
 <body>
 
     <!-- Sidebar -->
-    <div id="main-sidebar" class="ui sidenav left fixed inverted vertical menu">
+    <div id="main-sidebar" class="ui sidenav left fixed inverted vertical menu compact icon">
 
         <div class="sidenav-inner-wrap">
 
@@ -48,26 +48,26 @@
                     <i class="big dna icon" style="margin: 0;color:#005EB8"></i>
 
                     <div class="text-title" style="margin: 0;margin-top: 5px;">
-                        <span style="font-weight: bold;font-size: large;">WMRGL</span>
-                        <span style="font-weight: lighter;font-size: large;;color:#9aa4ac">DELVE</span>
+                        <span style="font-weight: LIGHTER;font-size: large;">VARIANT</span>
+                        <span style="font-weight: lighter;font-size: large;;color:#9aa4ac">VIEWER</span>
                     </div>
 
                 </div>
 
                 <!-- Sidebar items -->
-                <a href='{% url "index" %}' class="item">
+                <a href='{% url "home" section=section.slug %}' class="item">
                     <i class="home icon"></i>
                     <span class="text-title">
                         Home
                     </span>
                 </a>
-                <a href='{% url "search" %}' class='item'>
+                <a href='{% url "search" section=section.slug %}' class='item'>
                     <i class="search icon"></i>
                     <span class="text-title">
-                        Patient search
+                        Sample search
                     </span>
                 </a>
-                <a href='{% url "sample" %}' class="item">
+                <a href='' class="item">
                     <i class="info circle icon"></i>
                     <span class="text-title">
                         About
@@ -89,25 +89,28 @@
         <!-- Bottom items of sidebar -->
         <div class="force-bottom">
 
+            {% if user.is_authenticated %}
             <!-- Hidden item to add line -->
             <div class="item"> </div>
 
             <div id="sidebar-accordion" class="ui accordion item inverted">
-                <div class="title">
+                <div class="title" style="display: flex;align-items: center;">
                     <i class="dropdown icon"></i>
-                    <i class="user icon"></i>
+                    <img style='max-width: 25px;margin: 0;margin-right: 7px;border-radius: 5px;'
+                        src="{{user.avatar_url}}" alt="">
                     <span class="text-title">
-                        JHDL
+                        {{user.get_full_name}}
+                        <span style="font-size:x-small;color: #9aa4ac;">{{user.email}}</span>
                     </span>
                 </div>
                 <div class="content">
-                    <a class="item">
+                    <a href="{% url 'profile' %}?next={{ request.path }}" class="item">
                         <i class="cog icon"></i>
                         <span class="text-title">
                             Account Settings
                         </span>
                     </a>
-                    <a class="item">
+                    <a href="{% url 'logout' %}" class="item">
                         <i class="sign out alternate icon"></i>
                         <span class="text-title">
                             Logout
@@ -116,11 +119,14 @@
                 </div>
             </div>
 
+            {% endif %}
             <!-- Sidebar resize button -->
             <a id="resize-sidebar" class="item compact-menu">
                 <i class="angle double left icon"></i>
             </a>
         </div>
+
+
     </div>
 
     <!-- Wrapper to ensure all content is pushed by sidebar -->

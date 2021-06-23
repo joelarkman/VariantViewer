@@ -6,9 +6,14 @@
     display: flex;
     flex-direction: row;
     overflow-x: scroll;
-    max-width: 35%;
+    max-width: 38%;
     height: 47px;
     align-items: center;
+}
+
+.active-filters-container.disabled {
+    z-index: 100;
+    overflow-x: hidden;
 }
    
 .active-filters-container::-webkit-scrollbar {
@@ -22,7 +27,7 @@
     display: flex;
     overflow: hidden;
     margin: 0px;
-    min-height: 250px;
+    min-height: 320px;
 }
 
 #browser-expand-collapse {
@@ -34,19 +39,46 @@
     min-height: 100%;
     border-radius: 0%;
     border-top: none;
+    /* overflow-y: auto;
+    overflow-x: hidden; */
+    display: flex;
+    flex-direction: column;
 }
 
 #variant-menu-topper {
     display: flex;
-    margin: 15px;
+    /* margin: 0px; */
+    border:none;
+    padding: 0px;
+    margin: 15px
     }
 
+.variant-sub-menu-header {
+    padding-top: 9px !important;
+    padding-bottom: 9px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 12px !important;
+    border-left: none !important;
+    color: rgba(0,0,0,.6) !important;
+    background-color: #e8e8e8 !important;
+}    
+
+.variant-sub-menu-header i {
+    margin-right: 9px;
+    width: 9px;
+}    
+
 .gene .title {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
     margin-left: 10px; 
-    margin-top: 10px;
+    margin-top: 15px;
     margin-bottom: 6px;
 }
-
 
 .gene .item.mini-tabs-link {
     min-height: 55px;
@@ -55,9 +87,13 @@
     padding: 0 !important;
 }    
 
+.gene .item.mini-tabs-link.hidden {
+    display: none !important;
+}  
+
 .gene .item.mini-tabs-link .variant-title{
     display: flex;
-    border:0.5px solid #E8E9E9;
+    border:0.25px solid #D5D5D6;
     border-top: none;
     border-left: none;
     border-bottom: none;
@@ -81,13 +117,22 @@
 .gene .item.mini-tabs-link .variant-attribute{
     display: flex;
     flex-direction: column;
-    border: 0.5px solid #c5c5c5;
+    border: 0.25px solid #D5D5D6;
     border-radius: 5px;
     padding: 5px;
     align-items: center;
     justify-content: center;
     background-color: #E8E9E9;
     flex-grow: 1;
+}
+
+.gene .item.mini-tabs-link.active .variant-attribute{
+    background-color: #c3d7e6;
+}
+
+
+.transcript-choice.inverted{
+    background: #2c2c2c !important
 }
 
 #variant-content-container {
@@ -97,19 +142,10 @@
     /* flex: 1; */
     min-height: 100%;
     border-top: none;
-}
-
-/* Overflow for variant menu */
-.mini_tabs {
     overflow-y: auto;
     overflow-x: hidden;
 }
     
-.mini-tabs-content-container {
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
 .browser-collapsed {
     margin: 0px;
     max-height: 400px;
@@ -127,65 +163,123 @@
     background-color: white;
 }
 
+#mod_filter{
+    cursor: default;
+}
+
+#mod_filter.selectable{
+    cursor: pointer;
+}
+
 /* ===============
    VARIANT DETAILS
    =============== */
 
 .variant-details-header {
+    margin: -15px;
+    margin-bottom: 15px;
+    padding: 15px;
+    padding-bottom: 0px;
+    padding-top: 10px;
+    background-color: #e2e2e2;
+    border-bottom: 2px solid #D5D5D6;
+}
+
+.top-row-container {
     display: flex;
-    flex-direction: row;
-    align-items: center;
     flex-flow: row wrap;
     row-gap: 5px;
-    background-color: #d7d9f3;
-    margin: -7px;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 10px;
 }
 
 .circular.ui.icon.button.menu-toggle-closed {
     margin: 0;
-    margin-top: -3px;
-    margin-left: -2px;
+    margin-top: 5px;
+    margin-left: 1px;
     margin-right: 15px;
     align-self: flex-start;
 }
 
-.ui.right.corner.label.tabCloser {
-    margin-right: 8px;
-    margin-top: 8px;
-    border-radius: 20px !important
+.variant-details-header .title-container {
+    background-color:#F8F8F8;
+    padding: 0px;
+    display: flex;
+    align-items: center;
+    margin-top: 0;
+    margin-right: auto;
+    margin-bottom: 0px;
+    flex-shrink: 1;
 }
 
-.variant-details-header .title.container {
+.variant-details-header .title-container.ischecked {
+    background-color: rgb(255, 167, 108) !important;
+}
+
+.variant-details-header .col-container {
+    /* display: flex;
+    flex-direction: column; */
+    margin: 5px;
+    margin-left: 10px;
+    margin-right: 10px;
+    /* align-items: center;
+    justify-content: center; */
+}
+
+.variant-details-header .col-container .header{
+    display: flex;
+    margin: 0px;
+    align-self: flex-start;
+    align-items: center;
+}
+
+.variant-details-header .col-container .header #pinned-icon{
+    margin: 0;
+    margin-right: 5px;
+}
+
+.variant-details-header .col-container .info-labels-container{
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    margin-top: 5px;
+    margin-bottom: 3px;
+    align-items: center;
+    justify-content: center;
+}
+
+.variant-details-header .col-container .info-labels-container .info-label{
     display: flex;
     flex-direction: column;
-    border-right: 2px solid #9d9eb1;
-    margin-right: 20px;
+    background-color: #e2e2e2;
+    padding: 5px;
+    border-radius: 3px;
+    min-width: 100px;
+}
+
+.variant-details-header .col-container .info-labels-container .info-label .title{
+    font-size: smaller;
+    margin-top: -2px;
+}
+
+.variant-details-header .col-container .info-labels-container .info-label .value{
+    font-weight: bold;
+    margin-top: -2px;
 }
 
 .ui.secondary.menu.details-tabs {
     margin-top: 5px;
-    margin-bottom: 0px;
-    margin-right: 15px;
+    border: none;
+    
 }
 
-.variant-details-header .dropdown.container {
-    display: flex;
-    flex-direction: column;
-    background-color: white;
-    align-items: center;
-    border-radius: 10px;
-    align-self: stretch;
-    justify-content: center;
-    padding: 10px;
-    margin-right: 15px;
-}
+/* .variant-details-header #variant-classification-container {
+    display:flex;
+    align-self: flex-start;
+} */
 
-.variant-details-header .dropdown.container .dropdown.title{
-    margin-bottom: 10px;
-    text-align: center;
+
+.variant-details-header #pin-variant-checkbox {
+    margin-left: 15px;
+    margin-right: 10px;
 }
 
 /* ==========
@@ -199,7 +293,110 @@
     margin: 15px;
 } */
 
-table.dataTable.no-footer {
+/* table.dataTable.no-footer {
+    border-bottom: 0 !important;
+    border-top: none; 
+} */
+
+#gene-table,#exon-table {
     border-bottom: 0 !important;
     border-top: none;
+}
+
+.row-selected {
+    background: #E0E0E0 !important;
+    color: black !important;
+}
+
+.row-selected ::hover {
+    background: #E0E0E0 !important;
+    color: black !important;
+}
+
+/* ==========
+   REPORT TAB
+   ========== */
+
+.existing-reports-container {
+    display: flex;
+    flex-direction: row;
+    overflow-x: scroll;
+    max-width: 38%;
+    height: 47px;
+    align-items: center;
+}
+
+.existing-reports-container.disabled {
+    z-index: 100;
+    overflow-x: hidden;
+}
+   
+.existing-reports-container::-webkit-scrollbar {
+    display: none;
+}
+
+
+.results-cards .card.selected {
+    background-color: rgb(247, 247, 247);
+}
+
+.results-cards .card.selected:hover {
+    background: rgb(247, 247, 247) !important;
+}
+
+.results-cards .card.deselected {
+    opacity: 50%;
+}
+
+.results-cards .card.deselected:hover {
+    opacity: 100%;
+}
+
+.report-result-toggle {
+    margin-left: auto;
+    display: flex;
+    flex: 0 0 40px;
+    background-color: #E8E8E8;
+    color: black;
+    align-items: center;
+    justify-content: center;
+    transition: background-color .2s ease-out;
+}
+
+.report-result-toggle:hover {
+    background-color: rgb(33, 133, 208);
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.report-result-toggle:hover i {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.report-info-classification {
+    display: flex;
+    flex-direction: column;
+    margin: 0px !important;
+    padding: 5px;
+    min-width: 120px;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center
+}
+
+.report-info-classification.previous {
+    opacity: 50%;
+}
+
+.report-info-classification .text {
+    font-weight: bold;
+    font-size:larger;
+    margin-top: -2px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.report-info-label {
+    margin-bottom:4px;
+    font-weight: 700;
+    font-size: 13px;
 }

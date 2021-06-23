@@ -1,0 +1,21 @@
+<div class="ui segments" style="display: flex;min-width: 40%;max-width: 90%;max-height: 90%;">
+    <div class="ui left aligned clearing segment">
+        <h3 class="ui header" style="margin:0">Archive '{{document.filename }}'</h3>
+    </div>
+    <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
+        <form id='archive-evidence-form' method="post" action="{% url 'archive_evidence' document=document.id %}"
+            class="js-archive-evidence-form">
+
+            {% csrf_token %}
+
+        </form>
+        <span>Are you sure you want to archive this evidence file?</span>
+
+
+    </div>
+    <div class="ui secondary left aligned clearing segment">
+        <input type="submit" value="Archive" form="archive-evidence-form" class="ui right floated negative button"
+            style="margin-left: 10px;">
+        <div class="ui right floated button archive-evidence-close">Cancel</div>
+    </div>
+</div>
