@@ -59,4 +59,4 @@ class PreviousClassificationsListView(viewsets.ModelViewSet):
     def get_queryset(self):
         stv = SampleTranscriptVariant.objects.get(id=self.kwargs['stv'])
         return SampleTranscriptVariant.objects.filter(
-            sample_variant__variant=stv.sample_variant.variant).exclude(id=stv.id).exclude(comments__classification__isnull=True).order_by("comments__classification")
+            sample_variant__variant=stv.sample_variant.variant).exclude(id=stv.id).exclude(comments__classification__isnull=True).order_by("-comments__classification")
