@@ -1419,12 +1419,14 @@ function SetupReportForm() {
             var previous_classification = $(this).attr('data-previous-classification')
             var previous_classification_colour = $(this).attr('data-previous-classification-colour')
 
+
+
             $('#report #report-lightbox .title-text').text('Variant information: ' + hgvs)
 
             $('#report #report-lightbox .report-info-comment').html(comment)
 
-            $('#report #report-lightbox .report-info-classification .text').text(classification)
-            $('#report #report-lightbox .report-info-classification').addClass(classification_colour)
+            $('#report #report-lightbox .report-info-classification:not(.previous) .text').text(classification)
+            $('#report #report-lightbox .report-info-classification:not(.previous)').addClass(classification_colour)
 
             if (updated == 'classification' || updated == 'both') {
                 $('#report #report-lightbox .previous-classification-container').removeClass('hidden')
@@ -1440,6 +1442,20 @@ function SetupReportForm() {
                 dmp.diff_cleanupSemantic(d);
                 var ds = dmp.diff_prettyHtml(d);
                 $('#report #report-lightbox .report-info-comment').html(ds)
+            }
+
+            if (updated == 'comment') {
+                $('#report #report-lightbox .report-info-message-container').removeClass('hidden')
+                report_info_message = 'The comment has been updated for this variant since it was added to the report. Save or preview the report to view changes.'
+                $('#report #report-lightbox .report-info-message').text(rreport_info_message)
+            } else if (updated == 'classification') {
+                $('#report #report-lightbox .report-info-message-container').removeClass('hidden')
+                report_info_message = 'The classification has been updated for this variant since it was added to the report. Save or preview the report to view changes.'
+                $('#report #report-lightbox .report-info-message').text(report_info_message)
+            } else if (updated == 'both') {
+                $('#report #report-lightbox .report-info-message-container').removeClass('hidden')
+                report_info_message = 'The classification and comment has been updated for this variant since it was added to the report. Save or preview the report to view changes.'
+                $('#report #report-lightbox .report-info-message').text(report_info_message)
             }
 
             $('.existing-report,.new-report').addClass('existing-confirm-check disabled')
