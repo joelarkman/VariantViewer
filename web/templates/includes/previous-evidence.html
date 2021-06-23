@@ -192,17 +192,18 @@
                     $(this).removeClass('link deselected').addClass('selected')
 
                     var data = $(this).attr('data-file');
+                    const elem = document.getElementById('previous-sub-container')
+                    const panzoom = Panzoom(elem)
                     if ($(this).hasClass('PhotoCard')) {
                         $('.previous-evidence-container .sub-container').html('<img class="lightbox-img" src="' + data + '"/>');
                         $('.image-buttons').show()
 
-                        const elem = document.getElementById('previous-sub-container')
-                        const panzoom = Panzoom(elem)
                         $(".zoom-in").click(panzoom.zoomIn)
                         $(".zoom-out").click(panzoom.zoomOut)
                         $(".reset").click(panzoom.reset)
 
                     } else if ($(this).hasClass('PdfCard')) {
+                        panzoom.reset()
                         $('.previous-evidence-container .sub-container').html('<object class="lightbox-pdf previous" data="' + data + '" type="application/pdf"><p>PDF cannot be displayed.</p></object>');
                         $('.image-buttons').hide()
 
