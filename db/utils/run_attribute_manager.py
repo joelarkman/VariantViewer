@@ -488,7 +488,7 @@ class RunAttributeManager:
                 "pos": row.POS,
                 "ref": row.REF,
                 "alt": row.ALT,
-                "build": row.build
+                "genome_build": row.build
             }
             vcf_f = {"path": row.VCF}
             db_variant = self.related_instance(Variant, filters=variant_f)
