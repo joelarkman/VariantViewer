@@ -483,12 +483,16 @@ class RunAttributeManager:
         sv_df = variant_df[variant_df.Sample.isin(lab_nos)]
         df_rows = tqdm(list(sv_df.iterrows()), leave=False)
         for index, row in df_rows:
+            db_build = self.related_instance(
+                GenomeBuild,
+                filters={'name': row.build}
+            )
             variant_f = {
                 "chrom": row.CHROM,
                 "pos": row.POS,
                 "ref": row.REF,
                 "alt": row.ALT,
-                "genome_build": row.build
+                "genome_build_id": db_build.id
             }
             vcf_f = {"path": row.VCF}
             db_variant = self.related_instance(Variant, filters=variant_f)
