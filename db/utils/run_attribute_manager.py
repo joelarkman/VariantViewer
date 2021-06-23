@@ -506,17 +506,54 @@ class RunAttributeManager:
                 "depth": row.DEPTH
             }
             variant_reports.append(variant_report)
+        df_rows.close()
         return variant_reports
 
-    def get_variant_report_info(self) -> List[Dict[str, Any]]:
-        variant_report_infos = []
+    def get_variant_report_info(self, filters=False) -> List[Dict[str, Any]]:
+        variant_report_values = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
+        variant_df = variant_manager.variant_df.drop_duplicates(
+            subset=["Sample", "CHROM", "POS", "REF", "ALT", "build"]
+        )
+        lab_nos = list(map(lambda x: x.lab_no, self.related_instances(Sample)))
+        sv_df = variant_df[variant_df.Sample.isin(lab_nos)]
+        df_rows = tqdm(list(sv_df.iterrows()), leave=False)
+        for index, row in df_rows:
+            db_build = self.related_instance(
+                GenomeBuild,
+                filters={'name': row.build}
+            )
+            variant_f = {
+                "chrom": row.CHROM,
+                "pos": row.POS,
+                "ref": row.REF,
+                "alt": row.ALT,
+                "genome_build_id": db_build.id
+            }
+            vcf_f = {"path": row.VCF}
+            db_variant = self.related_instance(Variant, filters=variant_f)
+            db_vcf = self.related_instance(VCF, filters=vcf_f)
+            vr_f = {'variant_id': db_variant.id, 'vcf_id': db_vcf.id}
+            db_variant_report = self.related_instance(Variant, filters=vr_f)
 
+            if filters:
+                keys = variant_manager.filter_keys
+            else:
+                keys = variant_manager.info_keys
+            for key in keys:
+                variant_report_value = {
+                    'variant_report': db_variant_report,
+                    'tag': key.split('|')[1],
+                    'description': key.split('|')[-1],
+                    'value': row[key]
+                }
+                variant_report_values.append(variant_report_value)
+
+        df_rows.close()
+        return variant_report_values
 
     def get_variant_report_filter(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
+        return self.get_variant_report_info(filters=True)
 
     def get_coverage_info(self) -> List[Dict[str, Any]]:
         raise NotImplementedError(f"{self.model_type} has no attribute parser.")
