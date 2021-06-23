@@ -39,10 +39,10 @@ class VariantManager:
         self.filter_keys : List[str] = []
 
         # various dataframes for accessing data without bloating memory
-        self._gene_df = dd.DataFrame()
-        self._transcript_df = dd.DataFrame()
-        self._variant_df = dd.DataFrame()
-        self._transcript_variant_df = dd.DataFrame()
+        self._gene_df = pd.DataFrame()
+        self._transcript_df = pd.DataFrame()
+        self._variant_df = pd.DataFrame()
+        self._transcript_variant_df = pd.DataFrame()
 
     def delete_csv(self):
         os.remove(self.record_csv.name)
