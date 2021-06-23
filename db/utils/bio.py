@@ -5,6 +5,7 @@ import tempfile
 from typing import List
 
 import pandas as pd
+import dask.dataframe as dd
 import vcf as py_vcf
 
 
@@ -38,10 +39,10 @@ class VariantManager:
         self.filter_keys : List[str] = []
 
         # various dataframes for accessing data without bloating memory
-        self._gene_df = pd.DataFrame()
-        self._transcript_df = pd.DataFrame()
-        self._variant_df = pd.DataFrame()
-        self._transcript_variant_df = pd.DataFrame()
+        self._gene_df = dd.DataFrame()
+        self._transcript_df = dd.DataFrame()
+        self._variant_df = dd.DataFrame()
+        self._transcript_variant_df = dd.DataFrame()
 
     def delete_csv(self):
         os.remove(self.record_csv.name)
@@ -140,7 +141,7 @@ class VariantManager:
         reader._reader.close()
 
     def get_df_info(self, cols, dtypes=None, converters=None):
-        return pd.read_csv(
+        return dd.read_csv(
             self.record_csv.name,
             usecols=cols,
             dtype=dtypes,
