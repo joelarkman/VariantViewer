@@ -207,7 +207,7 @@ class VariantManager:
 
     @property
     def variant_df(self):
-        if self._variant_df.empty:
+        if len(self._variant_df.index) == 0:
             info_keys = [k for k in self.keys if 'INFO|' in k]
             info_dtypes = {k: 'category' for k in info_keys}
             filter_keys = [k for k in self.keys if 'FILTER|' in k]
