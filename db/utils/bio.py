@@ -141,6 +141,14 @@ class VariantManager:
         reader._reader.close()
 
     def get_df_info(self, cols, dtypes=None, converters=None):
+        return pd.read_csv(
+            self.record_csv.name,
+            usecols=cols,
+            dtype=dtypes,
+            converters=converters
+        )
+
+    def get_dask_df_info(self, cols, dtypes=None, converters=None):
         return dd.read_csv(
             self.record_csv.name,
             usecols=cols,
@@ -204,7 +212,7 @@ class VariantManager:
             info_dtypes = {k: 'category' for k in info_keys}
             filter_keys = [k for k in self.keys if 'FILTER|' in k]
             filter_dtypes = {k: 'category' for k in filter_keys}
-            df = self.get_df_info(
+            df = self.get_dask_df_info(
                 cols=[
                     "VCF",
                     "build",
