@@ -200,6 +200,10 @@ class VariantManager:
     @property
     def variant_df(self):
         if self._variant_df.empty:
+            info_keys = [k for k in self.keys if 'INFO|' in k]
+            info_dtypes = {k: 'category' for k in info_keys}
+            filter_keys = [k for k in self.keys if 'FILTER|' in k]
+            filter_dtypes = {k: 'category' for k in filter_keys}
             df = self.get_df_info(
                 cols=[
                     "VCF",
@@ -221,7 +225,7 @@ class VariantManager:
                     "Consequence",
                     "IMPACT",
                     "CANONICAL",
-                ],
+                ] + info_keys + filter_keys,
                 dtypes={
                     "VCF": "category",
                     "build": "category",
@@ -239,6 +243,8 @@ class VariantManager:
                     "HGVSp": "category",
                     "Consequence": "category",
                     "IMPACT": "category",
+                    **info_dtypes,
+                    **filter_dtypes
                 },
                 converters={
                     "CHROM": lambda x: CHROM_PATTERN.match(x).groups()[0],
