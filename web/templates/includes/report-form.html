@@ -45,7 +45,8 @@
             <div class="ui raised link one cards results-cards" style="margin-left: -5px;margin-right: -5px;">
                 {% for stv in report_results.stvs %}
                 <a class="ui card result-stv {%if stv.selected %}selected{%else%}deselected{%endif%}"
-                    data-unpinned='{{stv.unpinned}}' data-updated='{{stv.updated}}' data-comment='{{stv.comment}}'
+                    data-unpinned='{{stv.unpinned}}' data-updated='{{stv.updated}}'
+                    data-comment='{{stv.comment|default_if_none:"No interpretation provided"}}'
                     data-previous-comment="{{stv.previous_comment|default_if_none:''}}"
                     data-classification='{{stv.classification}}'
                     data-classification-colour='{{stv.classification_colour}}'
