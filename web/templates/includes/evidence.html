@@ -68,7 +68,7 @@
         <span style="font-size:smaller;">No evidence files uploaded yet</span>
         {% endif %}
         {% if archived_documents %}
-        <a id="show-archived-evidence" href="#" style="font-size: smaller;margin-left: auto;">Archived documents</a>
+        <a id="show-archived-evidence" href="#" style="font-size: smaller;margin-left: auto;">Archived files</a>
         <!-- <div class="ui circular icon button" style="margin-left: auto;">
             <i class="history icon"></i>
         </div> -->
@@ -76,12 +76,27 @@
     </div>
 
     <div id="archived-evidence" style="display: none;">
+        <div class="ui segments" style="display: flex;max-width: 20cm;max-height: 12cm;width: 60%;height: 60%;">
+            <div class="ui left aligned clearing segment">
+                <h3 class="ui header title-text" style="margin:0">Archived evidence files</h3>
+            </div>
+            <div class="ui left aligned segment report-info-message-container hidden">
+                <div class="ui message report-info-message">
 
-        {% for document in archived_documents %}
-        <div class="ui segment">
-            {{document.filename}}
+                </div>
+            </div>
+            <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
+                {% for document in archived_documents %}
+                <div class="ui segment">
+                    {{document.filename}}
+                </div>
+                {% endfor %}
+
+            </div>
+            <div class="ui secondary left aligned clearing segment">
+                <div class="ui right floated button evidence-container-close-icon">Close</div>
+            </div>
         </div>
-        {% endfor %}
     </div>
 
 
@@ -168,7 +183,7 @@
             $('#lightbox').html($("#archived-evidence").html());
 
             $('#lightbox').dimmer({
-                closable: true
+                closable: false
             }).dimmer('show');
 
         })
