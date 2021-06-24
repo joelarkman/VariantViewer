@@ -6,6 +6,7 @@ from typing import Type
 
 import pandas as pd
 from django.db.models import Model
+from openpyxl import load_workbook
 from sample_sheet import SampleSheet as IlluminaSampleSheet
 
 from VariantViewer.utils.notebook import is_notebook
@@ -562,22 +563,50 @@ class RunAttributeManager:
     def get_variant_report_filter(self) -> List[Dict[str, Any]]:
         return self.get_variant_report_info(filters=True)
 
-    def get_coverage_info(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        coverage_infos = []
+    def get_exon_report(self, exon=True) -> List[Dict[str, Any]]:
+        reports = []
         db_excel_reports = self.related_instances(ExcelReport)
         for db_excel_report in db_excel_reports:
-            coverage_info = {
-            }
-            coverage_infos.append(coverage_info)
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        return coverage_infos
-
-    def get_exon_report(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
+            wb = load_workbook(filename=db_excel_report.path)
+            sheet = wb['Coverage-exon'] if exon else wb['Coverage-gene']
+            report_df = pd.DataFrame(sheet.values)
+            # set header as first row
+            report_df.columns = report_df.iloc[0]
+            report_df = report_df[1:]
+            df_rows = tqdm(list(report_df.iterrows()), leave=False)
+            for index, row in df_rows:
+                report = {
+                    'excel_report': db_excel_report,
+                    'cov_10x': row['10x'],
+                    'cov_20x': row['20x'],
+                    'cov_30x': row['30x'],
+                    'cov_40x': row['40x'],
+                    'cov_50x': row['50x'],
+                    'cov_100x': row['100x'],
+                    'cov_min': row['Min'],
+                    'cov_max': row['Max'],
+                    'cov_mean': row['Mean'],
+                    'cov_region': row['region'],
+                    'pct_10x': row['pct>10x'],
+                    'pct_20x': row['pct>20x'],
+                    'pct_30x': row['pct>30x'],
+                    'pct_40x': row['pct>40x'],
+                    'pct_50x': row['pct>50x'],
+                    'pct_100x': row['pct>100x'],
+                }
+                if exon:
+                    tx_f = {'refseq_id': row['Transcript']}
+                    db_tx = self.related_instance(Transcript, filters=tx_f)
+                    exon_f = {'transcript_id': db_tx.id, 'number': row['Exon']}
+                    db_exon = self.related_instance(Exon, filters=exon_f)
+                    report['exon'] = db_exon
+                else:
+                    gene_f = {'hgnc_name': row['Gene']}
+                    db_gene = self.related_instance(Gene, filters=gene_f)
+                    report['gene'] = db_gene
+                reports.append(report)
+        return reports
 
     def get_gene_report(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
-        pass
+        return self.get_exon_report(exon=False)
 
