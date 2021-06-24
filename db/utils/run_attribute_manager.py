@@ -566,15 +566,14 @@ class RunAttributeManager:
     def get_exon_report(self, exon=True) -> List[Dict[str, Any]]:
         reports = []
         db_excel_reports = self.related_instances(ExcelReport)
-        for db_excel_report in db_excel_reports:
+        for db_excel_report in tqdm(db_excel_reports, leave=False):
             wb = load_workbook(filename=db_excel_report.path)
             sheet = wb['Coverage-exon'] if exon else wb['Coverage-gene']
             report_df = pd.DataFrame(sheet.values)
             # set header as first row
             report_df.columns = report_df.iloc[0]
             report_df = report_df[1:]
-            df_rows = tqdm(list(report_df.iterrows()), leave=False)
-            for index, row in df_rows:
+            for index, row in report_df.iterrows():
                 report = {
                     'excel_report': db_excel_report,
                     'cov_10x': row['10x'],
@@ -595,7 +594,7 @@ class RunAttributeManager:
                     'pct_100x': row['pct>100x'],
                 }
                 if exon:
-                    tx_f = {'refseq_id': row['Transcript']}
+                    tx_f = {'refseq_id': row['Transcript'].split('_')[0]}
                     db_tx = self.related_instance(Transcript, filters=tx_f)
                     exon_f = {'transcript_id': db_tx.id, 'number': row['Exon']}
                     exon_f['number'] = str(exon_f['number'])
