@@ -599,7 +599,12 @@ class RunAttributeManager:
                     db_tx = self.related_instance(Transcript, filters=tx_f)
                     exon_f = {'transcript_id': db_tx.id, 'number': row['Exon']}
                     exon_f['number'] = str(exon_f['number'])
-                    db_exon = self.related_instance(Exon, filters=exon_f)
+                    try:
+                        db_exon = self.related_instance(Exon, filters=exon_f)
+                    except AssertionError:
+                        print(f"creating exon: {db_tx} #{row['Exon']}")
+                        db_exon = Exon.objects.create(transcript=db_tx,
+                                                      number=str(row['Exon']))
                     report['exon'] = db_exon
                 else:
                     gene_f = {'hgnc_name': row['Gene']}
