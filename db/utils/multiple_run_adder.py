@@ -187,7 +187,6 @@ class MultipleRunAdder:
             (Transcript, True),
             (Exon, True),
             # coverage info
-            (CoverageInfo, True),
             (ExonReport, True),
             (GeneReport, True),
             # variant info
