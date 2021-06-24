@@ -598,6 +598,7 @@ class RunAttributeManager:
                     tx_f = {'refseq_id': row['Transcript']}
                     db_tx = self.related_instance(Transcript, filters=tx_f)
                     exon_f = {'transcript_id': db_tx.id, 'number': row['Exon']}
+                    exon_f['number'] = str(exon_f['number'])
                     db_exon = self.related_instance(Exon, filters=exon_f)
                     report['exon'] = db_exon
                 else:
