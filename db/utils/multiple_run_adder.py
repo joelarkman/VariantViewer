@@ -186,6 +186,10 @@ class MultipleRunAdder:
             (Gene, True),
             (Transcript, True),
             (Exon, True),
+            # coverage info
+            (CoverageInfo, True),
+            (ExonReport, True),
+            (GeneReport, True),
             # variant info
             (Variant, True),
             (SampleVariant, True),
@@ -195,10 +199,6 @@ class MultipleRunAdder:
             (VariantReport, True),
             (VariantReportInfo, True),
             (VariantReportFilter, True),
-            # coverage info
-            (CoverageInfo, True),
-            (ExonReport, True),
-            (GeneReport, True),
         )
 
     @property

@@ -567,7 +567,10 @@ class RunAttributeManager:
         coverage_infos = []
         db_excel_reports = self.related_instances(ExcelReport)
         for db_excel_report in db_excel_reports:
-            pass
+            coverage_info = {
+            }
+            coverage_infos.append(coverage_info)
+        raise NotImplementedError(f"{self.model_type} has no attribute parser.")
         return coverage_infos
 
     def get_exon_report(self) -> List[Dict[str, Any]]:
