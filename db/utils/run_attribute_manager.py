@@ -594,7 +594,8 @@ class RunAttributeManager:
                     'pct_100x': row['pct>100x'],
                 }
                 if exon:
-                    tx_f = {'refseq_id': row['Transcript'].split('_')[0]}
+                    refseq_id = '_'.join(row['Transcript'].split('_')[:2])
+                    tx_f = {'refseq_id': refseq_id}
                     db_tx = self.related_instance(Transcript, filters=tx_f)
                     exon_f = {'transcript_id': db_tx.id, 'number': row['Exon']}
                     exon_f['number'] = str(exon_f['number'])
