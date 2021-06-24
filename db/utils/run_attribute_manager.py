@@ -544,6 +544,10 @@ class RunAttributeManager:
             else:
                 keys = variant_manager.info_keys
             for key in keys:
+                # don't bother adding passes or null values to db
+                if filters and row[key] == False: continue
+                if not filters and str(row[key]) == 'nan': continue
+
                 variant_report_value = {
                     'variant_report': db_variant_report,
                     'tag': key.split('|')[1],

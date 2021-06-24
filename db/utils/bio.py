@@ -211,7 +211,7 @@ class VariantManager:
             info_keys = [k for k in self.keys if 'INFO|' in k]
             info_dtypes = {k: 'category' for k in info_keys}
             filter_keys = [k for k in self.keys if 'FILTER|' in k]
-            filter_dtypes = {k: 'category' for k in filter_keys}
+            filter_dtypes = {k: 'boolean' for k in filter_keys}
             df = self.get_dask_df_info(
                 cols=[
                     "VCF",
