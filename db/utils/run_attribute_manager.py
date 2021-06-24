@@ -351,9 +351,10 @@ class RunAttributeManager:
             b_f = {'name': row.build}
             db_transcript = self.related_instance(Transcript, tx_f)
             db_genome_build = self.related_instance(GenomeBuild, b_f)
-            for i in range(row.EXON):
+            for i in range(row.EXON + 1):
                 exon = {
-                    "number": i + 1,
+                    # ensure 0 is created too
+                    "number": i,
                     "transcript": db_transcript,
                     "genome_build": db_genome_build
                 }
@@ -599,15 +600,7 @@ class RunAttributeManager:
                     db_tx = self.related_instance(Transcript, filters=tx_f)
                     exon_f = {'transcript_id': db_tx.id, 'number': row['Exon']}
                     exon_f['number'] = str(exon_f['number'])
-                    try:
-                        db_exon = self.related_instance(Exon, filters=exon_f)
-                    except AssertionError:
-                        print(f"creating exon: {db_tx} #{row['Exon']}")
-                        db_exon, _ = Exon.objects.get_or_create(
-                            transcript=db_tx,
-                            number=str(row['Exon'])
-                        )
-                    report['exon'] = db_exon
+                    db_exon = self.related_instance(Exon, filters=exon_f)
                 else:
                     gene_f = {'hgnc_name': row['Gene']}
                     db_gene = self.related_instance(Gene, filters=gene_f)
