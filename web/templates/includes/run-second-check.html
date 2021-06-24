@@ -1,10 +1,31 @@
 {% load humanize %}
 
-<div class="ui segments set-status-modal" style="display: flex;min-width: 60%;max-width: 90%;max-height: 90%;">
+<style>
+    .set-status-modal {
+        display: flex;
+        width: 33cm;
+        height: 20cm;
+        margin: 0 !important;
+    }
+
+    @media (max-width: 45cm) {
+        .set-status-modal {
+            width: 80%
+        }
+    }
+
+    @media (max-height: 30cm) {
+        .set-status-modal {
+            height: 80%
+        }
+    }
+</style>
+
+<div class="ui segments set-status-modal">
     <div class="ui left aligned clearing segment">
         <h3 class="ui header" style="margin:0">Run QC Second Check: {{run.worksheet}} </h3>
     </div>
-    <div class="ui left aligned segment" style="display: flex;flex: 1;overflow: hidden;padding: 0;min-height: 40vh;">
+    <div class="ui left aligned segment" style="display: flex;flex: 1;overflow: hidden;padding: 0;">
 
         <div class="status-options">
 
@@ -39,10 +60,15 @@
                 </div>
             </div>
 
-            <div class="ui attached segment" style="flex: 1;overflow-y: auto; border-bottom: none;">
-                {% for sample in run.samplesheet.sample_set.all %}
+            <div class="ui attached segment" style="flex: 1;border-bottom: none;padding: 0;">
+                <!-- {% for sample in run.samplesheet.sample_set.all %}
                 <div class="ui raised segment">{{sample}}</div>
-                {% endfor %}
+                {% endfor %} -->
+
+                <iframe src="https://multiqc.info/examples/wgs/multiqc_report.html" width="100%" height="100%"
+                    style="border: 0;">
+                    <p>Your browser does not support iframes.</p>
+                </iframe>
             </div>
 
 
@@ -106,7 +132,7 @@
         flex: 0 0 10%;
         flex-direction: column;
         border-left: rgba(34, 36, 38, 0.15);
-        border-right: 0.25px solid #D5D5D6;
+        border-right: 2.25px solid #D5D5D6;
 
     }
 

@@ -469,8 +469,12 @@ def create_samplesheet():
                     #                                              coordinate__genome_build=transcript.sequence.start_coord.genome_build,
                     #                                              coordinate__pos=random.randint(transcript.sequence.start_coord.pos, transcript.sequence.end_coord.pos))
 
-                    variant = Variant.objects.filter(
-                        transcriptvariant__transcript=transcript).order_by('?').first()
+                    # variant = Variant.objects.filter(
+                    #     transcriptvariant__transcript=transcript).order_by('?').first()
+
+                    variant = Variant.objects.filter(transcriptvariant__transcript=transcript).exclude(
+                        id__in=SampleTranscriptVariant.objects.filter(
+                            sample_variant__sample=sample).values_list('sample_variant__variant', flat=True)).order_by('?').first()
 
                     sample_variant = SampleVariantFactory(
                         sample=sample,

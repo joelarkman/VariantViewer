@@ -20,6 +20,15 @@
             max-height: calc(80vh - 125.7656px)
         }
     }
+
+    .filter-preset-item {
+        display: flex !important;
+        align-items: center;
+    }
+
+    .filter-preset-item i {
+        margin-left: auto !important;
+    }
 </style>
 
 <div class="ui segments modal-container">
@@ -251,7 +260,7 @@
         {%endif%}
 
         <div class="ui attached segment"
-            style="flex-direction: column;flex: 0 1 22%;padding: 0;height: 100%;margin: 0;border-top: none;border-bottom: none;overflow-y: auto;overflow-x: hidden;min-height: 285px;">
+            style="flex-direction: column;flex: 0 1 22%;padding: 0;height: 100%;margin: 0;border-top: none;border-bottom: none;overflow-x: hidden;min-height: 285px;">
 
             <div class="ui vertical attached menu" style="display: flex;border: none;width: 100%;height: 100%;">
 
@@ -284,54 +293,24 @@
                     YOUR CUSTOM FILTERS
                 </div>
 
-                {% for filter in filters.user_filters %}
+                <div class="custom-filters" style="overflow-y: auto;">
+                    {% for filter in filters.user_filters %}
 
-                <a class="item  {% if filters.active_filter == filter %}active blue{% endif %} filter-preset-item option"
-                    data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filter.id %}">
-                    {{filter.name}}
-                    <i class="{% if filters.active_filter == filter %}check{%else%}outline{% endif %} circle icon"></i>
-                </a>
+                    <a class="item  {% if filters.active_filter == filter %}active blue{% endif %} filter-preset-item option"
+                        data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=filter.id %}">
+                        {{filter.name}}
+                        <i
+                            class="{% if filters.active_filter == filter %}check{%else%}outline{% endif %} circle icon"></i>
+                    </a>
 
-                {% endfor %}
+                    {% endfor %}
 
-                <a class="item {% if filters.active_filter == None %}active blue{% endif %} filter-preset-item "
-                    data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter='None' %}">
-                    Create custom filter
-                    <i class="plus icon"></i>
-                </a>
-
-                <!-- <div class="ui attached segment"
-                    style="padding-top: 9px;padding-bottom: 9px; padding-left: 12px;padding-right: 12px ;font-size: 12px; font-weight: 700; line-height: 12px;border-left: none;border-right: none; color: rgba(0,0,0,.6); background-color: #e8e8e8;">
-                    <i class="user icon" style="margin-right: 9px;width: 9px;"></i>
-                    OTHER USER FILTERS
+                    <a class="item {% if filters.active_filter == None %}active blue{% endif %} filter-preset-item "
+                        data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter='None' %}">
+                        Create custom filter
+                        <i class="plus icon"></i>
+                    </a>
                 </div>
-
-                {% if filters.other_user_filters %}
-
-                {% for user_filter in filters.other_user_filters %}
-
-                <a class="item  {% if filters.active_filter == user_filter.filter %}active blue{% endif %} filter-preset-item"
-                    data-url="{% url 'modify_filters' ss_sample=ss_sample.id run=run.id filter=user_filter.filter.id %}"
-                    style="display: flex;align-items: center;">
-                    <div style="display: flex;flex-direction: column">
-                        {{user_filter.filter.name}}
-                        <span style="font-size: smaller;margin-top: 2px;opacity: 70%">User:
-                            {{user_filter.user.first_name}} {{user_filter.user.last_name}}</span>
-                    </div>
-
-                    <i style="margin-left: auto;"
-                        class="{% if filters.active_filter == user_filter.filter %}check{% endif %} circle outline icon"></i>
-                </a>
-
-                {% endfor %}
-
-                {%else%}
-
-                <div style="margin-top:13px;margin-bottom: 13px;">
-                    <span style="margin-left: 16px">None</span>
-                </div>
-
-                {%endif%} -->
 
                 {% if filters.user_filters or filters.pipeline_default_filter %}
                 <a class="item {% if filters.active_filter == filters.blank_filter %}active blue{% endif %} filter-preset-item "

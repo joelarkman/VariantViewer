@@ -2,7 +2,7 @@ import os
 import json
 from django.db import models
 from web.utils.model_utils import BaseModel
-from db.models import VCF, SampleTranscriptVariant
+from db.models import Run, SamplesheetSample, SampleTranscriptVariant
 from django.utils.translation import gettext_lazy as _
 from easyaudit.models import CRUDEvent
 
@@ -104,16 +104,26 @@ class Comment(BaseModel):
     # Choice field for run QC status
     class Classification(models.IntegerChoices):
         UNCLASSIFIED = 0
-        PATHOGENIC = 1
-        LIKELY_PATHOGENIC = 2
+        BENIGN = 1
+        LIKELY_BENIGN = 2
         VUS = 3
-        LIKELY_BENIGN = 4
-        BENIGN = 5
+        LIKELY_PATHOGENIC = 4
+        PATHOGENIC = 5
 
     classification = models.IntegerField(
         choices=Classification.choices,
         default=0,
     )
+
+    @property
+    def classification_colour(self):
+        colours = {0: 'blue',
+                   1: 'green',
+                   2: 'olive',
+                   3: 'yellow',
+                   4: 'orange',
+                   5: 'red'}
+        return colours[self.classification]
 
     def get_last_modified(self):
         cruds = CRUDEvent.objects.filter(object_repr=self)
@@ -158,3 +168,28 @@ class Comment(BaseModel):
 
     class Meta:
         ordering = ['classification']
+
+
+class Report(BaseModel):
+    run = models.ForeignKey(
+        Run,
+        on_delete=models.CASCADE,
+        related_name='reports'
+    )
+    samplesheetsample = models.ForeignKey(
+        SamplesheetSample,
+        on_delete=models.CASCADE,
+        related_name='reports'
+    )
+
+    name = models.CharField(max_length=255)
+    summary = models.CharField(max_length=2000, blank=True)
+    recommendations = models.CharField(max_length=2000, blank=True)
+    data = models.JSONField(default=dict, blank=True)
+
+    def get_user_created(self):
+        try:
+            crud = CRUDEvent.objects.filter(object_repr=self).first().user
+        except:
+            crud = None
+        return crud

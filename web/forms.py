@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory, BaseInlineFormSet
-from .models import Comment, Document, Filter, FilterItem
+from .models import Comment, Document, Filter, FilterItem, Report
 
 
 class DocumentForm(forms.ModelForm):
@@ -34,3 +34,9 @@ class FilterItemForm(forms.ModelForm):
             'filter_type': forms.Select(attrs={'class': 'ui short search selection dropdown filter-dropdown'}),
             'value': forms.TextInput(attrs={'placeholder': 'Filter value'})
         }
+
+
+class ReportForm(forms.ModelForm):
+    class Meta:
+        model = Report
+        fields = ('name', 'summary', 'recommendations')

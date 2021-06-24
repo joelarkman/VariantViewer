@@ -1,0 +1,162 @@
+<!-- Tab Utility Bar -->
+<div id="tab-utility-bar" class="ui attached segment">
+
+    <span class="title">REPORT</span>
+
+    <div class="item-divider"></div>
+
+    {%if not show_new_button %}
+    <a id="report-left-button" class="ui circular icon label" style="margin-right: 5px;">
+        <i class="arrow alternate left icon"></i>
+    </a>
+
+    <div class="existing-reports-container">
+        {%if instance_status == 'new' %}
+        <div class="ui orange label existing-report active-instance unsaved-report" style="flex-shrink: 0;"
+            data-name="{%if default_name %}{{default_name}}{%else%}{{unsaved_name}}{%endif%}">
+            UNSAVED: {%if default_name %}{{default_name}}{%else%}{{unsaved_name}}{%endif%}
+            <div class="detail"><i class="edit icon"></i></div>
+        </div>
+        {% endif %}
+
+        {% for report in reports %}
+        {%if report.id == instance_status %}
+        <div class="ui orange label existing-report active-instance {%if preview%}modified-report{%endif%}"
+            style="flex-shrink: 0;" data-name="{{report.name}}">
+            {%if preview%}MODIFIED: {%endif%}{{report.name}}
+            <div class="detail"><i class="edit icon"></i></div>
+        </div>
+
+        {% else %}
+        <a class="ui label existing-report" data-name="{{report.name}}"
+            data-url="{% url 'report_update_or_create' run=run.id ss_sample=ss_sample.id report=report.id %}"
+            style="flex-shrink: 0;">
+            {{report.name}}
+        </a>
+
+        {%endif%}
+
+        {% if not forloop.last %}
+        <!-- <div class="ui grey circular label" style="margin-left: 3px;margin-right: 3px;">
+            {% if filters.active_filter.match == 'all' %}
+            &
+            {% else %}
+            or
+            {%endif%}
+        </div> -->
+        {%endif%}
+        {% endfor %}
+    </div>
+
+    <a id="report-right-button" class="ui circular icon label" style="margin-left:5px;margin-right: 15px;">
+        <i class="arrow alternate right icon"></i>
+    </a>
+
+    <a class="ui grey right icon tag  {%if instance_status == 'new' %}disabled{%endif%} label new-report"
+        data-url="{% url 'report_update_or_create' run=run.id ss_sample=ss_sample.id report='new' %}"
+        data-position="bottom center" data-html="<span>Modify filters</span>">
+        New Report
+        <i class="plus icon"></i>
+    </a>
+
+
+    {%endif%}
+</div>
+
+
+<div class="report-main-panel dimmable" style="display: flex;flex: 1;overflow: hidden;">
+
+    <div id="report-form-container" style="display: flex;flex-direction: column;flex: 0 0 480px;">
+        {% include 'includes/report-form.html' %}
+    </div>
+
+
+    <div class="report-pdf-container dimmable" style="display: flex;flex: 1;background-color: #525659;">
+        <object class="report-pdf" style="flex: 1;" data="" type="application/pdf">
+            <p>PDF cannot be displayed.</p>
+        </object>
+
+        <div class="ui report-dimmer medium dimmer">
+            <div class="ui large fast loader">
+            </div>
+        </div>
+    </div>
+
+
+    <div id="report-lightbox" class="ui light dimmer">
+        <!-- populated by js -->
+    </div>
+</div>
+
+<div class="report-create-panel"
+    style="display: flex;flex: 1;background-color: #525659;align-items: center;justify-content: center;">
+
+    <a class="ui raised link card new-report"
+        data-url="{% url 'report_update_or_create' run=run.id ss_sample=ss_sample.id report='new' %}"
+        style="max-width: 80%;max-height: 80%;width: 10cm;height: 3cm;">
+        <div class="content" style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+            <div class="center aligned header"> New report <i class="plus icon"></i></div>
+            <div class="center aligned description">
+                Click to generate a PDF report using the set of pinned variants defined for this sample.
+            </div>
+        </div>
+    </a>
+</div>
+
+<div class="report-confirm-discard-container" style="display: none;">
+    <div class="ui segments" style="display: flex;min-width: 40%;max-width: 90%;max-height: 90%;">
+        <div class="ui left aligned clearing segment">
+            <h3 class="ui header title-text" style="margin:0">Unsaved changes</h3>
+        </div>
+        <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
+            <span class='content-text'></span>
+        </div>
+        <div class="ui secondary left aligned clearing segment">
+            <div class="ui right floated negative button report-confirm-discard-submit">Discard changes</div>
+            <div class="ui right floated button report-confirm-discard-close">Cancel</div>
+        </div>
+    </div>
+</div>
+
+<div class="report-info-container" style="display: none;">
+    <div class="ui segments" style="display: flex;max-width: 22cm;max-height: 15cm;width: 75%;">
+        <div class="ui left aligned clearing segment">
+            <h3 class="ui header title-text" style="margin:0"></h3>
+        </div>
+        <div class="ui left aligned segment report-info-message-container hidden">
+            <div class="ui message report-info-message">
+
+            </div>
+        </div>
+        <div class="ui left aligned segment" style="display: flex;flex-direction: row;flex: 1;overflow: auto;">
+
+            <div style="flex: 1;">
+                <span class="report-info-label">Interpretation Comment</span>
+                <div style="height: 160px;margin-top: 4px;" class="fake-textarea report-info-comment"
+                    contenteditable="true" oncut="return false" onpaste="return false"
+                    onkeydown="if(event.metaKey) return true; return false;">
+                    rshnwrjrtjtwjtj
+                </div>
+            </div>
+
+            <div style="display: flex;flex-direction: column;flex: 0 0 30%;margin-left: 15px;">
+                <span class="report-info-label">Pathogenicity
+                    Classification</span>
+                <div class="previous-classification-container hidden" style="display: flex;flex-direction: column;">
+                    <div class="ui raised inverted segment previous report-info-classification">
+                        <span class="text">qffwef</span>
+                    </div>
+                    <div class="ui grey circular icon label" style="margin: 10px;align-self: center;"><i
+                            class="angle down icon" style="margin-right: 0.5px;"></i></div>
+                </div>
+
+                <div class="ui raised inverted segment report-info-classification">
+                    <span class="text">qffwef</span>
+                </div>
+            </div>
+        </div>
+        <div class="ui secondary left aligned clearing segment">
+            <div class="ui right floated button report-confirm-discard-close">Close</div>
+        </div>
+    </div>
+</div>

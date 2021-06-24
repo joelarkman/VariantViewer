@@ -13,7 +13,7 @@ urlpatterns = [
 
     path('<slug:section>', views.HomeView.as_view(), name='home'),
 
-    path('<slug:section>/search/', views.SearchView.as_view(), name='search'),
+    path('<slug:section>/search', views.SearchView.as_view(), name='search'),
 
     path('results/<worksheet>/<sample>',
          views.SampleDetailsView.as_view(), name='sample_details'),
@@ -56,7 +56,14 @@ urlpatterns = [
     path('ajax/load_previous_evidence/<int:current_stv>/<int:previous_stv>',
          views.load_previous_evidence, name='load_previous_evidence'),
 
+    path('ajax/report_update_or_create/<int:run>/<int:ss_sample>/<report>',
+         views.report_update_or_create, name='report_update_or_create'),
+
+    path('ajax/generate_report/', views.GenerateReport,
+         name='generate_report'),
+
     # Temporary to explore jbrowse during development
     path('jbrowse-testing', views.JbrowseTestingView.as_view(),
          name='jbrowse-testing')
+
 ]

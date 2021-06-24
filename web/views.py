@@ -1,20 +1,22 @@
 from accounts.models import UserFilter
-from django.views.generic import TemplateView
+from django.views.generic import View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django import forms
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import redirect
 from django.db.models import Q
 from django.db import transaction
 
+
 from db.utils.filter_utils import filter_variants, get_filters
 
-from .models import Comment, Document, Filter, FilterItem
+from .models import Comment, Document, Filter, FilterItem, Report
 from .utils.model_utils import LastUpdated
+from .utils.report_utils import context_to_string, get_report_results, render_to_pdf, create_report_context, string_to_context, update_selected_results
 
-from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm
+from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm, ReportForm
 
 from db.models import ExcelReport, Gene, Run, PipelineVersion, SamplesheetSample, SampleTranscriptVariant, Section, Transcript, VCFFilter, VariantReportInfo
 
@@ -167,18 +169,19 @@ def run_second_check(request, pk):
     last_updated = LastUpdated(run, 'qc_status')
 
     if request.method == 'POST':
-        qc_status_second_check = request.POST.get(
-            'qc_status_second_check')
+        if not last_updated['fields']['qc_status']['user'] == request.user:
+            qc_status_second_check = request.POST.get(
+                'qc_status_second_check')
 
-        if qc_status_second_check:
-            data['form_is_valid'] = True
+            if qc_status_second_check:
+                data['form_is_valid'] = True
 
-            if qc_status_second_check == 'accept':
-                run.checked = True
-            else:
-                run.qc_status = 0
+                if qc_status_second_check == 'accept':
+                    run.checked = True
+                else:
+                    run.qc_status = 0
 
-            run.save()
+                run.save()
         else:
             data['form_is_valid'] = False
 
@@ -463,7 +466,7 @@ def update_selected_transcript(request, run, ss_sample, transcript):
 
 def comment_update_or_create(request, stv):
     """
-    AJAX view to facilitate the creation or update of a single comment object for each STV.  
+    AJAX view to facilitate the creation or update of a single comment object for each STV.
     """
     data = dict()
     stv = SampleTranscriptVariant.objects.get(id=stv)
@@ -643,3 +646,146 @@ class JbrowseTestingView(TemplateView):
         context['bai'] = 'symtest/test-bai.bai'
 
         return context
+
+
+def GenerateReport(request):
+    # Retrieve context string query parameter from url and convert back to python dict using custom function.
+    context_string = request.GET.get('context')
+    context = string_to_context(context_string)
+
+    # Call custom utility function to generate pdf using template and contexct dict.
+    pdf = render_to_pdf('pdf/new.html', context)
+    if pdf:
+        response = HttpResponse(pdf, content_type='application/pdf')
+        filename = "%s.pdf" % (context['title'])
+        content = "inline; filename=%s" % (filename)
+        download = request.GET.get("download")
+        if download:
+            content = "attachment; filename=%s" % (filename)
+        response['Content-Disposition'] = content
+        return response
+    return HttpResponse("Not found")
+
+
+def report_update_or_create(request, run, ss_sample, report=None):
+    """
+    AJAX view to create, update or delete reports.
+    """
+
+    data = dict()
+    context = dict()
+
+    # Load sample context
+    ss_sample = SamplesheetSample.objects.get(id=ss_sample)
+    run = Run.objects.get(id=run)
+    reports = Report.objects.filter(
+        run=run, samplesheetsample=ss_sample).order_by('-date_modified')
+
+    if report == 'new':
+        # Create a blank instance if making a new report
+        instance = None
+    else:
+        try:
+            # Load specific report instance if provided
+            instance = Report.objects.get(id=report)
+        except:
+            # Load latest report if none provided
+            if Report.objects.filter(run=run, samplesheetsample=ss_sample).exists():
+                instance = Report.objects.filter(
+                    run=run, samplesheetsample=ss_sample).last()
+            else:
+                # Load no report if none provided and a relevent one does not yet exist.
+                instance = None
+
+    if instance:
+        report_context = instance.data
+        instance_status = instance.id
+    else:
+        report_context = None
+        instance_status = 'new'
+
+    if request.method == "POST":
+        form = ReportForm(request.POST, instance=instance)
+
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.run = run
+            instance.samplesheetsample = ss_sample
+
+            selected_stvs = request.POST.getlist('selected-stvs')
+
+            if request.POST.get('commit') == 'true':
+                commit = True
+                instance.save()
+            else:
+                commit = False
+
+            instance.data = create_report_context(run, ss_sample,
+                                                  selected_stvs, instance,
+                                                  request.user, commit)
+
+            if request.POST.get('refresh-results'):
+                # If refreshing report tab, generate report data using values from PDF
+                # already on the page (sent via hidden field) not values in form.
+                report_context_string = request.POST.get('refresh-results')
+                report_context_data = string_to_context(report_context_string)
+            else:
+                report_context_data = instance.data
+                report_context_string = context_to_string(report_context_data)
+
+            report_results = get_report_results(run, ss_sample,
+                                                request.user, report_context_data)
+
+            if request.POST.get('refresh-results'):
+                data['refresh'] = True
+                report_results = update_selected_results(
+                    report_results, selected_stvs)
+
+            if commit:
+                instance.save()
+                instance_status = instance.id
+
+            if report_context_data['preview']:
+                context.update({'preview': True})
+                context.update({'unsaved_name': instance.data['title']})
+
+            data['is_valid'] = True
+    else:
+        # Populate report form using existing or blank instance.
+        form = ReportForm(instance=instance)
+
+        report_results = get_report_results(
+            run, ss_sample, request.user, context=report_context)
+
+        if not instance:
+            auto_selected_stvs = [
+                stv['id'] for stv in report_results['stvs'] if stv['selected'] == True]
+            report_context = create_report_context(
+                run, ss_sample, auto_selected_stvs, user=request.user)
+            context.update({'default_name': report_context['title']})
+
+        if report == 'default' and not instance:
+            data['show_new_button'] = True
+            context.update({'show_new_button': True})
+
+        # Use custom function to convert context needed to generate report to a URL compatible string.
+        report_context_string = context_to_string(report_context)
+
+    context.update({'run': run,
+                    'ss_sample': ss_sample,
+                    'reports': reports,
+                    'report_results': report_results,
+                    'form': form,
+                    'report_context_string': report_context_string,
+                    'instance_status': instance_status,
+                    'report_instance': instance})
+
+    # Render report template using established context.
+    data['report_container'] = render_to_string('includes/report-container.html',
+                                                context,
+                                                request=request)
+
+    # JS will populate html object in template with URL that will call GenerateReport view using report_context_string.
+    data['report_context_string'] = report_context_string
+
+    return JsonResponse(data)
