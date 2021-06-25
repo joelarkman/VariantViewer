@@ -634,4 +634,4 @@ class GeneReport(CoverageInfo):
         return f"{self.gene} report: {self.excel_report}"
 
     class Meta:
-        unique_together = ['excel_report', 'gene']
+        unique_together = ['excel_report', 'gene', 'transcript', 'tag']
