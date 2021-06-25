@@ -602,7 +602,7 @@ class RunAttributeManager:
                     exon_f['number'] = str(exon_f['number'])
                     db_exon = self.related_instance(Exon, filters=exon_f)
                     report['exon'] = db_exon
-                    report['tag'] = row['Transcript'].split('_')[2:]
+                    report['tag'] = '_'.join(row['Transcript'].split('_')[2:])
                 else:
                     gene_f = {'hgnc_name': row['Gene']}
                     db_gene = self.related_instance(Gene, filters=gene_f)
