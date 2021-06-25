@@ -623,6 +623,12 @@ class GeneReport(CoverageInfo):
         Gene,
         on_delete=models.CASCADE,
     )
+    transcript = models.ForeignKey(
+        Transcript,
+        on_delete=models.PROTECT,
+        null=True
+    )
+    tag = models.CharField(max_length=255, null=True)
 
     def __str__(self):
         return f"{self.gene} report: {self.excel_report}"

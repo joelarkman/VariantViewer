@@ -604,9 +604,14 @@ class RunAttributeManager:
                     report['exon'] = db_exon
                     report['tag'] = '_'.join(row['Transcript'].split('_')[2:])
                 elif row['Gene']:
+                    refseq_id = '_'.join(row['Transcript'].split('_')[:2])
+                    tx_f = {'refseq_id': refseq_id}
+                    db_tx = self.related_instance(Transcript, filters=tx_f)
                     gene_f = {'hgnc_name': row['Gene']}
                     db_gene = self.related_instance(Gene, filters=gene_f)
                     report['gene'] = db_gene
+                    report['transcript'] = db_tx
+                    report['tag'] = '_'.join(row['Transcript'].split('_')[2:])
                 else:
                     continue
                 reports.append(report)
