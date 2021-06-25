@@ -603,10 +603,12 @@ class RunAttributeManager:
                     db_exon = self.related_instance(Exon, filters=exon_f)
                     report['exon'] = db_exon
                     report['tag'] = '_'.join(row['Transcript'].split('_')[2:])
-                else:
+                elif row['Gene']:
                     gene_f = {'hgnc_name': row['Gene']}
                     db_gene = self.related_instance(Gene, filters=gene_f)
                     report['gene'] = db_gene
+                else:
+                    continue
                 reports.append(report)
         return reports
 
