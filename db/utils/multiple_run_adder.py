@@ -137,8 +137,7 @@ class MultipleRunAdder:
                 model.check_found_in_db()
         to_update.close()
 
-    @staticmethod
-    def bulk_create_new(model_type, model_list: list) -> None:
+    def bulk_create_new(self, model_type, model_list: list) -> None:
         """Create then commit a unique set of attrs for a list of new instances
 
         Args:
@@ -158,6 +157,9 @@ class MultipleRunAdder:
 
         to_create = [model_type(**attrs) for attrs in attr_list]
         model_type.objects.bulk_create(to_create)
+
+        # call non-called receivers here:
+        self.call_post_update_handlers()
 
     @staticmethod
     def update_order():
@@ -210,3 +212,6 @@ class MultipleRunAdder:
             Variant,
             TranscriptVariant,
         )
+
+    def call_post_update_handlers(self):
+        pass

@@ -568,7 +568,11 @@ class RunAttributeManager:
         reports = []
         db_excel_reports = self.related_instances(ExcelReport)
         for db_excel_report in tqdm(db_excel_reports, leave=False):
-            wb = load_workbook(filename=db_excel_report.path, read_only=True)
+            wb = load_workbook(
+                filename=db_excel_report.path,
+                data_only=True,
+                read_only=True
+            )
             sheet = wb['Coverage-exon'] if exon else wb['Coverage-gene']
             report_df = pd.DataFrame(sheet.values)
             # set header as first row
