@@ -548,12 +548,8 @@ function SetupClassificationsTable() {
             { 'data': 'classification', 'name': 'comments__classification' },
         ],
         createdRow: function (row, data, index) {
-            classification = data.classification
-            if (classification === 'Benign') {
-                $(row).addClass('left marked green');
-            } else if (classification === 'Pathogenic') {
-                $(row).addClass('left marked red');
-            }
+            colour = data.classification_colour
+            $(row).addClass('left marked ' + colour);
         },
         "ordering": false,
         "scrollCollapse": true,
@@ -713,6 +709,7 @@ $(document).ready(function () {
                     // Setup table
                     SetupClassificationsTable()
 
+                    $('.mini-tabs-content svg').attr("viewBox", "0 0 1000 167");
                 }
             });
         }
@@ -1447,7 +1444,7 @@ function SetupReportForm() {
             if (updated == 'comment') {
                 $('#report #report-lightbox .report-info-message-container').removeClass('hidden')
                 report_info_message = 'The comment has been updated for this variant since it was added to the report. Save or preview the report to view changes.'
-                $('#report #report-lightbox .report-info-message').text(rreport_info_message)
+                $('#report #report-lightbox .report-info-message').text(report_info_message)
             } else if (updated == 'classification') {
                 $('#report #report-lightbox .report-info-message-container').removeClass('hidden')
                 report_info_message = 'The classification has been updated for this variant since it was added to the report. Save or preview the report to view changes.'

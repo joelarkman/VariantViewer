@@ -90,6 +90,7 @@ class SampleTranscriptVariantSerializer(serializers.ModelSerializer):
     comment = serializers.SerializerMethodField()
     evidence_file_count = serializers.SerializerMethodField()
     classification = serializers.SerializerMethodField()
+    classification_colour = serializers.SerializerMethodField()
     ss_samples = serializers.SerializerMethodField()
 
     def get_date_classified(self, stv):
@@ -104,6 +105,9 @@ class SampleTranscriptVariantSerializer(serializers.ModelSerializer):
     def get_classification(self, stv):
         return stv.comments.last().get_classification_display()
 
+    def get_classification_colour(self, stv):
+        return stv.comments.last().classification_colour
+
     def get_ss_samples(self, stv):
         vcfs = stv.sample_variant.variant.variantreport_set.filter(
             vcf__sample=stv.sample_variant.sample).values_list('vcf', flat=True)
@@ -112,4 +116,4 @@ class SampleTranscriptVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleTranscriptVariant
         fields = '__all__'
-        datatables_always_serialize = ('id',)
+        datatables_always_serialize = ('id', 'classification_colour')
