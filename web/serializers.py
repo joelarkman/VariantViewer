@@ -24,17 +24,17 @@ class RunSerializer(serializers.ModelSerializer):
 
 
 class SampleListSerializer(serializers.ModelSerializer):
-    first_name = serializers.SerializerMethodField()
-    last_name = serializers.SerializerMethodField()
+    # first_name = serializers.SerializerMethodField()
+    # last_name = serializers.SerializerMethodField()
     lab_no = serializers.SerializerMethodField()
 
     runs = serializers.SerializerMethodField()
 
-    def get_first_name(self, samplesheetsample):
-        return samplesheetsample.sample.patient.first_name
+    # def get_first_name(self, samplesheetsample):
+    #     return samplesheetsample.sample.patient.first_name
 
-    def get_last_name(self, samplesheetsample):
-        return samplesheetsample.sample.patient.last_name
+    # def get_last_name(self, samplesheetsample):
+    #     return samplesheetsample.sample.patient.last_name
 
     def get_lab_no(self, samplesheetsample):
         return samplesheetsample.sample.lab_no
