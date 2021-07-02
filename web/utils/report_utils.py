@@ -151,7 +151,7 @@ def get_report_results(run, ss_sample, user, context=None):
                 if stv.comments.last().comment:
                     comment = stv.comments.last().comment
             else:
-                classification = 'Unclassified',
+                classification = 'Unclassified'
                 classification_colour = 'blue'
 
             data = {'id': stv.id,
