@@ -102,10 +102,11 @@
                 },
                 // { 'data': 'first_name', 'name': 'sample__patient__first_name' },
                 // { 'data': 'last_name', 'name': 'sample__patient__last_name' },
-                { 'data': 'sample_identifier' },
+
                 { 'data': 'lab_no', 'name': 'sample__lab_no' },
                 { 'data': 'gene_key' },
                 { 'data': 'runs.0.worksheet', 'name': 'samplesheet__latest_run__worksheet' },
+                { 'data': 'sample_identifier' },
                 { 'data': 'runs.0.pipeline_name', 'name': 'samplesheet__latest_run__pipeline_version__pipeline__name' },
                 { 'data': 'runs.0.completed_at', 'name': 'samplesheet__latest_run__completed_at' },
                 { 'data': 'runs.0.qc_status_display', 'name': 'samplesheet__latest_run__qc_status' },
@@ -350,14 +351,15 @@
                     <th rowspan="2" width='40px'></th>
                     <!-- <th rowspan="2"> First name </th>
                     <th rowspan="2"> Last name </th> -->
-                    <th rowspan="2"> Sample ID </th>
+
                     <th rowspan="2"> Lab no. </th>
                     <th rowspan="2"> Gene Key </th>
-                    <th colspan="4"> Latest run </th>
+                    <th colspan="5"> Latest run </th>
                     <th rowspan="2" width='40px'>All runs</th>
                 </tr>
                 <tr>
                     <th> Worksheet </th>
+                    <th> Sample ID </th>
                     <th> Pipeline </th>
                     <th> Completed </th>
                     <th> QC Status </th>

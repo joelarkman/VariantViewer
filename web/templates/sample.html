@@ -34,14 +34,13 @@
                 </div>
                 <span class="divider">|</span> -->
                 <div class="small-text-column-container">
-                    <span class="small-text-top">SAMPLE (LAB NO):</span>
-                    <span class="small-text-bottom">{{ ss_sample.sample_identifier }}
-                        ({{ss_sample.sample.lab_no }})</span>
+                    <span class="small-text-top">LAB NO:</span>
+                    <span class="small-text-bottom">{{ss_sample.sample.lab_no }}</span>
                 </div>
                 <span class="divider">|</span>
                 <div class="small-text-column-container">
-                    <span class="small-text-top">WORKSHEET:</span>
-                    <span class="small-text-bottom">{{run.worksheet}}</span>
+                    <span class="small-text-top">WORKSHEET (SAMPLE ID):</span>
+                    <span class="small-text-bottom">{{run.worksheet}} ({{ ss_sample.sample_identifier }})</span>
                 </div>
                 <span class="divider">|</span>
                 <div class="small-text-column-container">

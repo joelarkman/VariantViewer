@@ -495,17 +495,8 @@ function SetupClassificationsTable() {
         "deferRender": true,
         'processing': true,
         'columns': [
-            { 'data': 'ss_samples.0.first_name', 'name': 'sample_variant__sample__patient__first_name' },
-            { 'data': 'ss_samples.0.last_name', 'name': 'sample_variant__sample__patient__last_name' },
-            {
-                "data": null,
-                "render": function (data, type, row, meta) {
-                    data = $.map(row.ss_samples, function (ss_sample) {
-                        return ss_sample.sample_identifier;
-                    })
-                    return data.join(', ');
-                }
-            },
+            // { 'data': 'ss_samples.0.first_name', 'name': 'sample_variant__sample__patient__first_name' },
+            // { 'data': 'ss_samples.0.last_name', 'name': 'sample_variant__sample__patient__last_name' },
             { 'data': 'ss_samples.0.lab_no', 'name': 'sample_variant__sample__lab_no' },
             {
                 "data": null,
@@ -516,6 +507,15 @@ function SetupClassificationsTable() {
                         })
                     })
                     return data.filter((item, i, ar) => ar.indexOf(item) === i).join(', ');
+                }
+            },
+            {
+                "data": null,
+                "render": function (data, type, row, meta) {
+                    data = $.map(row.ss_samples, function (ss_sample) {
+                        return ss_sample.sample_identifier;
+                    })
+                    return data.join(', ');
                 }
             },
             {
