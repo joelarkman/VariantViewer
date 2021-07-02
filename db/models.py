@@ -160,8 +160,8 @@ class VCFFilter(BaseModel):
 
 class GenomeBuild(BaseModel):
     name = models.CharField(max_length=255)
-    path = models.TextField(unique=True)
-    url = models.URLField()
+    path = models.TextField(unique=True, null=True)
+    url = models.URLField(null=True)
 
     def __str__(self):
         return self.name
@@ -378,7 +378,7 @@ class VariantReport(BaseModel):
         on_delete=models.CASCADE
     )
     # also store essential VCF info
-    qual = models.IntegerField()
+    qual = models.IntegerField(null=True)
     filter_pass = models.BooleanField(null=True)
     depth = models.IntegerField()
 
@@ -542,10 +542,10 @@ class Exon(BaseModel):
         Transcript,
         on_delete=models.CASCADE,
     )
-    strand = models.CharField(max_length=1)
-    chrom = models.CharField(max_length=2)
-    start_pos = models.IntegerField()
-    end_pos = models.IntegerField()
+    strand = models.CharField(max_length=1, null=True)
+    chrom = models.CharField(max_length=2, null=True)
+    start_pos = models.IntegerField(null=True)
+    end_pos = models.IntegerField(null=True)
 
     genome_build = models.ForeignKey(
         GenomeBuild,
@@ -570,30 +570,33 @@ class Exon(BaseModel):
 
 class CoverageInfo(BaseModel):
     """Coverage report for a gene or exon."""
-    cov_10x = models.IntegerField()
-    cov_20x = models.IntegerField()
-    cov_30x = models.IntegerField()
-    cov_40x = models.IntegerField()
-    cov_50x = models.IntegerField()
-    cov_100x = models.IntegerField()
-    cov_min = models.IntegerField()
-    cov_max = models.IntegerField()
-    cov_mean = models.FloatField()
-    cov_region = models.IntegerField()
-    pct_10x = models.IntegerField()
-    pct_20x = models.IntegerField()
-    pct_30x = models.IntegerField()
-    pct_40x = models.IntegerField()
-    pct_50x = models.IntegerField()
-    pct_100x = models.IntegerField()
+    cov_10x = models.IntegerField(null=True)
+    cov_20x = models.IntegerField(null=True)
+    cov_30x = models.IntegerField(null=True)
+    cov_40x = models.IntegerField(null=True)
+    cov_50x = models.IntegerField(null=True)
+    cov_100x = models.IntegerField(null=True)
+    cov_min = models.IntegerField(null=True)
+    cov_max = models.IntegerField(null=True)
+    cov_mean = models.FloatField(null=True)
+    cov_region = models.IntegerField(null=True)
+    pct_10x = models.IntegerField(null=True)
+    pct_20x = models.IntegerField(null=True)
+    pct_30x = models.IntegerField(null=True)
+    pct_40x = models.IntegerField(null=True)
+    pct_50x = models.IntegerField(null=True)
+    pct_100x = models.IntegerField(null=True)
 
     def get_percentages(self):
         pct_attributes = [attr for attr in dir(self) if attr.startswith('pct')]
         pct_attribute_values = map(lambda x: getattr(self, x), pct_attributes)
         return list(pct_attribute_values)
 
+    class Meta:
+        abstract = True
 
-class ExonReport(BaseModel):
+
+class ExonReport(CoverageInfo):
     excel_report = models.ForeignKey(
         ExcelReport,
         on_delete=models.CASCADE,
@@ -602,19 +605,16 @@ class ExonReport(BaseModel):
         Exon,
         on_delete=models.CASCADE,
     )
-    coverage_info = models.ForeignKey(
-        CoverageInfo,
-        on_delete=models.PROTECT
-    )
+    tag = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return f"{self.exon} report: {self.excel_report}"
+        return f"{self.exon}_{self.tag} report: {self.excel_report}"
 
     class Meta:
-        unique_together = ['excel_report', 'exon']
+        unique_together = ['excel_report', 'exon', 'tag']
 
 
-class GeneReport(BaseModel):
+class GeneReport(CoverageInfo):
     excel_report = models.ForeignKey(
         ExcelReport,
         on_delete=models.CASCADE,
@@ -623,13 +623,15 @@ class GeneReport(BaseModel):
         Gene,
         on_delete=models.CASCADE,
     )
-    coverage_info = models.ForeignKey(
-        CoverageInfo,
-        on_delete=models.PROTECT
+    transcript = models.ForeignKey(
+        Transcript,
+        on_delete=models.PROTECT,
+        null=True
     )
+    tag = models.CharField(max_length=255, null=True)
 
     def __str__(self):
         return f"{self.gene} report: {self.excel_report}"
 
     class Meta:
-        unique_together = ['excel_report', 'gene']
+        unique_together = ['excel_report', 'gene', 'transcript', 'tag']

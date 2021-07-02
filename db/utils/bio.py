@@ -1,9 +1,15 @@
 import csv
+import os
 import re
 import tempfile
+from typing import List
 
 import pandas as pd
+import dask.dataframe as dd
 import vcf as py_vcf
+
+
+CHROM_PATTERN = re.compile(r'chr(..?)')
 
 
 class VariantManager:
@@ -29,33 +35,55 @@ class VariantManager:
         self.record_csv = tempfile.NamedTemporaryFile(delete=False)
         self.record_csv.close()
 
+        self.info_keys : List[str] = []
+        self.filter_keys : List[str] = []
+
         # various dataframes for accessing data without bloating memory
         self._gene_df = pd.DataFrame()
         self._transcript_df = pd.DataFrame()
         self._variant_df = pd.DataFrame()
         self._transcript_variant_df = pd.DataFrame()
 
+    def delete_csv(self):
+        os.remove(self.record_csv.name)
+
     def update_records(self, vcf_filename):
         """Add the records from a given VCF to the managed CSV of variant info.
         """
         reader = py_vcf.Reader(filename=vcf_filename, encoding='utf-8')
         info = reader.infos
+        skip = ['CSQ',]
         filters = reader.filters
         info_keys = [
             header for header
             in map(
                 # get all headers except CSQ, which is handled separately
-                lambda x: None if x.id == "CSQ" else f"INFO{x.id}|{x.desc}",
+                lambda x: None if x.id in skip else f"INFO|{x.id}|{x.desc}",
                 info.values()
             )
             if header is not None
         ]
-        filter_keys = []
+        self.info_keys = info_keys
+
+        filter_keys = [
+            header for header in map(
+                lambda x: f"FILTER|{x.id}|{x.desc}",
+                filters.values()
+            )
+        ]
+        self.filter_keys = filter_keys
+
+        vep_meta = reader.metadata.get('VEP')[0]
+        build_re = re.compile(r'assembly="?([^"]+)"?')
+        build = build_re.search(vep_meta).groups()[0]
+        vep = vep_meta.split(' ')[0].strip('"')
+        file_format = list(reader.metadata.values())[0]
+
         if not self.started_write:
             # set the headers of the csv file if haven't done so already
             csq_keys = info['CSQ'].desc.split('Format: ')[-1].split('|')
-            var_keys = ["CHROM", "POS", "REF", "ALT"]
-            meta_keys = ["Sample", "VCF"] + list(reader.metadata.keys())[:4]
+            var_keys = ["CHROM", "POS", "REF", "ALT", "QUAL", "DEPTH", "PF"]
+            meta_keys = ["Sample", "VCF", "format", "VEP", "build"]
 
             headers = meta_keys + var_keys + csq_keys + info_keys + filter_keys
             with open(self.record_csv.name, 'w', newline='') as f:
@@ -70,13 +98,17 @@ class VariantManager:
             record_sample = record.samples[0].sample
             # set the sample + variant info
             sample = '.'.join(self.re_ln.search(record_sample).groups())
-            meta = [sample, vcf_filename] + list(reader.metadata.values())[:4]
+            meta = [sample, vcf_filename, file_format, vep, build]
 
             chrom = record.CHROM
             pos = record.POS
             ref = record.REF
             alt = record.ALT
-            var = [chrom, pos, ref, alt]
+            qual = record.QUAL
+            # add depth and pf here since we use it in the VariantReport model
+            depth = record.INFO.get('DP')
+            pf = True if record.FILTER in ['.', 'PASS'] else False
+            var = [chrom, pos, ref, alt, qual, depth, pf]
 
             # fetch the INFO information for the variant, match to INFO headers
             var_info = [
@@ -94,12 +126,12 @@ class VariantManager:
             for csq in consequences:
                 # add a potential consequence for a variant to the main list
                 variant_info = meta + var + csq + var_info + var_filters
-                variant_info.extend(csq)
                 vcf_values_list.append(variant_info)
 
             # manage memory
             del record
 
+        # open the file in a+ so as to seek to end, do not load file in RAM
         with open(self.record_csv.name, 'a+', newline='') as f:
             # with a list of all consequences for all variants, write to csv
             writer = csv.writer(f)
@@ -110,6 +142,14 @@ class VariantManager:
 
     def get_df_info(self, cols, dtypes=None, converters=None):
         return pd.read_csv(
+            self.record_csv.name,
+            usecols=cols,
+            dtype=dtypes,
+            converters=converters
+        )
+
+    def get_dask_df_info(self, cols, dtypes=None, converters=None):
+        return dd.read_csv(
             self.record_csv.name,
             usecols=cols,
             dtype=dtypes,
@@ -131,8 +171,16 @@ class VariantManager:
         if self._transcript_df.empty:
             df = self.get_df_info(
                 # read the hgnc_id, feature type, refseq ID, and canon status
-                cols=["Gene", "Feature_type", "Feature", "CANONICAL", "EXON"],
+                cols=[
+                    "build",
+                    "Gene",
+                    "Feature_type",
+                    "Feature",
+                    "CANONICAL",
+                    "EXON"
+                ],
                 dtypes={
+                    "build": "category",
                     "Gene": pd.UInt32Dtype(),
                     "Feature_type": "category",
                     "Feature": "category"
@@ -159,11 +207,22 @@ class VariantManager:
 
     @property
     def variant_df(self):
-        if self._variant_df.empty:
-            df = self.get_df_info(
+        if len(self._variant_df.index) == 0:
+            info_keys = [k for k in self.keys if 'INFO|' in k]
+            info_dtypes = {k: 'category' for k in info_keys}
+            filter_keys = [k for k in self.keys if 'FILTER|' in k]
+            filter_dtypes = {k: 'boolean' for k in filter_keys}
+            df = self.get_dask_df_info(
                 cols=[
+                    "VCF",
+                    "build",
+                    "CHROM",
+                    "POS",
                     "REF",
                     "ALT",
+                    "QUAL",
+                    "DEPTH",
+                    "PF",
                     "Sample",
                     "Gene",
                     "SYMBOL",
@@ -174,9 +233,15 @@ class VariantManager:
                     "Consequence",
                     "IMPACT",
                     "CANONICAL",
-                ],
+                ] + info_keys + filter_keys,
                 dtypes={
+                    "VCF": "category",
+                    "build": "category",
+                    "POS": pd.UInt32Dtype(),
                     "REF": "category",
+                    "QUAL": pd.UInt32Dtype(),
+                    "DEPTH": pd.UInt16Dtype(),
+                    "PF": "boolean",
                     "Feature_type": "category",
                     "Feature": "category",
                     "Sample": "category",
@@ -186,8 +251,11 @@ class VariantManager:
                     "HGVSp": "category",
                     "Consequence": "category",
                     "IMPACT": "category",
+                    **info_dtypes,
+                    **filter_dtypes
                 },
                 converters={
+                    "CHROM": lambda x: CHROM_PATTERN.match(x).groups()[0],
                     "ALT": lambda x: x.strip('[]'),
                     "CANONICAL": lambda x: True if x == "YES" else False,
                 }
@@ -197,10 +265,10 @@ class VariantManager:
 
     @property
     def transcript_variant_df(self):
-        if self._transcript_variant_df.empty:
+        if len(self._transcript_variant_df.index) == 0:
             df = self.variant_df
             self._transcript_variant_df = df[
-                (df.Gene.notna())
+                (df.Gene.isin(self.gene_df.Gene.unique()))
                 & (df.Feature_type == "Transcript")
             ].drop_duplicates(
                 subset=["Feature", "REF", "ALT"]

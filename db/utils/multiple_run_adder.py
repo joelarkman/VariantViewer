@@ -67,7 +67,13 @@ class MultipleRunAdder:
         self.df = pd.DataFrame(columns=columns, data=data)
 
         # begin the process of bulk adding info to the database
-        self.add_runs(self.runs)
+        try:
+            self.add_runs(self.runs)
+        except:
+            print("parse failed, deleting csv...")
+            self.variant_manager.delete_csv()
+            raise
+        self.variant_manager.delete_csv()
 
     def add_runs(self, runs):
         """The bulk update process.
@@ -131,8 +137,7 @@ class MultipleRunAdder:
                 model.check_found_in_db()
         to_update.close()
 
-    @staticmethod
-    def bulk_create_new(model_type, model_list: list) -> None:
+    def bulk_create_new(self, model_type, model_list: list) -> None:
         """Create then commit a unique set of attrs for a list of new instances
 
         Args:
@@ -152,6 +157,9 @@ class MultipleRunAdder:
 
         to_create = [model_type(**attrs) for attrs in attr_list]
         model_type.objects.bulk_create(to_create)
+
+        # call non-called receivers here:
+        self.call_post_update_handlers()
 
     @staticmethod
     def update_order():
@@ -180,6 +188,9 @@ class MultipleRunAdder:
             (Gene, True),
             (Transcript, True),
             (Exon, True),
+            # coverage info
+            (ExonReport, True),
+            (GeneReport, True),
             # variant info
             (Variant, True),
             (SampleVariant, True),
@@ -189,18 +200,18 @@ class MultipleRunAdder:
             (VariantReport, True),
             (VariantReportInfo, True),
             (VariantReportFilter, True),
-            # coverage info
-            (CoverageInfo, True),
-            (ExonReport, True),
-            (GeneReport, True),
         )
 
     @property
     def managed_fields(self):
         return (
-            Gene,
+            GenomeBuild,
             Exon,
             Transcript,
+            Gene,
             Variant,
             TranscriptVariant,
         )
+
+    def call_post_update_handlers(self):
+        pass
