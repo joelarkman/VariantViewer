@@ -29,7 +29,7 @@
             section = $('.section-name').text().toLowerCase()
 
             // connect all searches together and apply them.
-            table.search(search).column(7).search(pipeline).column(9).search(qc_status).draw();
+            table.search(search).column(5).search(pipeline).column(7).search(qc_status).draw();
 
             if (pipeline === '') {
                 pipeline_text = ''
