@@ -563,9 +563,15 @@ function SetupClassificationsTable() {
             'processing': 'Loading...',
             "zeroRecords": "No classifications matching query",
         },
-        "order": [[3, 'desc']]
+        "order": [[3, 'desc']],
+        "fnDrawCallback": function (oSettings) {
+            var count = $('.mini-tabs-content .previous-classification-table').DataTable().rows().count()
+            $('.mini-tabs-content .details-tabs .item[data-tab="previous-classifications"]').text('Previous Classifications (' + count + ')')
+        }
 
     });
+
+
 
     $(function () {
         $('.mini-tabs-content .previous-classification-table tbody').on('click', 'tr', function (event) {
