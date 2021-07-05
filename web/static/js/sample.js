@@ -1166,52 +1166,52 @@ $(document).ready(function () {
         'processing': true,
         'columns': [
             { 'data': 'gene_name', 'name': 'gene__hgnc_name' },
-            { 'data': 'coverage_info.cov_10x' },
-            { 'data': 'coverage_info.cov_20x' },
-            { 'data': 'coverage_info.cov_30x' },
-            { 'data': 'coverage_info.cov_40x' },
-            { 'data': 'coverage_info.cov_50x' },
-            { 'data': 'coverage_info.cov_100x' },
-            { 'data': 'coverage_info.cov_min' },
-            { 'data': 'coverage_info.cov_max' },
+            { 'data': 'cov_10x' },
+            { 'data': 'cov_20x' },
+            { 'data': 'cov_30x' },
+            { 'data': 'cov_40x' },
+            { 'data': 'cov_50x' },
+            { 'data': 'cov_100x' },
+            { 'data': 'cov_min' },
+            { 'data': 'cov_max' },
             {
-                'data': 'coverage_info.cov_mean',
+                'data': 'cov_mean',
                 'render': function (data, type, full) {
                     return parseFloat(data).toFixed(0);
                 }
             },
             {
-                'data': 'coverage_info.pct_10x',
+                'data': 'pct_10x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }
             },
             {
-                'data': 'coverage_info.pct_20x',
+                'data': 'pct_20x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }
             },
             {
-                'data': 'coverage_info.pct_30x',
+                'data': 'pct_30x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }
             },
             {
-                'data': 'coverage_info.pct_40x',
+                'data': 'pct_40x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }
             },
             {
-                'data': 'coverage_info.pct_50x',
+                'data': 'pct_50x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }
             },
             {
-                'data': 'coverage_info.pct_100x',
+                'data': 'pct_100x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }
@@ -1242,52 +1242,52 @@ $(document).ready(function () {
         'columns': [
             { 'data': 'gene_name', 'name': 'exon__transcript__gene__hgnc_name' },
             { 'data': 'exon_number', 'name': 'exon__number' },
-            { 'data': 'coverage_info.cov_10x' },
-            { 'data': 'coverage_info.cov_20x' },
-            { 'data': 'coverage_info.cov_30x' },
-            { 'data': 'coverage_info.cov_40x' },
-            { 'data': 'coverage_info.cov_50x' },
-            { 'data': 'coverage_info.cov_100x' },
-            { 'data': 'coverage_info.cov_min' },
-            { 'data': 'coverage_info.cov_max' },
+            { 'data': 'cov_10x' },
+            { 'data': 'cov_20x' },
+            { 'data': 'cov_30x' },
+            { 'data': 'cov_40x' },
+            { 'data': 'cov_50x' },
+            { 'data': 'cov_100x' },
+            { 'data': 'cov_min' },
+            { 'data': 'cov_max' },
             {
-                'data': 'coverage_info.cov_mean',
+                'data': 'cov_mean',
                 'render': function (data, type, full) {
                     return parseFloat(data).toFixed(0);
                 }
             },
             {
-                'data': 'coverage_info.pct_10x',
+                'data': 'pct_10x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }
             },
             {
-                'data': 'coverage_info.pct_20x',
+                'data': 'pct_20x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }
             },
             {
-                'data': 'coverage_info.pct_30x',
+                'data': 'pct_30x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }
             },
             {
-                'data': 'coverage_info.pct_40x',
+                'data': 'pct_40x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }
             },
             {
-                'data': 'coverage_info.pct_50x',
+                'data': 'pct_50x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }
             },
             {
-                'data': 'coverage_info.pct_100x',
+                'data': 'pct_100x',
                 createdCell: function (td, cellData, rowData, row, col) {
                     ColourCells(td, cellData)
                 }

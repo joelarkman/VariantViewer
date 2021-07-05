@@ -148,11 +148,53 @@ class GeneReportFactory(DjangoModelFactory):
         model = GeneReport
         django_get_or_create = ('excel_report', 'gene')
 
+    cov_10x = factory.Faker('random_int', min=25000, max=50000)
+    cov_20x = factory.Faker('random_int', min=20000, max=45000)
+    cov_30x = factory.Faker('random_int', min=15000, max=40000)
+    cov_40x = factory.Faker('random_int', min=10000, max=30000)
+    cov_50x = factory.Faker('random_int', min=5000, max=20000)
+    cov_100x = factory.Faker('random_int', min=0, max=15000)
+    cov_min = factory.LazyAttribute(
+        lambda cov_min: min([cov_min.cov_10x, cov_min.cov_20x, cov_min.cov_30x, cov_min.cov_40x, cov_min.cov_50x, cov_min.cov_100x]))
+    cov_max = factory.LazyAttribute(
+        lambda cov_max: max([cov_max.cov_10x, cov_max.cov_20x, cov_max.cov_30x, cov_max.cov_40x, cov_max.cov_50x, cov_max.cov_100x]))
+    cov_mean = factory.LazyAttribute(
+        lambda cov_mean: np.mean([cov_mean.cov_10x, cov_mean.cov_20x, cov_mean.cov_30x, cov_mean.cov_40x, cov_mean.cov_50x, cov_mean.cov_100x]))
+
+    cov_region = factory.Faker('random_int', min=0, max=15000)
+    pct_10x = factory.Faker('random_int', min=60, max=100)
+    pct_20x = factory.Faker('random_int', min=60, max=100)
+    pct_30x = factory.Faker('random_int', min=60, max=100)
+    pct_40x = factory.Faker('random_int', min=60, max=100)
+    pct_50x = factory.Faker('random_int', min=60, max=100)
+    pct_100x = factory.Faker('random_int', min=60, max=100)
+
 
 class ExonReportFactory(DjangoModelFactory):
     class Meta:
         model = ExonReport
         django_get_or_create = ('excel_report', 'exon')
+
+    cov_10x = factory.Faker('random_int', min=25000, max=50000)
+    cov_20x = factory.Faker('random_int', min=20000, max=45000)
+    cov_30x = factory.Faker('random_int', min=15000, max=40000)
+    cov_40x = factory.Faker('random_int', min=10000, max=30000)
+    cov_50x = factory.Faker('random_int', min=5000, max=20000)
+    cov_100x = factory.Faker('random_int', min=0, max=15000)
+    cov_min = factory.LazyAttribute(
+        lambda cov_min: min([cov_min.cov_10x, cov_min.cov_20x, cov_min.cov_30x, cov_min.cov_40x, cov_min.cov_50x, cov_min.cov_100x]))
+    cov_max = factory.LazyAttribute(
+        lambda cov_max: max([cov_max.cov_10x, cov_max.cov_20x, cov_max.cov_30x, cov_max.cov_40x, cov_max.cov_50x, cov_max.cov_100x]))
+    cov_mean = factory.LazyAttribute(
+        lambda cov_mean: np.mean([cov_mean.cov_10x, cov_mean.cov_20x, cov_mean.cov_30x, cov_mean.cov_40x, cov_mean.cov_50x, cov_mean.cov_100x]))
+
+    cov_region = factory.Faker('random_int', min=0, max=15000)
+    pct_10x = factory.Faker('random_int', min=60, max=100)
+    pct_20x = factory.Faker('random_int', min=60, max=100)
+    pct_30x = factory.Faker('random_int', min=60, max=100)
+    pct_40x = factory.Faker('random_int', min=60, max=100)
+    pct_50x = factory.Faker('random_int', min=60, max=100)
+    pct_100x = factory.Faker('random_int', min=60, max=100)
 
 
 class VCFFactory(DjangoModelFactory):
@@ -444,8 +486,7 @@ def create_samplesheet():
 
         # Create genereport for each gene analysised
         for gene in subset_genes:
-            genereport = GeneReportFactory(excel_report=excelreport, gene=gene,
-                                           coverage_info=CoverageInfoFactory())
+            genereport = GeneReportFactory(excel_report=excelreport, gene=gene)
 
             # Create exonreport for each exon of the canonical transcript of each gene analyised.
             try:
@@ -455,8 +496,8 @@ def create_samplesheet():
                 continue
 
             for exon in exons:
-                exonreport = ExonReportFactory(excel_report=excelreport, exon=exon,
-                                               coverage_info=CoverageInfoFactory())
+                exonreport = ExonReportFactory(
+                    excel_report=excelreport, exon=exon)
 
             # Create a random number of variants for each transcript of each analysed gene.
             all_transcripts = Transcript.objects.filter(

@@ -48,30 +48,21 @@ class SampleListSerializer(serializers.ModelSerializer):
         datatables_always_serialize = ('id', 'runs',)
 
 
-class CoverageInfoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CoverageInfo
-        fields = '__all__'
-        datatables_always_serialize = ('id',)
-
-
 class GeneReportSerializer(serializers.ModelSerializer):
     gene_name = serializers.SerializerMethodField()
-    coverage_info = CoverageInfoSerializer()
 
     def get_gene_name(self, gr):
         return gr.gene.hgnc_name
 
     class Meta:
         model = GeneReport
-        fields = ['gene_name', 'coverage_info']
+        fields = '__all__'
         datatables_always_serialize = ('id',)
 
 
 class ExonReportSerializer(serializers.ModelSerializer):
     gene_name = serializers.SerializerMethodField()
     exon_number = serializers.SerializerMethodField()
-    coverage_info = CoverageInfoSerializer()
 
     def get_gene_name(self, er):
         return er.exon.transcript.gene.hgnc_name
@@ -81,7 +72,7 @@ class ExonReportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExonReport
-        fields = ['gene_name', 'exon_number', 'coverage_info']
+        fields = '__all__'
         datatables_always_serialize = ('id',)
 
 
