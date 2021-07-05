@@ -94,7 +94,7 @@
                 {
                     "data": null,
                     "render": function (data, type, row, meta) {
-                        data = "<a href='/results/" + row.runs[0].worksheet + "/" + row.sample_identifier + "' class='ui small icon button' style='margin:0px;'><i class='external alternate icon'></i></a>"
+                        data = "<a href='/results/" + row.runs[0].worksheet + "/" + row.lab_no + "' class='ui small icon button' style='margin:0px;'><i class='external alternate icon'></i></a>"
                         return data;
                     },
                     "orderable": false,
@@ -167,7 +167,7 @@
                 // var sample = $(this).find("td").eq(1).text();
 
                 var row = sample_table.row(this);
-                window.location.href = "/results/" + row.data().runs[0].worksheet + "/" + row.data().sample_identifier;
+                window.location.href = "/results/" + row.data().runs[0].worksheet + "/" + row.data().lab_no;
             }
         });
 

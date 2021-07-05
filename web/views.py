@@ -104,8 +104,11 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(SampleDetailsView, self).get_context_data()
         # base.html includes page_title by default
+        # ss_sample = SamplesheetSample.objects.get(
+        #     sample_identifier=self.kwargs['sample'])
+
         ss_sample = SamplesheetSample.objects.get(
-            sample_identifier=self.kwargs['sample'])
+            sample__lab_no=self.kwargs['sample'], samplesheet__latest_run__worksheet=self.kwargs['worksheet'])
 
         section = ss_sample.sample.section
 
@@ -789,3 +792,11 @@ def report_update_or_create(request, run, ss_sample, report=None):
     data['report_context_string'] = report_context_string
 
     return JsonResponse(data)
+
+
+def GenerateVariantDiagram(request):
+
+    image = open(
+        'web/static/dependencies/lollipop/TP53.svg', 'rb')
+
+    return HttpResponse(image, content_type="image/svg+xml")
