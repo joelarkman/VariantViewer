@@ -36,7 +36,7 @@ def string_to_context(string):
 
 
 def create_report_context(run, ss_sample, selected_stvs, report=None, user=None, commit=False):
-    if ss_sample.sample.patient.first_name:
+    if ss_sample.sample.patient:
         patient = ss_sample.sample.patient.first_name + \
             ' ' + ss_sample.sample.patient.last_name
     else:
