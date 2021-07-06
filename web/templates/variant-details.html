@@ -42,7 +42,7 @@
                     </div>
 
                     <div class="info-label">
-                        <span class="title">VARIATION TYPE:</span>
+                        <span class="title">CONSEQUENCE:</span>
                         <span class="value">{{stv.consequence}}</span>
                     </div>
                 </div>
@@ -138,7 +138,7 @@
 
             <div class="teal card">
                 <div class="content">
-                    <div class="center aligned header">Variation Type</div>
+                    <div class="center aligned header">Consequence</div>
                     <div class="center aligned description">{{stv.consequence}}</div>
                 </div>
             </div>
@@ -205,14 +205,17 @@
 <div class="ui tab" data-tab="databases">
 
     <div class="ui top attached segment">
-        <h4>Databases</h4>
+        <h4>Protein Diagram</h4>
     </div>
 
-    <div class="ui bottom attached segment" style="background-color: #eeeeee;">
+    <div class="ui bottom attached segment"
+        style="background-color: #eeeeee;display: flex;align-items: center;justify-content: center;padding-top: 0">
 
         <!-- placeholder -->
 
     </div>
+
+
 </div>
 
 
@@ -251,6 +254,14 @@
             style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">
             Paste, Drop or Click here to upload evidence
             <i class="upload icon"></i>
+        </div>
+    </div>
+
+    <div id="contextMenu" class="ui small vertical menu"
+        style="position: absolute;display: none;z-index: 100;width: 200px;">
+        <div class="paste item">
+            <i class="paste icon"></i>
+            Use Ctrl-V to paste image
         </div>
     </div>
 

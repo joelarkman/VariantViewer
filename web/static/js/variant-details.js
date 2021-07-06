@@ -205,9 +205,26 @@ $(function () {
 });
 
 // Hack to allow paste option appear on right click of upload div
-$("#target").mousedown(function (e) {
-    if (e.which === 3) {
-        $("#target").attr('contentEditable', true)
-        setTimeout(() => $("#target").attr('contentEditable', false), 20);
-    }
+// $("#target").mousedown(function (e) {
+//     if (e.which === 3) {
+//         $("#target").attr('contentEditable', true)
+//         setTimeout(() => $("#target").attr('contentEditable', false), 50);
+//     }
+// });
+
+var $contextMenu = $("#contextMenu");
+$("body").on("contextmenu", "#target", function (e) {
+    var x = e.pageX - $('.mini-tabs-content').offset().left + 35;
+    var y = e.pageY - $('.mini-tabs-content').offset().top - 5;
+
+    $contextMenu.css({
+        display: "block",
+        left: x,
+        top: y
+    });
+    return false;
+});
+
+$('html').click(function () {
+    $contextMenu.hide();
 });
