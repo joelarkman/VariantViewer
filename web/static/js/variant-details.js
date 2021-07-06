@@ -205,8 +205,9 @@ $(function () {
 });
 
 // Hack to allow paste option appear on right click of upload div
-target.onmousedown = e => {
-    if (e.button === 2) target.contentEditable = true;
-    // wait just enough for 'contextmenu' to fire
-    setTimeout(() => target.contentEditable = false, 20);
-};
+$("#target").mousedown(function (e) {
+    if (e.which === 3) {
+        $("#target").attr('contentEditable', true)
+        setTimeout(() => $("#target").attr('contentEditable', false), 20);
+    }
+});
