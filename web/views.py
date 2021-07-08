@@ -121,7 +121,8 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
 
         # Load files for jbrowse
         context['vcf'] = ss_sample.sample.vcfs.get(run=run)
-        context['bam'] = ss_sample.sample.bams.get(run=run)
+        context['bam'] = ss_sample.sample.bams.get(
+            run=run, path__contains="realn")
 
         # Exome test
         # context['vcf'] = 'example.nosync/exome.vcf.gz'
