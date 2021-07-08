@@ -187,10 +187,10 @@
     <!-- Genome Browser -->
     <div class="browser-collapsed" style="display: none;" id="browser">
         <div class="ui attached segment" style="padding: 5px;border: none;">
-            <div id="jbrowse_linear_view" data-sample='{{ss_sample.sample.patient.first_name}}
-            {{ss_sample.sample.patient.last_name}} - {{ ss_sample.sample_identifier }}
-            ({{ss_sample.sample.lab_no }})' data-vcf='{{ vcf }}' data-tbi='{{ tbi }}' data-bam='{{ bam }}'
-                data-bai='{{ bai }}' data-media-url='{{ MEDIA_URL }}'>
+            <div id="jbrowse_linear_view"
+                data-sample='{{run.worksheet}} ({{ss_sample.sample_identifier}}) - {{ss_sample.sample.lab_no }}'
+                data-vcf='{%if vcf.file %}{{ vcf.file.url }}{%endif%}'
+                data-bam='{%if bam.file %}{{ bam.file.url }}{%endif%}'>
             </div>
 
         </div>
@@ -316,48 +316,6 @@
 
                 </thead>
 
-                <!-- <tbody>
-
-                    {% for gene in excelreport.genereport_set.all %}
-
-                    <tr>
-                        <td> {{gene.gene.hgnc_name}} </td>
-
-                        <td> {{gene.coverage_info.cov_10x}} </td>
-                        <td> {{gene.coverage_info.cov_20x}} </td>
-                        <td> {{gene.coverage_info.cov_30x}} </td>
-                        <td> {{gene.coverage_info.cov_40x}} </td>
-                        <td> {{gene.coverage_info.cov_50x}} </td>
-                        <td> {{gene.coverage_info.cov_100x}} </td>
-
-                        <td> {{gene.coverage_info.cov_min}} </td>
-                        <td> {{gene.coverage_info.cov_max}} </td>
-                        <td> {{gene.coverage_info.cov_mean|floatformat}} </td>
-
-                        {% for percentage in gene.coverage_info.get_percentages %}
-
-                        {% if percentage > 95 %}
-
-                        <td class='positive'> {{percentage}} </td>
-
-                        {% elif percentage > 80 %}
-
-                        <td class='warning'> {{percentage}} </td>
-
-                        {% else %}
-
-                        <td class='negative'> {{percentage}} </td>
-
-                        {% endif %}
-
-                        {% endfor %}
-
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody> -->
-
             </table>
 
         </div>
@@ -436,49 +394,6 @@
                     </tr>
 
                 </thead>
-
-                <tbody>
-
-                    {% for exon in excelreport.exonreport_set.all %}
-
-                    <tr>
-                        <td> {{exon.exon.transcript.gene.hgnc_name}} </td>
-                        <td> {{exon.exon.number}} </td>
-
-                        <td> {{exon.coverage_info.cov_10x}} </td>
-                        <td> {{exon.coverage_info.cov_20x}} </td>
-                        <td> {{exon.coverage_info.cov_30x}} </td>
-                        <td> {{exon.coverage_info.cov_40x}} </td>
-                        <td> {{exon.coverage_info.cov_50x}} </td>
-                        <td> {{exon.coverage_info.cov_100x}} </td>
-
-                        <td> {{exon.coverage_info.cov_min}} </td>
-                        <td> {{exon.coverage_info.cov_max}} </td>
-                        <td> {{exon.coverage_info.cov_mean|floatformat}} </td>
-
-                        {% for percentage in exon.coverage_info.get_percentages %}
-
-                        {% if percentage > 95 %}
-
-                        <td class='positive'> {{percentage}} </td>
-
-                        {% elif percentage > 80 %}
-
-                        <td class='warning'> {{percentage}} </td>
-
-                        {% else %}
-
-                        <td class='negative'> {{percentage}} </td>
-
-                        {% endif %}
-
-                        {% endfor %}
-
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
 
             </table>
 

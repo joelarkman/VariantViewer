@@ -120,11 +120,8 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         context['ss_sample'] = ss_sample
 
         # Load files for jbrowse
-        context['vcf'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz'
-        context['tbi'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.unified.annovar.wmrgldb.vcf.gz.tbi'
-
-        context['bam'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.bwa.drm.realn.sorted.bam'
-        context['bai'] = 'test/123456-1-D00-00001-SYN_TSCPv2_S1.bwa.drm.realn.sorted.bam.bai'
+        context['vcf'] = ss_sample.sample.vcfs.get(run=run)
+        context['bam'] = ss_sample.sample.bams.get(run=run)
 
         # Exome test
         # context['vcf'] = 'example.nosync/exome.vcf.gz'
@@ -639,6 +636,8 @@ class JbrowseTestingView(TemplateView):
         context = super(JbrowseTestingView, self).get_context_data()
         # base.html includes page_title by default
         context['page_title'] = 'Jbrowse Testing'
+
+        context['section'] = Section.objects.first()
 
         context['genes'] = Gene.objects.all()
 

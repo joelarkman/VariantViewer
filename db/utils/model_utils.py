@@ -1,4 +1,7 @@
 from django.db import models
+from django.conf import settings
+from pathlib import Path
+import os
 
 
 class BaseModel(models.Model):
@@ -50,7 +53,23 @@ class PipelineOutputFileModel(BaseModel):
         without having to copy files across to the desired location, nor allow
         access to the whole pipeline output directory.
         """
-        raise NotImplementedError()
+        try:
+            file_path = Path(self.path)
+            target = settings.MEDIA_ROOT / 'symlinks' / file_path.name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.symlink_to(file_path)
+            self.file.name = str(target.relative_to(target.parent.parent))
+
+            if '.xlsx' not in file_path.suffixes:
+                index_file_path = [x for x in file_path.parent.glob(
+                    file_path.name + '.*i') if x.is_file()][0]
+                index_target = settings.MEDIA_ROOT / 'symlinks' / index_file_path.name
+                index_target.symlink_to(index_file_path)
+
+            self.save()
+        except:
+            print('Unable to create symlinks')
+            raise
 
     def __str__(self):
         return self.path

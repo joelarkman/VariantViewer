@@ -53,7 +53,8 @@
         {% for stv in transcript.list %}
 
         <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' run=run.id stv=stv.id %}"
-            data-id="{{stv.id}}" data-chr="17" data-location="41203106" {% if forloop.last %}
+            data-id="{{stv.id}}" data-chr="{{stv.sample_variant.variant.chrom}}"
+            data-location="{{stv.sample_variant.variant.pos}}" {% if forloop.last %}
             style="border-bottom:0.5px solid #E8E9E9;" {%endif%}>
             <div class="variant-title">
                 <!-- {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}} -->
@@ -106,7 +107,8 @@
         {% for stv in transcript.list %}
 
         <a class="item mini-tabs-link" data-url="{% url 'load_variant_details' run=run.id stv=stv.id %}"
-            data-id="{{stv.id}}" data-chr="17" data-location="41203106" {% if forloop.last %}
+            data-id="{{stv.id}}" data-chr="{{stv.sample_variant.variant.chrom}}"
+            data-location="{{stv.sample_variant.variant.pos}}" {% if forloop.last %}
             style="border-bottom:0.5px solid #E8E9E9;" {%endif%}>
             <div class="variant-title">
                 <!-- {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}} -->

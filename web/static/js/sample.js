@@ -1677,83 +1677,252 @@ $(function () {
 
 var sample = $('#jbrowse_linear_view').attr('data-sample');
 var vcf = $('#jbrowse_linear_view').attr('data-vcf');
-var tbi = $('#jbrowse_linear_view').attr('data-tbi');
 var bam = $('#jbrowse_linear_view').attr('data-bam');
-var bai = $('#jbrowse_linear_view').attr('data-bai');
-var media = $('#jbrowse_linear_view').attr('data-media-url');
+
+// const genomeView = new JBrowseLinearGenomeView({
+//     container: document.getElementById('jbrowse_linear_view'),
+//     assembly: {
+//         name: 'hg19',
+//         sequence: {
+//             type: 'ReferenceSequenceTrack',
+//             trackId: 'hg19',
+//             adapter: {
+//                 type: 'BgzipFastaAdapter',
+//                 fastaLocation: {
+//                     uri:
+//                         'https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz',
+//                 },
+//                 faiLocation: {
+//                     uri:
+//                         'https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz.fai',
+//                 },
+//                 gziLocation: {
+//                     uri:
+//                         'https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz.gzi',
+//                 }
+//             },
+//         },
+//         "refNameAliases": {
+//             "adapter": {
+//                 "type": "RefNameAliasAdapter",
+//                 "location": {
+//                     "uri": "https://s3.amazonaws.com/jbrowse.org/genomes/hg19/hg19_aliases.txt"
+//                 }
+//             }
+//         }
+//     },
+//     tracks: [
+//         {
+//             "type": 'FeatureTrack',
+//             "trackId":
+//                 'ncbi_gff_hg19',
+//             "name": 'NCBI RefSeq (GFF3Tabix)',
+//             "category": ['Genes'],
+//             "assemblyNames": ['hg19'],
+//             "adapter": {
+//                 "type": 'Gff3TabixAdapter',
+//                 "gffGzLocation": {
+//                     "uri":
+//                         'https://s3.amazonaws.com/jbrowse.org/genomes/hg19/ncbi_refseq/GRCh37_latest_genomic.sort.gff.gz',
+//                 },
+//                 "index": {
+//                     "location": {
+//                         'uri':
+//                             'https://s3.amazonaws.com/jbrowse.org/genomes/hg19/ncbi_refseq/GRCh37_latest_genomic.sort.gff.gz.tbi',
+//                     },
+//                     "indexType": 'TBI',
+//                 },
+//             },
+//             "renderer": {
+//                 "type": 'SvgFeatureRenderer',
+//             },
+//         },
+//         {
+//             "type": "AlignmentsTrack",
+//             "trackId": "alignment_test",
+//             "name": bam,
+//             "assemblyNames": ["hg19"],
+//             "category": [sample, 'Alignments'],
+//             "adapter": {
+//                 "type": "BamAdapter",
+//                 "bamLocation": {
+//                     "uri": bam
+//                 },
+//                 "index": {
+//                     "location": {
+//                         "uri": bam + '.bai'
+//                     }
+//                 }
+//             }
+//         },
+//         {
+//             "type": "VariantTrack",
+//             "trackId": "vcf_test",
+//             "name": vcf,
+//             "assemblyNames": ["hg19"],
+//             "category": [sample, 'Variants'],
+//             "adapter": {
+//                 "type": "VcfTabixAdapter",
+//                 "vcfGzLocation": { "uri": vcf },
+//                 "index": { "location": { "uri": vcf + '.tbi' } }
+//             }
+//         }],
+//     defaultSession: {
+//         name: 'this session',
+//         view: {
+//             "id": "linearGenomeView",
+//             "type": "LinearGenomeView",
+//             "offsetPx": 2087472352,
+//             "bpPerPx": 0.01,
+//             "displayName": 'VariantViewer - ' + sample,
+//             "displayedRegions": [],
+//             "tracks": [
+//                 {
+//                     "id": "zoLe_b8_j",
+//                     "type": "ReferenceSequenceTrack",
+//                     "configuration": "hg19",
+//                     "displays": [
+//                         {
+//                             "id": "g4SyLlEDdI",
+//                             "type": "LinearReferenceSequenceDisplay",
+//                             "height": 44,
+//                             "configuration": "hg19-LinearReferenceSequenceDisplay",
+//                             "showForward": true,
+//                             "showReverse": true,
+//                             "showTranslation": false
+//                         }
+//                     ]
+//                 },
+//                 {
+//                     "id": "WzpyXHqsw",
+//                     "type": "AlignmentsTrack",
+//                     "configuration": "alignment_test",
+//                     "displays": [
+//                         {
+//                             "id": "EuLBW2f8ZB",
+//                             "type": "LinearAlignmentsDisplay",
+//                             "PileupDisplay": {
+//                                 "id": "sKwcWEd3N0",
+//                                 "type": "LinearPileupDisplay",
+//                                 "height": 50,
+//                                 "configuration": {
+//                                     "type": "LinearPileupDisplay",
+//                                     "displayId": "alignment_test-LinearAlignmentsDisplay_pileup_xyz",
+//                                     "renderers": {
+//                                         "PileupRenderer": {
+//                                             "type": "PileupRenderer"
+//                                         },
+//                                         "SvgFeatureRenderer": {
+//                                             "type": "SvgFeatureRenderer"
+//                                         }
+//                                     }
+//                                 },
+//                                 "showSoftClipping": false,
+//                                 "filterBy": {
+//                                     "flagInclude": 0,
+//                                     "flagExclude": 1536
+//                                 }
+//                             },
+//                             "SNPCoverageDisplay": {
+//                                 "id": "Y_I4865YWS",
+//                                 "type": "LinearSNPCoverageDisplay",
+//                                 "height": 50,
+//                                 "configuration": {
+//                                     "type": "LinearSNPCoverageDisplay",
+//                                     "displayId": "alignment_test-LinearAlignmentsDisplay_snpcoverage_xyz",
+//                                     "renderers": {
+//                                         "SNPCoverageRenderer": {
+//                                             "type": "SNPCoverageRenderer"
+//                                         }
+//                                     }
+//                                 },
+//                                 "selectedRendering": "",
+//                                 "resolution": 1,
+//                                 "constraints": {},
+//                                 "filterBy": {
+//                                     "flagInclude": 0,
+//                                     "flagExclude": 1536
+//                                 }
+//                             },
+//                             "configuration": "alignment_test-LinearAlignmentsDisplay",
+//                             "height": 140,
+//                             "showCoverage": true,
+//                             "showPileup": true
+//                         }
+//                     ]
+//                 },
+//                 {
+//                     "id": "WLv6XdMIC",
+//                     "type": "VariantTrack",
+//                     "configuration": "vcf_test",
+//                     "displays": [
+//                         {
+//                             "id": "t9iR3GMoJo",
+//                             "type": "LinearVariantDisplay",
+//                             "height": 62,
+//                             "configuration": "vcf_test-LinearVariantDisplay"
+//                         }
+//                     ]
+//                 }
+//             ],
+//             "hideHeader": false,
+//             "hideHeaderOverview": false,
+//             "trackSelectorType": "hierarchical",
+//             "trackLabels": "overlapping",
+//             "showCenterLine": true
+//         },
+//     },
+//     location: ''
+// })
 
 const genomeView = new JBrowseLinearGenomeView({
     container: document.getElementById('jbrowse_linear_view'),
     assembly: {
-        name: 'hg19',
+        name: 'GRCh38',
         sequence: {
             type: 'ReferenceSequenceTrack',
-            trackId: 'hg19',
+            trackId: 'GRCh38-ReferenceSequenceTrack',
             adapter: {
                 type: 'BgzipFastaAdapter',
                 fastaLocation: {
                     uri:
-                        'https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz',
+                        'https://jbrowse.org/genomes/GRCh38/fasta/hg38.prefix.fa.gz',
                 },
                 faiLocation: {
                     uri:
-                        'https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz.fai',
+                        'https://jbrowse.org/genomes/GRCh38/fasta/hg38.prefix.fa.gz.fai',
                 },
                 gziLocation: {
                     uri:
-                        'https://jbrowse.org/genomes/hg19/fasta/hg19.fa.gz.gzi',
-                }
+                        'https://jbrowse.org/genomes/GRCh38/fasta/hg38.prefix.fa.gz.gzi',
+                },
             },
         },
+        "aliases": ['hg38'],
         "refNameAliases": {
             "adapter": {
-                "type": "RefNameAliasAdapter",
+                "type": 'RefNameAliasAdapter',
                 "location": {
-                    "uri": "https://s3.amazonaws.com/jbrowse.org/genomes/hg19/hg19_aliases.txt"
-                }
-            }
-        }
-    },
-    tracks: [
-        {
-            "type": 'FeatureTrack',
-            "trackId":
-                'ncbi_gff_hg19',
-            "name": 'NCBI RefSeq (GFF3Tabix)',
-            "category": ['Genes'],
-            "assemblyNames": ['hg19'],
-            "adapter": {
-                "type": 'Gff3TabixAdapter',
-                "gffGzLocation": {
-                    "uri":
-                        'https://s3.amazonaws.com/jbrowse.org/genomes/hg19/ncbi_refseq/GRCh37_latest_genomic.sort.gff.gz',
+                    "uri": '/static/dependencies/jbrowse/GRCh38_aliases.txt',
                 },
-                "index": {
-                    "location": {
-                        'uri':
-                            'https://s3.amazonaws.com/jbrowse.org/genomes/hg19/ncbi_refseq/GRCh37_latest_genomic.sort.gff.gz.tbi',
-                    },
-                    "indexType": 'TBI',
-                },
-            },
-            "renderer": {
-                "type": 'SvgFeatureRenderer',
             },
         },
+    },
+    tracks: [
         {
             "type": "AlignmentsTrack",
             "trackId": "alignment_test",
             "name": bam,
-            "assemblyNames": ["hg19"],
+            "assemblyNames": ["GRCh38"],
             "category": [sample, 'Alignments'],
             "adapter": {
                 "type": "BamAdapter",
                 "bamLocation": {
-                    "uri": media + bam
+                    "uri": bam
                 },
                 "index": {
                     "location": {
-                        "uri": media + bai
+                        "uri": bam + '.bai'
                     }
                 }
             }
@@ -1762,14 +1931,15 @@ const genomeView = new JBrowseLinearGenomeView({
             "type": "VariantTrack",
             "trackId": "vcf_test",
             "name": vcf,
-            "assemblyNames": ["hg19"],
+            "assemblyNames": ["GRCh38"],
             "category": [sample, 'Variants'],
             "adapter": {
                 "type": "VcfTabixAdapter",
-                "vcfGzLocation": { "uri": media + vcf },
-                "index": { "location": { "uri": media + tbi } }
+                "vcfGzLocation": { "uri": vcf },
+                "index": { "location": { "uri": vcf + '.tbi' } }
             }
-        }],
+        }
+    ],
     defaultSession: {
         name: 'this session',
         view: {
@@ -1781,15 +1951,15 @@ const genomeView = new JBrowseLinearGenomeView({
             "displayedRegions": [],
             "tracks": [
                 {
-                    "id": "zoLe_b8_j",
+                    "id": "izZPwhILD",
                     "type": "ReferenceSequenceTrack",
-                    "configuration": "hg19",
+                    "configuration": "GRCh38-ReferenceSequenceTrack",
                     "displays": [
                         {
-                            "id": "g4SyLlEDdI",
+                            "id": "OjrZP6sysi",
                             "type": "LinearReferenceSequenceDisplay",
-                            "height": 44,
-                            "configuration": "hg19-LinearReferenceSequenceDisplay",
+                            "height": 42,
+                            "configuration": "GRCh38-ReferenceSequenceTrack-LinearReferenceSequenceDisplay",
                             "showForward": true,
                             "showReverse": true,
                             "showTranslation": false
@@ -1797,17 +1967,17 @@ const genomeView = new JBrowseLinearGenomeView({
                     ]
                 },
                 {
-                    "id": "WzpyXHqsw",
+                    "id": "M3Ztqarko",
                     "type": "AlignmentsTrack",
                     "configuration": "alignment_test",
                     "displays": [
                         {
-                            "id": "EuLBW2f8ZB",
+                            "id": "qO33xJue3G",
                             "type": "LinearAlignmentsDisplay",
                             "PileupDisplay": {
-                                "id": "sKwcWEd3N0",
+                                "id": "DCkx-9HE6v",
                                 "type": "LinearPileupDisplay",
-                                "height": 50,
+                                "height": 90,
                                 "configuration": {
                                     "type": "LinearPileupDisplay",
                                     "displayId": "alignment_test-LinearAlignmentsDisplay_pileup_xyz",
@@ -1827,9 +1997,9 @@ const genomeView = new JBrowseLinearGenomeView({
                                 }
                             },
                             "SNPCoverageDisplay": {
-                                "id": "Y_I4865YWS",
+                                "id": "7MQWJgSq9-",
                                 "type": "LinearSNPCoverageDisplay",
-                                "height": 50,
+                                "height": 45,
                                 "configuration": {
                                     "type": "LinearSNPCoverageDisplay",
                                     "displayId": "alignment_test-LinearAlignmentsDisplay_snpcoverage_xyz",
@@ -1848,19 +2018,19 @@ const genomeView = new JBrowseLinearGenomeView({
                                 }
                             },
                             "configuration": "alignment_test-LinearAlignmentsDisplay",
-                            "height": 140,
+                            "height": 97,
                             "showCoverage": true,
                             "showPileup": true
                         }
                     ]
                 },
                 {
-                    "id": "WLv6XdMIC",
+                    "id": "j4glioTshC",
                     "type": "VariantTrack",
                     "configuration": "vcf_test",
                     "displays": [
                         {
-                            "id": "t9iR3GMoJo",
+                            "id": "lS1vBYxNJr",
                             "type": "LinearVariantDisplay",
                             "height": 62,
                             "configuration": "vcf_test-LinearVariantDisplay"
