@@ -1903,12 +1903,37 @@ const genomeView = new JBrowseLinearGenomeView({
             "adapter": {
                 "type": 'RefNameAliasAdapter',
                 "location": {
-                    "uri": '/static/dependencies/jbrowse/GRCh38_aliases.txt',
+                    "uri": 'https://jbrowse.org/genomes/GRCh38/hg38_aliases.txt',
                 },
             },
         },
     },
     tracks: [
+        {
+            "type": 'FeatureTrack',
+            "trackId":
+                'GCA_000001405.15_GRCh38_full_analysis_set.refseq_annotation.sorted.gff',
+            "name": 'NCBI RefSeq Genes',
+            "category": ['Genes'],
+            "assemblyNames": ['GRCh38'],
+            "adapter": {
+                "type": 'Gff3TabixAdapter',
+                "gffGzLocation": {
+                    "uri":
+                        'https://s3.amazonaws.com/jbrowse.org/genomes/GRCh38/ncbi_refseq/GCA_000001405.15_GRCh38_full_analysis_set.refseq_annotation.sorted.gff.gz',
+                },
+                "index": {
+                    "location": {
+                        'uri':
+                            'https://s3.amazonaws.com/jbrowse.org/genomes/GRCh38/ncbi_refseq/GCA_000001405.15_GRCh38_full_analysis_set.refseq_annotation.sorted.gff.gz.tbi',
+                    },
+                    "indexType": 'TBI',
+                },
+            },
+            "renderer": {
+                "type": 'SvgFeatureRenderer',
+            }
+        },
         {
             "type": "AlignmentsTrack",
             "trackId": "alignment_test",
