@@ -35,7 +35,7 @@
 }
 
 #variant-menu {
-    flex: 0 0 300px;
+    flex: 0 0 320px;
     min-height: 100%;
     border-radius: 0%;
     border-top: none;
@@ -94,25 +94,32 @@
 
 .gene .item.mini-tabs-link .variant-title{
     display: flex;
+    flex-direction: column;
     border:0.25px solid #D5D5D6;
     border-top: none;
-    border-left: none;
+    border-right: none;
     border-bottom: none;
     flex:1;
     padding: 3px;
     align-items: center;
     justify-content: center;
-    padding: 5px;
+    padding: 7px;
     text-align: center;
 }
 
 .gene .item.mini-tabs-link .variant-attribute-container{
     display: flex;
     border: none;
-    flex: 0 0 120px;
-    padding: 3px;
+    flex: 0 0 15px;
     align-items: stretch;
-    padding: 6px;
+    padding: 3px;
+    background-color: #E8E9E9;
+    opacity: 0.7;
+}
+
+.gene .item.mini-tabs-link.active .variant-attribute-container{
+    opacity: 1;
+    background-color: #dbdbdb;
 }
 
 .gene .item.mini-tabs-link .variant-attribute{
@@ -223,6 +230,10 @@
     margin-right: auto;
     margin-bottom: 0px;
     flex-shrink: 1;
+    min-width: min-content;
+    max-width: 80%;
+    width: auto;
+    
 }
 
 .variant-details-header .title-container.ischecked {
@@ -230,8 +241,8 @@
 }
 
 .variant-details-header .col-container {
-    /* display: flex;
-    flex-direction: column; */
+    display: flex;
+    flex-direction: column;
     margin: 5px;
     margin-left: 10px;
     margin-right: 10px;
@@ -244,11 +255,13 @@
     margin: 0px;
     align-self: flex-start;
     align-items: center;
+    word-break: break-all;
 }
 
 .variant-details-header .col-container .header #pinned-icon{
     margin: 0;
     margin-right: 5px;
+    flex-shrink: 0;
 }
 
 .variant-details-header .col-container .info-labels-container{
@@ -258,7 +271,7 @@
     margin-top: 5px;
     margin-bottom: 3px;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 .variant-details-header .col-container .info-labels-container .info-label{
@@ -295,7 +308,49 @@
 .variant-details-header #pin-variant-checkbox {
     margin-left: 15px;
     margin-right: 10px;
+    flex-shrink: 0;
 }
+
+.variant-details-summary-item-row {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+.variant-details-summary-item-container {
+    flex: 1;
+    border: 1px solid #d4d4d5;
+    /* background-color: white; */
+    border-top: none;
+    border-left:none;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    
+    
+    /* box-shadow: inset 0px 0px 26px -2px rgba(0,0,0,0.15); */
+    /* box-shadow: inset 0px 0px 18px 2px rgba(0,0,0,0.07); */
+}
+
+.variant-details-summary-item-container.last {
+    border-right: none;
+}
+
+.variant-details-summary-item-container.bottom {
+    border-bottom: none;
+}
+
+.variant-details-summary-item-container .title{
+   font-size: 14px;
+   margin-bottom: 2px;
+}
+
+.variant-details-summary-item-container .value{
+    font-size: 17px;
+    font-weight: 700;
+    word-break: break-all;
+ }
 
 /* ==========
    OTHER TABS 

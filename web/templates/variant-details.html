@@ -26,15 +26,23 @@
                 <h2 class="ui header">
                     <i id="pinned-icon"
                         class="tiny inverted circular pin icon {% if not stv.pinned %}hidden{%endif%}"></i>
-                    {{stv.get_long_hgvs.hgvs_c}}
+                    <span>{%if stv.get_long_hgvs.hgvs_c == 'nan'%}{{stv.sample_variant.variant|truncatechars:50}}{%else%}{{stv.get_long_hgvs.hgvs_c}}{%endif%}</span>
                 </h2>
 
 
                 <div class="info-labels-container">
+
+                    {% if stv.get_long_hgvs.hgvs_c == 'nan' %}
                     <div class="info-label">
-                        <span class="title">GENE SYMBOL:</span>
-                        <span class="value">{{stv.transcript.gene.hgnc_name}}</span>
+                        <span class="title">TRANSCRIPT HGVS:</span>
+                        <span class="value">{{stv.get_long_hgvs.hgvs_c|truncatechars:30}}</span>
                     </div>
+                    {%else%}
+                    <div class="info-label">
+                        <span class="title">GENOMIC DESCRIPTION:</span>
+                        <span class="value">{{stv.sample_variant.variant|truncatechars:30}}</span>
+                    </div>
+                    {%endif%}
 
                     <div class="info-label">
                         <span class="title">PROTEIN HGVS:</span>
@@ -42,8 +50,8 @@
                     </div>
 
                     <div class="info-label">
-                        <span class="title">CONSEQUENCE:</span>
-                        <span class="value">{{stv.consequence}}</span>
+                        <span class="title">GENE SYMBOL:</span>
+                        <span class="value">{{stv.transcript.gene.hgnc_name}}</span>
                     </div>
                 </div>
 
@@ -89,114 +97,172 @@
         <h4>Summary</h4>
     </div>
 
-    <div class="ui bottom attached segment" style="background-color: #eeeeee;">
-        <div class="ui five centered cards">
-            <div class="teal card">
-                <div class="content">
-                    <div class="center aligned header">Chromosome</div>
-                    <div class="center aligned description">
-                        {{stv.sample_variant.variant.chrom}}</div>
+    <div class="ui bottom attached segment"
+        style="background-color: #eeeeee;padding: 0px !important;flex: 1;display: flex;flex-direction: column;">
+
+        <div class="variant-details-summary-item-row">
+            <div class="variant-details-summary-item-container">
+                <div class="title">
+                    CHROMOSOME:
+                </div>
+                <div class="value">
+                    {{stv.sample_variant.variant.chrom}}
                 </div>
             </div>
-
-            <div class="teal card">
-                <div class="content">
-                    <div class="center aligned header">Position</div>
-                    <div class="center aligned description">
-                        {{stv.sample_variant.variant.pos}}</div>
+            <div class="variant-details-summary-item-container">
+                <div class="title">
+                    POSITION:
+                </div>
+                <div class="value">
+                    {{stv.sample_variant.variant.pos}}
                 </div>
             </div>
-
-            <div class="teal card">
-                <div class="content">
-                    <div class="center aligned header">Alleles</div>
-                    <div class="center aligned description">
-                        {{stv.sample_variant.variant.ref}}>{{stv.sample_variant.variant.alt}}</div>
+            <div class="variant-details-summary-item-container">
+                <div class="title">
+                    REFERENCE:
+                </div>
+                <div class="value">
+                    {{stv.sample_variant.variant.ref}}
                 </div>
             </div>
-
-            <div class="teal card">
-                <div class="content">
-                    <div class="center aligned header">Quality</div>
-                    <div class="center aligned description">{{variant_report.qual}}</div>
+            <div class="variant-details-summary-item-container last">
+                <div class="title">
+                    ALTERNATE:
+                </div>
+                <div class="value">
+                    {{stv.sample_variant.variant.alt}}
                 </div>
             </div>
+        </div>
 
-            <div class="teal card">
-                <div class="content">
-                    <div class="center aligned header">Filter pass</div>
-                    <div class="center aligned description">{{variant_report.filter_pass}}</div>
+        <div class="variant-details-summary-item-row">
+            <div class="variant-details-summary-item-container bottom">
+                <div class="title">
+                    CONSEQUENCE:
+                </div>
+                <div class="value">
+                    {{stv.consequence}}
                 </div>
             </div>
-
-            <div class="teal card">
-                <div class="content">
-                    <div class="center aligned header">Depth</div>
-                    <div class="center aligned description">{{variant_report.depth}}</div>
+            <div class="variant-details-summary-item-container bottom">
+                <div class="title">
+                    IMPACT:
+                </div>
+                <div class="value">
+                    {{stv.impact}}
                 </div>
             </div>
-
-            <div class="teal card">
-                <div class="content">
-                    <div class="center aligned header">Consequence</div>
-                    <div class="center aligned description">{{stv.consequence}}</div>
+            <div class="variant-details-summary-item-container bottom">
+                <div class="title">
+                    QUALITY:
+                </div>
+                <div class="value">
+                    {{variant_report.qual}}
                 </div>
             </div>
-
-
-            <div class="teal card">
-                <div class="content">
-                    <div class="center aligned header">Impact</div>
-                    <div class="center aligned description">{{stv.impact}}</div>
+            <div class="variant-details-summary-item-container bottom">
+                <div sclass="title">
+                    DEPTH:
+                </div>
+                <div class="value">
+                    {{variant_report.depth}}
                 </div>
             </div>
-
-            <div class="teal card">
-                <div class="content">
-                    <div class="center aligned header">ClinVar Clin Sig</div>
-                    <!-- <div class="center aligned description">Likely Pathogenic</div> -->
+            <div class=" variant-details-summary-item-container bottom last">
+                <div sclass="title">
+                    WMRGL-AF:
+                </div>
+                <div class="value">
+                    0.003
                 </div>
             </div>
-
-            <div class="teal card">
-                <div class="content">
-                    <div class="center aligned header">WMRGL AF</div>
-                    <!-- <div class="center aligned description">2/100</div> -->
-                </div>
-            </div>
-
         </div>
     </div>
 
 
-    <div class="ui top attached segment">
-        <h4>Other Info</h4>
+    <div style="display: flex;gap: 15px;flex-wrap: wrap;">
+
+        <div style="flex: 1;">
+            <div class="ui top attached segment">
+                <h4>Info</h4>
+            </div>
+
+
+            <table class="ui bottom attached compact celled table" style="background-color: #eeeeee;">
+                <thead>
+                    <tr>
+                        <th style="background-color: white !important;border-radius: 0;">Tag</th>
+                        <th style="background-color: white !important;">Description</th>
+                        <th style="background-color: white !important;border-radius: 0;">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if variant_report.variantreportinfo_set.all %}
+                    {% for info in variant_report.variantreportinfo_set.all %}
+                    <tr>
+                        <td>{{info.tag}}</td>
+                        <td>{{info.description}}</td>
+                        <td>{{info.value}}</td>
+                    </tr>
+                    {%endfor%}
+                    {%else%}
+                    <tr>
+                        <td colspan="3" style="text-align: center;">No Info Tags Found</td>
+                    </tr>
+                    {%endif%}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="flex: 1;">
+            <div class="ui top attached segment" style="display: flex;justify-content: space-between;">
+                <h4 style="margin: 0;">Filter Flags</h4>
+
+                {%if variant_report.filter_pass%}
+                <div class="ui green small label"
+                    style="display: flex;margin: -5px;margin-right: 0;align-items: center;">
+                    <i class="checkmark icon"></i>
+                    Filters Passed
+                </div>
+                {%else%}
+                <div class="ui red small label" style="display: flex;margin: -5px;margin-right: 0;align-items: center;">
+                    <i class="times icon"></i>
+                    Filters Failed
+                </div>
+                {%endif%}
+            </div>
+
+            <table class="ui bottom attached compact celled table" style="background-color: #eeeeee;">
+                <thead>
+                    <tr>
+                        <th style="background-color: white !important;border-radius: 0;">Tag</th>
+                        <th style="background-color: white !important;">Description</th>
+                        <th style="background-color: white !important;border-radius: 0;">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if variant_report.variantreportfilter_set.all %}
+                    {% for filter in variant_report.variantreportfilter_set.all %}
+                    <tr>
+                        <td>{{filter.tag}}</td>
+                        <td>{{filer.description}}</td>
+                        <td>{{filter.value}}</td>
+                    </tr>
+                    {%endfor%}
+                    {%else%}
+                    <tr>
+                        <td colspan="3" style="text-align: center;">No Filter Flags Raised</td>
+                    </tr>
+                    {%endif%}
+                </tbody>
+            </table>
+        </div>
+
+
     </div>
 
 
-    <table class="ui bottom attached compact celled table" style="background-color: #eeeeee;">
-        <thead>
-            <tr>
-                <th style="background-color: white !important;border-radius: 0;">Tag</th>
-                <th style="background-color: white !important;">Description</th>
-                <th style="background-color: white !important;border-radius: 0;">Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for info in variant_report.variantreportinfo_set.all %}
-            <tr>
-                <td>{{info.tag}}</td>
-                <td>{{info.description}}</td>
-                <td>{{info.value}}</td>
-            </tr>
-            {%endfor%}
-        </tbody>
-    </table>
-    <!-- <div class="ui bottom attached segment" style="background-color: #eeeeee;">
 
-
-
-    </div> -->
 
 </div>
 
@@ -228,7 +294,8 @@
 
         <div class="ui right icon link label"
             style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">
-            Click here to {% if stv.comments.last %}update{%else%}add{%endif%} variant information
+            Click here to {% if stv.comments.last %}update{%else%}add{%endif%} variant
+            information
             <i class="pen icon"></i>
         </div>
     </div>
@@ -258,7 +325,7 @@
     </div>
 
     <div id="contextMenu" class="ui small vertical menu"
-        style="position: absolute;display: none;z-index: 100;width: 200px;">
+        style="position: absolute;display: none;z-index: 100;width: auto;">
         <div class="paste item">
             <i class="paste icon"></i>
             Use Ctrl-V to paste image
@@ -329,15 +396,22 @@
                 <!-- <th style="background-color: white !important;border-radius: 0;">First name</th>
                 <th style="background-color: white !important;">Last name</th> -->
                 <th style="background-color: white !important;border-radius: 0;">Lab no.</th>
-                <th style="background-color: white !important;border-radius: 0;">Worksheet(s)</th>
-                <th style="background-color: white !important;border-radius: 0;">Sample ID(s)</th>
-                <th style="background-color: white !important;border-radius: 0;">Pipeline(s)</th>
-                <th style="background-color: white !important;border-radius: 0;">Date classified</th>
+                <th style="background-color: white !important;border-radius: 0;">Worksheet(s)
+                </th>
+                <th style="background-color: white !important;border-radius: 0;">Sample ID(s)
+                </th>
+                <th style="background-color: white !important;border-radius: 0;">Pipeline(s)
+                </th>
+                <th style="background-color: white !important;border-radius: 0;">Date classified
+                </th>
                 <th style="background-color: white !important;border-radius: 0;">Comment</th>
-                <th style="background-color: white !important;border-radius: 0;"># Evidence files</th>
+                <th style="background-color: white !important;border-radius: 0;"># Evidence
+                    files
+                </th>
 
 
-                <th style="background-color: white !important;border-radius: 0;">Classification</th>
+                <th style="background-color: white !important;border-radius: 0;">Classification
+                </th>
             </tr>
         </thead>
         <tbody>

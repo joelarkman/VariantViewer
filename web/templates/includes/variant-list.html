@@ -56,20 +56,25 @@
             data-id="{{stv.id}}" data-chr="{{stv.sample_variant.variant.chrom}}"
             data-location="{{stv.sample_variant.variant.pos}}" {% if forloop.last %}
             style="border-bottom:0.5px solid #E8E9E9;" {%endif%}>
-            <div class="variant-title">
-                <!-- {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}} -->
-                {{stv.get_short_hgvs.hgvs_c}} / {{stv.get_short_hgvs.hgvs_p}}
-            </div>
 
             <div class="variant-attribute-container">
+                <i class="{{stv.get_variant_list_indicator_class}} circle icon"
+                    style="margin: 0;margin-top: 1px;align-self: center;"></i>
 
-                <div class="variant-attribute">
+                <!-- <div class="variant-attribute">
                     <span style="font-weight: bold;color: black;">Exonic SNV</span>
                     <span
                         style="font-weight: lighter;font-style: italic;font-size: small;color: #5D5D5D;">Non-synonymous</span>
-                </div>
-
+                </div> -->
             </div>
+
+            <div class="variant-title">
+                <span style="word-break: break-all;">{{stv.get_variant_list_title}}</span>
+                <span
+                    style="font-size: smaller;opacity: 0.6;margin-top: 4px;word-break: break-all;">{{stv.consequence}}</span>
+            </div>
+
+
         </a>
 
         {%endfor%}
@@ -110,19 +115,16 @@
             data-id="{{stv.id}}" data-chr="{{stv.sample_variant.variant.chrom}}"
             data-location="{{stv.sample_variant.variant.pos}}" {% if forloop.last %}
             style="border-bottom:0.5px solid #E8E9E9;" {%endif%}>
-            <div class="variant-title">
-                <!-- {{variant.sample_variant.variant.ref}}>{{variant.sample_variant.variant.alt}} -->
-                {{stv.get_short_hgvs.hgvs_c}} / {{stv.get_short_hgvs.hgvs_p}}
-            </div>
 
             <div class="variant-attribute-container">
+                <i class="{{stv.get_variant_list_indicator_class}} circle icon"
+                    style="margin: 0;margin-top: 1px;align-self: center;"></i>
+            </div>
 
-                <div class="variant-attribute">
-                    <span style="font-weight: bold;color: black;">Exonic SNV</span>
-                    <span
-                        style="font-weight: lighter;font-style: italic;font-size: small;color: #5D5D5D;">Non-synonymous</span>
-                </div>
-
+            <div class="variant-title">
+                <span style="word-break: break-all;">{{stv.get_variant_list_title|truncatechars:100 }}</span>
+                <span
+                    style="font-size: smaller;opacity: 0.6;margin-top: 4px;word-break: break-all;">{{stv.consequence|truncatechars:60}}</span>
             </div>
         </a>
 

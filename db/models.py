@@ -523,6 +523,35 @@ class SampleTranscriptVariant(BaseModel):
         variant = self.sample_variant.variant
         return VariantReport.objects.get(vcf=vcf, variant=variant)
 
+    def get_variant_list_title(self):
+        short_hgvs = self.get_short_hgvs()
+        if short_hgvs['hgvs_c'] and short_hgvs['hgvs_p']:
+            title = short_hgvs['hgvs_c'] + ' / ' + short_hgvs['hgvs_p']
+        elif short_hgvs['hgvs_c']:
+            title = short_hgvs['hgvs_c']
+        else:
+            title = str(self.sample_variant.variant)
+
+        return title
+
+    def get_variant_list_indicator_class(self):
+        if self.comments.exists() and self.comments.last().classification != 0:
+            css = self.comments.last().classification_colour
+        else:
+            classified_instances = SampleTranscriptVariant.objects.filter(
+                sample_variant__variant=self.sample_variant.variant).exclude(
+                id=self.id).exclude(comments__classification__isnull=True)
+            indicator_list = [
+                stv.comments.last().classification_colour for stv in classified_instances]
+            if indicator_list:
+                if len(indicator_list) == 1:
+                    css = indicator_list[0] + ' outline'
+                else:
+                    css = mode(indicator_list) + ' outline'
+            else:
+                css = 'blue outline'
+        return css
+
     def __str__(self):
         return f"{self.sample_variant} {self.transcript}"
 
