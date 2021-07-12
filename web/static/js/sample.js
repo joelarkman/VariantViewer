@@ -50,40 +50,125 @@ function ResetHideBrowser() {
 // =================
 // LOAD VARIANT LIST
 // =================
-$(function () {
+
+function UpdateVariantList(scroll = false) {
+    if ($("#variant-menu .mini-tabs-link.active")[0]) {
+        active_stv = $("#variant-menu .mini-tabs-link.active").attr('data-id')
+    } else {
+        active_stv = null
+    }
+
     $.ajax(
         {
             type: 'get',
             url: $('#variant-menu').attr('data-url'), //get url from toggle attribute
             beforeSend: function () {
-                // Load a loading circle if taking more than 3ms
                 ajaxLoadTimeout = setTimeout(function () {
                     $("#variant-list-content-loader").addClass('active');
-                }, 20);
+                }, 500);
             },
             success: function (data) {
 
-                // Use returned data to update the unpinned and pinned lists of variants. 
-                // This is done individually to retain search term and scroll positions.
-                $('#variant-menu').append(data.variant_list)
-                $('#variants-tab #tab-utility-bar .filters-sub-menu-container').html(data.active_filters)
-                SetupFilterScrolling()
+                if (!$('#variant-menu #unpinned-list')[0]) {
+                    // If this is the first time variant list is loaded, append data to container.
+                    $('#variant-menu').append(data.variant_list)
+                    $('#variants-tab #tab-utility-bar .filters-sub-menu-container').html(data.active_filters)
+
+                } else {
+                    $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
+                    $('#variant-menu #pinned-container').html($(data.variant_list).filter('#pinned-container').html())
+                    $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
+                    $('#variants-tab #tab-utility-bar .filters-sub-menu-container').html(data.active_filters)
+
+                    // Find stv that was active prior to update and add active class.
+                    $('#variant-menu').find(`[data-id='${active_stv}']`).addClass('active blue')
+
+                    if (scroll) {
+                        if ($("#variant-menu #pinned-list .mini-tabs-link.active")[0]) {
+
+                            // If active variant is pinned, scroll container to variant.
+                            $("#variant-menu #pinned-list").animate({
+                                scrollTop: $("#variant-menu #pinned-list").scrollTop() + $("#variant-menu .mini-tabs-link.active").position().top
+                                    - $("#variant-menu #pinned-list").height() / 2 + $("#variant-menu .mini-tabs-link.active").height() / 2
+                            }, 200);
+
+                        } else if ($("#variant-menu #unpinned-list .mini-tabs-link.active")[0]) {
+
+                            // If active variant is unpinned, scroll container to variant.
+                            setTimeout(function () {
+                                $("#variant-menu #unpinned-list").animate({
+                                    scrollTop: $("#variant-menu #unpinned-list").scrollTop() + $("#variant-menu .mini-tabs-link.active").position().top
+                                        - $("#variant-menu #unpinned-list").height() / 2 + $("#variant-menu .mini-tabs-link.active").height() / 2
+                                }, 200);
+                            }, 100);
+
+                        }
+                    }
+
+                    if (!$("#variant-menu .mini-tabs-link.active")[0]) {
+                        // If previously active item is now not available as choice...
+                        // Close variant details as it has been filtered out
+                        $('.mini-tabs-link').removeClass('active blue');
+                        $(".mini-tabs-content").hide();
+                        $("#variant-content-loader").removeClass('active');
+                        $(".basic_message").show();
+                    }
+
+                    // If no variants match filter, show notice message.
+                    if (!$("#variant-menu #unpinned-list .gene").is(':visible')) {
+                        $("#variant-menu #no-results-notice").removeClass('hidden')
+                    } else { // otherwise hide notice
+                        $("#variant-menu #no-results-notice").addClass('hidden')
+                    }
+                }
 
                 clearTimeout(ajaxLoadTimeout);
                 $("#variant-list-content-loader").removeClass('active');
+                SetupFilterScrolling()
+                apply_variant_search()
 
                 // Refresh popups
                 $("#variant-menu .js-update-transcript,.pinned-transcript-popup").popup({
                     inline: false
                 })
 
+                RefreshClassificationIndicators()
+
             },
             error: function () {
                 alert("error");
             }
         })
-})
+}
 
+function RefreshClassificationIndicators() {
+    var datasArray = $('#variant-menu .classification-indicator.outline').closest('.mini-tabs-link').map(function () {
+        return $(this).data('id')
+    }).get();
+
+    $.ajax({
+        url: '/ajax/refresh_classification_indicators/',
+        type: 'POST',
+        data: {
+            "elements": datasArray,
+            "csrfmiddlewaretoken": $('#variant-menu').attr('data-csrf')
+        },
+        dataType: 'json',
+        success: function (data) {
+
+            $.map(data.values, function (value, key) {
+                console.log('key:' + key + ' value:' + value)
+                $('#variant-menu #pinned-list').find(`[data-id='${key}']`).find('.classification-indicator').removeClass('blue').addClass(value)
+            })
+
+        },
+        error: function () {
+            alert('error');
+        }
+    });
+}
+
+UpdateVariantList()
 
 // ==============
 // VARIANT FILTER 
@@ -200,11 +285,6 @@ $(function () {
                     // Populate lightbox with modal featuring form.
                     $('#lightbox').html(data.html_form);
 
-                    // Store the currently active stv as an attribute of the filter submit button.
-                    // This allows it to be set to active once again when variant lists are refreshed.
-                    var active_stv = $("#variant-menu .mini-tabs-link.active").attr('data-id')
-                    $('#lightbox .js-modify-filter-form-submit').attr('data-stv', active_stv)
-
                     // Show lightbox
                     $('#lightbox').dimmer({
                         closable: false
@@ -222,53 +302,15 @@ $(function () {
             data: form.serialize(),
             type: form.attr("method"),
             dataType: 'json',
-            beforeSend: function () {
-                // Load a loading circle if taking more than 3ms
-                ajaxLoadTimeout = setTimeout(function () {
-                    $("#variant-list-content-loader").addClass('active');
-                }, 500);
-            },
             success: function (data) {
                 if (data.form_is_valid) {
-                    $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
-                    $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
-                    $('#variants-tab #tab-utility-bar .filters-sub-menu-container').html(data.active_filters)
 
-                    clearTimeout(ajaxLoadTimeout);
-                    $("#variant-list-content-loader").removeClass('active');
-
-                    // Apply searches to carry them over.
-                    apply_variant_search()
+                    UpdateVariantList()
 
                     $("#mod_filter").addClass("selectable");
+
                     // Enable all elements in variant tab utility bar
                     $('#variants-tab #tab-utility-bar').find('*').removeClass('disabled')
-
-                    // Set the variant item that was active before filter was changed to being active
-                    // again now that the variant lists have been refreshed.
-                    stv = $('#lightbox .js-modify-filter-form-submit').attr('data-stv')
-                    $('#variant-menu').find(`[data-id='${stv}']`).addClass('active blue')
-
-                    if (!$("#variant-menu .mini-tabs-link.active")[0]) {
-                        // If no active item variant is now not available as choice.
-                        // Close variant details as it has been filtered out
-                        $('.mini-tabs-link').removeClass('active blue');
-                        $(".mini-tabs-content").hide();
-                        $("#variant-content-loader").removeClass('active');
-                        $(".basic_message").show();
-                    }
-
-                    // If no variants match filter, show notice message.
-                    if (!$("#variant-menu #unpinned-list .gene").is(':visible')) {
-                        $("#variant-menu #no-results-notice").removeClass('hidden')
-                    } else { // otherwise hide notice
-                        $("#variant-menu #no-results-notice").addClass('hidden')
-                    }
-
-                    // Refresh popups
-                    $("#variant-menu .js-update-transcript,.pinned-transcript-popup, #mod_filter.selectable").popup({
-                        inline: false
-                    })
 
                     // Hide lightbox
                     $('#lightbox').dimmer('hide');
@@ -417,62 +459,8 @@ function SetupVariantPinning() {
                         "ischecked": ischecked,
                         "csrfmiddlewaretoken": $('.mini-tabs-content #pin-variant-checkbox').attr('data-csrf') //send check status as data
                     },
-                    beforeSend: function () {
-                        // Load a loading circle if taking more than 3ms
-                        ajaxLoadTimeout = setTimeout(function () {
-                            $("#variant-list-content-loader").addClass('active');
-                        }, 500);
-                    },
                     success: function (data) {
-
-                        // Use returned data to update the unpinned and pinned lists of variants. 
-                        // This is done individually to retain search term and scroll positions.
-                        $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
-                        $('#variant-menu #pinned-container').html($(data.variant_list).filter('#pinned-container').html())
-                        $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
-
-                        clearTimeout(ajaxLoadTimeout);
-                        $("#variant-list-content-loader").removeClass('active');
-
-                        // Apply searches to carry them over.
-                        apply_variant_search()
-
-                        // Look at the stv id attribute from toggle and find the matching variant menu item and set its class to active.
-                        // This will ensure that the menu item still appears selected once the variant lists have been updated.
-                        stv = $('.mini-tabs-content #pin-variant-checkbox').attr('data-stv')
-                        $('#variant-menu').find(`[data-id='${stv}']`).addClass('active blue')
-
-                        // If there is an active menu item (variant still available as a choice)
-                        if ($("#variant-menu .mini-tabs-link.active")[0]) {
-                            // Scroll relevent list to active item
-                            if (ischecked) {
-                                $("#variant-menu #pinned-list").animate({
-                                    scrollTop: $("#variant-menu #pinned-list").scrollTop() + $("#variant-menu .mini-tabs-link.active").position().top
-                                        - $("#variant-menu #pinned-list").height() / 2 + $("#variant-menu .mini-tabs-link.active").height() / 2
-                                }, 200);
-                            } else {
-                                setTimeout(function () {
-                                    $("#variant-menu #unpinned-list").animate({
-                                        scrollTop: $("#variant-menu #unpinned-list").scrollTop() + $("#variant-menu .mini-tabs-link.active").position().top
-                                            - $("#variant-menu #unpinned-list").height() / 2 + $("#variant-menu .mini-tabs-link.active").height() / 2
-                                    }, 200);
-                                }, 100);
-
-                            }
-                        } else {
-                            // If no active item variant is now not available as choice.
-                            // Close variant details
-                            $('.mini-tabs-link').removeClass('active blue');
-                            $(".mini-tabs-content").hide();
-                            $("#variant-content-loader").removeClass('active');
-                            $(".basic_message").show();
-                        }
-
-                        // Refresh popups
-                        $("#variant-menu .js-update-transcript,.pinned-transcript-popup").popup({
-                            inline: false
-                        })
-
+                        UpdateVariantList(scroll = true)
                     },
                     error: function () {
                         alert("error");
@@ -843,39 +831,16 @@ $(function () {
             data: form.serialize(),
             type: form.attr("method"),
             dataType: 'json',
-            beforeSend: function () {
-                // Load a loading circle if taking more than 5ms
-                ajaxLoadTimeout = setTimeout(function () {
-                    $("#variant-list-content-loader").addClass('active');
-                }, 500);
-            },
             success: function (data) {
                 if (data.form_is_valid) {
-                    $('#variant-menu #unpinned-list').html($(data.variant_list).filter('#unpinned-list').html())
-                    $('#variant-menu #pinned-list').html($(data.variant_list).filter('#pinned-list').html())
 
-                    clearTimeout(ajaxLoadTimeout);
-                    $("#variant-list-content-loader").removeClass('active');
+                    UpdateVariantList()
 
                     // Hide lightbox
                     $('#lightbox').dimmer('hide');
 
                     // Enable tab utility bar
                     $('#variants-tab #tab-utility-bar').find('*').removeClass('disabled')
-
-                    // Close any open variants
-                    $('.mini-tabs-link').removeClass('active blue');
-                    $(".mini-tabs-content").hide();
-                    $("#variant-content-loader").removeClass('active');
-                    $(".basic_message").show();
-
-                    // Apply any search carried over from before transcript change.
-                    apply_variant_search()
-
-                    // Refresh popups
-                    $("#variant-menu .js-update-transcript,.pinned-transcript-popup").popup({
-                        inline: false
-                    })
                 }
                 else {
                     $('#lightbox').html(data.html_form);
@@ -973,6 +938,8 @@ $(function () {
                             })
                         });
                     })
+
+                    UpdateVariantList()
                 }
                 else {
                     $('.mini-tabs-content #comment-form').html(data.html_form);
@@ -1960,8 +1927,14 @@ const genomeView = new JBrowseLinearGenomeView({
             "category": [sample, 'Variants'],
             "adapter": {
                 "type": "VcfTabixAdapter",
-                "vcfGzLocation": { "uri": vcf },
-                "index": { "location": { "uri": vcf + '.tbi' } }
+                "vcfGzLocation": {
+                    "uri": vcf
+                },
+                "index": {
+                    "location": {
+                        "uri": vcf + '.tbi'
+                    }
+                }
             }
         }
     ],

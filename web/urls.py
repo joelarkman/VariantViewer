@@ -38,6 +38,9 @@ urlpatterns = [
     path('ajax/load_variant_list/<int:run>/<int:ss_sample>',
          views.load_variant_list, name='load_variant_list'),
 
+    path('ajax/refresh_classification_indicators/', views.refresh_classification_indicators,
+         name='refresh_classification_indicators'),
+
     path('ajax/load_variant_details/<int:run>/<int:stv>',
          views.load_variant_details, name='load_variant_details'),
 
@@ -62,8 +65,11 @@ urlpatterns = [
     path('ajax/generate_report/', views.GenerateReport,
          name='generate_report'),
 
+    path('ajax/generate_variant_diagram/', views.GenerateVariantDiagram,
+         name='generate_variant_diagram'),
+
     # Temporary to explore jbrowse during development
-    path('jbrowse-testing', views.JbrowseTestingView.as_view(),
+    path('jbrowse-testing/', views.JbrowseTestingView.as_view(),
          name='jbrowse-testing')
 
 ]

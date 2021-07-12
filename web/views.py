@@ -11,6 +11,7 @@ from django.db import transaction
 
 
 from db.utils.filter_utils import filter_variants, get_filters
+from db.utils.model_utils import mode
 
 from .models import Comment, Document, Filter, FilterItem, Report
 from .utils.model_utils import LastUpdated
@@ -114,7 +115,7 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
 
         run = Run.objects.get(worksheet=self.kwargs['worksheet'])
 
-        context['page_title'] = f"{ss_sample.sample_identifier} ({ss_sample.sample.lab_no})"
+        context['page_title'] = f"{ss_sample.sample.lab_no} ({run.worksheet})"
         context['section'] = section
         context['run'] = run
         context['ss_sample'] = ss_sample
@@ -123,13 +124,6 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         context['vcf'] = ss_sample.sample.vcfs.get(run=run)
         context['bam'] = ss_sample.sample.bams.get(
             run=run, path__contains="realn")
-
-        # Exome test
-        # context['vcf'] = 'example.nosync/exome.vcf.gz'
-        # context['tbi'] = 'example.nosync/exome_vcf.tbi'
-        # context['bam'] = 'example.nosync/exome.bam'
-        # context['bai'] = 'example.nosync/exome.bai'
-
         return context
 
 
@@ -283,17 +277,6 @@ def modify_filters(request, run, ss_sample, filter=None):
 
                     data['form_is_valid'] = True
 
-                    data['variant_list'] = render_to_string('includes/variant-list.html',
-                                                            {'run': run,
-                                                             'ss_sample': ss_sample,
-                                                             'variants': filtered_variants},
-                                                            request=request)
-
-                    data['active_filters'] = render_to_string('includes/active-filters.html',
-                                                              {'run': run,
-                                                               'ss_sample': ss_sample,
-                                                               'filters': filters},
-                                                              request=request)
             except:
                 data['form_is_valid'] = False
 
@@ -346,6 +329,39 @@ def load_variant_list(request, run, ss_sample):
     return JsonResponse(data)
 
 
+def refresh_classification_indicators(request):
+    """
+    AJAX view to update variant list classification indicators.
+    """
+
+    data = dict()
+
+    if request.method == 'POST':
+        stvs = request.POST.getlist('elements[]')
+
+        values = {}
+        for stv in stvs:
+            instance = SampleTranscriptVariant.objects.get(id=stv)
+            classified_instances = SampleTranscriptVariant.objects.filter(
+                sample_variant__variant=instance.sample_variant.variant).exclude(id=instance.id).exclude(comments__classification__isnull=True)
+            indicator_list = [
+                stv.comments.last().classification_colour for stv in classified_instances]
+            if indicator_list:
+                if len(indicator_list) == 1:
+                    css = indicator_list[0]
+                else:
+                    css = mode(
+                        indicator_list)
+            else:
+                css = 'blue'
+
+            values.update({stv: css})
+
+        data['values'] = values
+
+    return JsonResponse(data)
+
+
 def load_variant_details(request, run, stv):
     """
     AJAX view to load variant details. Database filtered for correct variant and its associated
@@ -386,13 +402,6 @@ def pin_variant(request, run, stv):
     data = dict()
     run = Run.objects.get(id=run)
     stv = SampleTranscriptVariant.objects.get(id=stv)
-    ss_sample = SamplesheetSample.objects.get(
-        sample=stv.sample_variant.sample.id)
-
-    filters = get_filters(ss_sample.sample, run, user=request.user)
-
-    filtered_variants = filter_variants(
-        ss_sample.sample, run, filter=filters.get('active_filter'))
 
     if request.method == 'POST':
         ischecked = request.POST.get('ischecked')
@@ -404,11 +413,6 @@ def pin_variant(request, run, stv):
             stv.pinned = False
             stv.save()
 
-    data['variant_list'] = render_to_string('includes/variant-list.html',
-                                            {'run': run,
-                                             'ss_sample': ss_sample,
-                                             'variants': filtered_variants},
-                                            request=request)
     return JsonResponse(data)
 
 
@@ -421,11 +425,6 @@ def update_selected_transcript(request, run, ss_sample, transcript):
     current_transcript = Transcript.objects.get(id=transcript)
     ss_sample = SamplesheetSample.objects.get(
         id=ss_sample)
-
-    filters = get_filters(ss_sample.sample, run, user=request.user)
-
-    filtered_variants = filter_variants(
-        ss_sample.sample, run, filter=filters.get('active_filter'))
 
     variant_containing_transcripts = SampleTranscriptVariant.objects.filter(sample_variant__sample=ss_sample.sample,
                                                                             sample_variant__variant__variantreport__vcf=ss_sample.sample.vcfs.get(
@@ -447,12 +446,6 @@ def update_selected_transcript(request, run, ss_sample, transcript):
             else:
                 stv.selected = False
                 stv.save()
-
-        data['variant_list'] = render_to_string('includes/variant-list.html',
-                                                {'run': run,
-                                                 'ss_sample': ss_sample,
-                                                 'variants': filtered_variants},
-                                                request=request)
 
     context = {'run': run,
                'ss_sample': ss_sample,
