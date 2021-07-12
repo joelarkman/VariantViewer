@@ -158,7 +158,7 @@ function RefreshClassificationIndicators() {
 
             $.map(data.values, function (value, key) {
                 console.log('key:' + key + ' value:' + value)
-                $('#variant-menu #pinned-list').find(`[data-id='${key}']`).find('.classification-indicator').removeClass('blue').addClass(value)
+                $('#variant-menu').find(`[data-id='${key}']`).find('.classification-indicator').removeClass('blue').addClass(value)
             })
 
         },
