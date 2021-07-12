@@ -245,7 +245,7 @@
                     {% for filter in variant_report.variantreportfilter_set.all %}
                     <tr>
                         <td>{{filter.tag}}</td>
-                        <td>{{filer.description}}</td>
+                        <td>{{filter.description}}</td>
                         <td>{{filter.value}}</td>
                     </tr>
                     {%endfor%}
@@ -280,7 +280,6 @@
         <!-- placeholder -->
 
     </div>
-
 
 </div>
 
@@ -337,7 +336,7 @@
         <h4>Evidence </h4>
     </div>
 
-    <div class=" ui bottom attached segment" style="background-color: #eeeeee;">
+    <div class="ui bottom attached segment" style="background-color: #eeeeee;">
 
         <div id="upload-form" class="ui segment" style="margin:0px;margin-bottom: 15px;">
             <div style="display: flex;align-items: stretch; margin-bottom: 15px;height: 224px;">
