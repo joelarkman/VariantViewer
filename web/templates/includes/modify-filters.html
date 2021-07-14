@@ -29,6 +29,39 @@
     .filter-preset-item i {
         margin-left: auto !important;
     }
+
+    .form-row.or_start .fields-container {
+        margin-top: 15px;
+        /* border-top: 3px solid #767676; */
+        padding-top: 7px;
+
+        margin-right: -3px;
+        padding-right: 3px;
+        margin-left: -5px;
+        padding-left: 5px;
+        background:
+            linear-gradient(#767676, #767676) top left / 100% 3px,
+            linear-gradient(#767676, #767676) 100% 0 / 3px 25%,
+            linear-gradient(#767676, #767676) 0 0 / 3px 25%,
+            rgba(0, 0, 0, 0);
+        background-repeat: no-repeat;
+    }
+
+    .form-row.or_end .fields-container {
+        margin-bottom: 15px;
+        /* border-bottom: 3px solid #767676; */
+        padding-bottom: 7px;
+        margin-right: -3px;
+        padding-right: 3px;
+        margin-left: -5px;
+        padding-left: 5px;
+        background:
+            linear-gradient(#767676, #767676) bottom left / 100% 3px,
+            linear-gradient(#767676, #767676) 100% 100% / 3px 25%,
+            linear-gradient(#767676, #767676) 0 100% / 3px 25%,
+            rgba(0, 0, 0, 0);
+        background-repeat: no-repeat;
+    }
 </style>
 
 <div class="ui segments modal-container">
@@ -118,37 +151,45 @@
                     {% for form in formset.forms %}
                     {{form.non_field_errors}}
                     <!-- {{form.errors}} -->
-                    <div class="ui form form-row"
-                        style="display: flex; flex-direction: row;align-items: center;justify-content: space-between; flex-wrap: wrap;">
-                        {{ form.id|add_class:'hidden' }}
-                        {{ form.field|add_class:'hidden'}}
-                        <div class="ui input" style="width: 196px;">
-                            <input readonly type="text" value="{{form.field.value}}">
-                        </div>
-                        {{ form.filter_type|add_class:'hidden'}}
-                        <div class="ui input" style="width:196px">
-                            <input readonly type="text"
-                                value="{{form.filter_type.field.choices|get_display_choice:form.filter_type.value}}">
-                        </div>
-                        {{ form.value|add_class:'hidden'}}
-                        <div class="ui input" style="width: 177px;">
-                            <input readonly type="text" value="{{form.value.value}}">
+
+                    <div class="form-row" style="display: flex; flex-direction: column;">
+                        <div class="fields-container"
+                            style="display: flex;align-items: center;justify-content: space-between; flex-wrap: wrap;">
+                            {{ form.id|add_class:'hidden' }}
+                            {{ form.field|add_class:'hidden'}}
+                            <div class="ui input" style="width: 196px;">
+                                <input readonly type="text" value="{{form.field.value}}">
+                            </div>
+                            {{ form.filter_type|add_class:'hidden'}}
+                            <div class="ui input" style="width:196px">
+                                <input readonly type="text"
+                                    value="{{form.filter_type.field.choices|get_display_choice:form.filter_type.value}}">
+                            </div>
+                            {{ form.value|add_class:'hidden'}}
+                            <div class="ui input" style="width: 177px;">
+                                <input readonly type="text" value="{{form.value.value}}">
+                            </div>
+
+                            {{ form.or_next|add_class:"hidden" }}
+                            {{ form.DELETE|add_class:"hidden" }}
+                            <div class="ui disabled negative icon button remove-formset-button">
+                                <i class="trash icon"></i>
+                            </div>
                         </div>
 
-                        {{ form.DELETE|add_class:"hidden" }}
-                        <div class="ui disabled negative icon button remove-formset-button">
-                            <i class="trash icon"></i>
+                        <div class="or_toggle readonly"
+                            style="display: flex;align-items: center;gap: 3px;justify-content: center;margin-top: 7px;margin-bottom: -8px;">
+                            <div class="ui {% if form.or_next.value %}disabled{%endif%} circular grey label">
+                                &
+                            </div>
+                            /
+                            <div class="ui {% if not form.or_next.value %} disabled {%endif%} circular grey label">
+                                or
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
 
-                    <div id="match-field" style="display: flex;justify-content: flex-end;">
-                        {{form.match|add_class:"hidden"}}
-                        <div class="ui mini input" style="width: 180px;">
-                            <input readonly type="text"
-                                value="{{form.match.field.choices|get_display_choice:form.match.value}}">
-                        </div>
-                    </div>
                 </div>
 
                 <div class="ui bottom attached raised segment add-container" style="padding: 10px;">
@@ -210,25 +251,37 @@
                     {% for form in formset.forms %}
                     {{form.non_field_errors}}
                     <!-- {{form.errors}} -->
-                    <div class="ui form form-row"
-                        style="display: flex; flex-direction: row;align-items: center;justify-content: space-between; flex-wrap: wrap;">
-                        {{ form.id }}
-                        {{ form.field}}
-                        {{ form.filter_type}}
-                        <div class="ui input {% if form.value.errors %}error{%endif%}">
-                            {{ form.value}}
+                    <div class="form-row" style="display: flex; flex-direction: column;">
+                        <div class="fields-container"
+                            style="display: flex;align-items: center;justify-content: space-between; flex-wrap: wrap;">
+                            {{ form.id }}
+                            {{ form.field}}
+                            {{ form.filter_type}}
+                            <div class="ui input {% if form.value.errors %}error{%endif%}">
+                                {{ form.value}}
+                            </div>
+
+                            {{ form.or_next|add_class:"hidden" }}
+
+                            {{ form.DELETE|add_class:"hidden" }}
+                            <div class="ui negative icon button remove-formset-button">
+                                <i class="trash icon"></i>
+                            </div>
                         </div>
 
-                        {{ form.DELETE|add_class:"hidden" }}
-                        <div class="ui negative icon button remove-formset-button">
-                            <i class="trash icon"></i>
+                        <div class="or_toggle"
+                            style="display: flex;align-items: center;gap: 3px;justify-content: center;margin-top: 7px;margin-bottom: -8px;">
+                            <a class="ui {% if form.or_next.value %}disabled{%endif%} circular grey label and">
+                                &
+                            </a>
+                            /
+                            <a class="ui {% if not form.or_next.value %} disabled {%endif%} circular grey label or">
+                                or
+                            </a>
                         </div>
                     </div>
+
                     {% endfor %}
-
-                    <div id="match-field" class="hidden" style="display: flex;justify-content: flex-end;">
-                        {{form.match}}
-                    </div>
 
                 </div>
 
@@ -237,23 +290,34 @@
                 </div>
 
                 <div id="empty-form" style="display:none">
-                    <div class="form-row"
-                        style="display: flex; flex-direction: row;align-items: center;justify-content: space-between; flex-wrap: wrap;">
-                        {{ formset.empty_form.id }}
-                        {{ formset.empty_form.field }}
-                        {{ formset.empty_form.filter_type }}
-                        <div class="ui input">
-                            {{ formset.empty_form.value }}
+                    <div class="form-row" style="display: flex; flex-direction: column;">
+                        <div class="fields-container"
+                            style="display: flex;align-items: center;justify-content: space-between; flex-wrap: wrap;">
+                            {{ formset.empty_form.id }}
+                            {{ formset.empty_form.field }}
+                            {{ formset.empty_form.filter_type }}
+                            <div class="ui input">
+                                {{ formset.empty_form.value }}
+                            </div>
+                            {{ formset.empty_form.DELETE|add_class:"hidden" }}
+                            {{ formset.empty_form.or_next|add_class:"hidden" }}
+                            <div class="ui negative icon button remove-formset-button">
+                                <i class="trash icon"></i>
+                            </div>
                         </div>
-                        {{ formset.empty_form.DELETE|add_class:"hidden" }}
-                        <div class="ui negative icon button remove-formset-button">
-                            <i class="trash icon"></i>
+
+                        <div class="or_toggle hidden"
+                            style="display: flex;align-items: center;gap: 3px;justify-content: center;margin-top: 7px;margin-bottom: -8px;">
+                            <a class="ui circular grey label and">
+                                &
+                            </a>
+                            /
+                            <a class="ui disabled circular grey label or">
+                                or
+                            </a>
                         </div>
                     </div>
                 </div>
-
-
-
 
             </form>
         </div>

@@ -29,7 +29,8 @@
 <!-- Make sure content has flex-shrink:0 -->
 <div class="active-filters-container">
     {% for item in filters.active_filter.items.all %}
-    <div class="ui label" style="flex-shrink: 0;">
+
+    <div class="ui label item" data-or-next="{{item.or_next}}" style="flex-shrink: 0;">
         {{item.field}}
         <div class="detail">{{item.get_filter_type_display}}</div>
         <div class="detail">{{item.value}}</div>
@@ -37,14 +38,26 @@
 
     {% if not forloop.last %}
     <div class="ui grey circular label" style="margin-left: 3px;margin-right: 3px;">
-        {% if filters.active_filter.match == 'all' %}
-        &
-        {% else %}
+        {% if item.or_next %}
         or
+        {% else %}
+        &
         {%endif%}
     </div>
     {%endif%}
+
     {% endfor %}
+
+    <div class="hidden grouper-before">
+        <span class="ui grey text" style="font-size: 38px;margin-top: -4px;margin-right: -3px;">
+            [
+        </span>
+    </div>
+    <div class="hidden grouper-after">
+        <span class="ui grey text" style="font-size: 38px;margin-top: -4px;margin-left: -3px;">
+            ]
+        </span>
+    </div>
 </div>
 
 <div id='right-ellipses' style='display: inline-flex;align-items: center;position: relative;pointer-events: none;'>

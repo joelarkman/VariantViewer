@@ -157,7 +157,6 @@ function RefreshClassificationIndicators() {
         success: function (data) {
 
             $.map(data.values, function (value, key) {
-                console.log('key:' + key + ' value:' + value)
                 $('#variant-menu').find(`[data-id='${key}']`).find('.classification-indicator').removeClass('blue').addClass(value)
             })
 
@@ -239,6 +238,21 @@ function SetupFilterScrolling() {
 
     }).resize();
 
+
+    // Apply groups to filter ui
+    $('.active-filters-container .item').each(function () {
+        current = $(this).attr('data-or-next');
+        previous = $(this).prevAll('.item:first').attr('data-or-next')
+        next = $(this).nextAll('.item:first').attr('data-or-next')
+
+        if (current == 'True' && (previous == 'False' || previous == null)) {
+            $(this).before($('.active-filters-container .grouper-before').html())
+        } else if (current == 'False' && previous == 'True') {
+            $(this).after($('.active-filters-container .grouper-after').html())
+        }
+    })
+
+
 }
 
 SetupFilterScrolling()
@@ -314,8 +328,6 @@ $(function () {
 
                     // Hide lightbox
                     $('#lightbox').dimmer('hide');
-
-                    SetupFilterScrolling()
                 }
                 else {
                     $('#lightbox').html(data.html_form);
@@ -350,10 +362,18 @@ function SetupFiltersForm() {
 
     // If click add button....
     $('#add_more').click(function () {
+
         // Retrieve current total number of forms.
         var form_idx = $('#id_items-TOTAL_FORMS').val();
-        // Copy the empty form and paste it to end of form set. Replace __prefix__ with correct index.
-        $('#match-field').before($('#empty-form').html().replace(/__prefix__/g, form_idx));
+
+        if ($('.form-row:visible').length >= 1) {
+            $('.form-row:visible:last .or_toggle').removeClass('hidden')
+            $('.form-row:visible:last').find('[id*=or_next]').prop('checked', false)
+            $('.form-row:visible:last .or_toggle .and').removeClass('disabled').siblings().addClass('disabled')
+        }
+
+        // Copy the empty form and paste it to end of form set. Replace __prefix__ with correct index
+        $('#form-set').append($('#empty-form').html().replace(/__prefix__/g, form_idx));
         // Add one to total forms.
         $('#id_items-TOTAL_FORMS').val(parseInt(form_idx) + 1);
 
@@ -375,6 +395,11 @@ function SetupFiltersForm() {
         // Ensure formset is visible and classed correctly.
         $('#form-set').show()
         $('.add-container').addClass('bottom attached')
+
+        $('.or_toggle:not(.readonly) .label').click(function () {
+            toggle_or_next.call($(this))
+        });
+
         control_match_field_visibility()
     });
 
@@ -388,21 +413,103 @@ function SetupFiltersForm() {
         // Find the hidden delete checkbox nearby and check it. (Checkbox placed automatically by django and identifies it should be deleted).
         $(button).siblings('[id*=DELETE]').prop('checked', true)
         // Remove requirment for deleted form to have a value.
-        $(button).siblings().find('[id*=value]').prop('required', false)
         // Hide the form row.
         $(button).parents('.form-row').hide()
+
+        if ($('.form-row:visible').length = 1) {
+            $('.form-row:visible:last .or_toggle').addClass('hidden')
+        }
+
+        $('#form-set .form-row:hidden [id*=value]').prop('required', false)
 
         // If there are no visible form rows left, hide its container.
         $('#form-set').toggle($('.form-row:visible').length != 0);
         $('.add-container').toggleClass('bottom attached', $('.form-row:visible').length != 0);
+        apply_filter_layout()
+    }
+
+    function apply_filter_layout() {
+        $('.form-row:visible').each(function () {
+
+            row = $(this)
+            previous_row = row.prevAll('.form-row:visible:first')
+            next_row = row.nextAll('.form-row:visible:first')
+            this_row_is_or = row.find('[id*=or_next]').prop('checked')
+            previous_row_is_or = previous_row.find('[id*=or_next]').prop('checked')
+            next_row_is_or = next_row.find('[id*=or_next]').prop('checked')
+
+            if (this_row_is_or) {
+                if (previous_row_is_or) {
+                    row.removeClass('or_end')
+                } else {
+                    row.addClass('or_start')
+                }
+            } else {
+                row.removeClass('or_start')
+                if (previous_row_is_or) {
+                    row.addClass('or_end')
+                } else {
+                    row.removeClass('or_end')
+                }
+            }
+
+            $('.form-row:visible:last .or_toggle').addClass('hidden')
+        });
+
         control_match_field_visibility()
     }
 
+    apply_filter_layout()
+
+    $('.or_toggle:not(.readonly) .label').click(function () {
+        toggle_or_next.call($(this))
+    });
+
+    function toggle_or_next() {
+        row = $(this).parents('.form-row')
+        previous_row = $(this).parents('.form-row').prevAll('.form-row:visible:first')
+        next_row = $(this).parents('.form-row').nextAll('.form-row:visible:first')
+        previous_row_is_or = previous_row.find('[id*=or_next]').prop('checked')
+        next_row_is_or = next_row.find('[id*=or_next]').prop('checked')
+
+        if ($(this).hasClass('disabled')) {
+            if ($(this).hasClass('or')) {
+                row.find('[id*=or_next]').prop('checked', true)
+
+                if (previous_row_is_or) {
+                    row.removeClass('or_end')
+                } else {
+                    row.addClass('or_start')
+                }
+                if (next_row_is_or) {
+                    next_row.removeClass('or_start')
+                } else {
+                    next_row.addClass('or_end')
+                }
+            } else {
+                row.find('[id*=or_next]').prop('checked', false)
+                row.removeClass('or_start')
+                if (previous_row_is_or) {
+                    row.addClass('or_end')
+                } else {
+                    row.removeClass('or_end')
+                }
+
+                if (next_row_is_or) {
+                    next_row.addClass('or_start')
+                } else {
+                    next_row.removeClass('or_end')
+                }
+            }
+        }
+
+        $(this).removeClass('disabled').siblings().addClass('disabled')
+    }
+
+
     function control_match_field_visibility() {
-        if ($('.form-row:visible').length > 1) {
-            $('#match-field').removeClass('hidden')
-        } else {
-            $('#match-field').addClass('hidden')
+        if ($('.form-row:visible').length == 1) {
+            $('.form-row:visible').removeClass('or_end or_start')
         }
     }
 
@@ -410,6 +517,7 @@ function SetupFiltersForm() {
     $('#form-set').toggle($('.form-row:visible').length != 0);
     $('.add-container').toggleClass('bottom attached', $('.form-row:visible').length != 0);
     control_match_field_visibility()
+
 }
 
 

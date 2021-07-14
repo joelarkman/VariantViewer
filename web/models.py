@@ -25,16 +25,6 @@ class Filter(BaseModel):
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=1000, blank=True,)
 
-    class Match(models.TextChoices):
-        ALL = 'all', _('Match all of the above rules')
-        ANY = 'any', _('Match any of the above rules')
-
-    match = models.CharField(
-        max_length=15,
-        choices=Match.choices,
-        default=Match.ALL,
-    )
-
 
 class FilterItem(BaseModel):
     filter = models.ForeignKey(
@@ -57,6 +47,11 @@ class FilterItem(BaseModel):
         choices=FilterType.choices,
         default=FilterType.IS,
     )
+
+    or_next = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['id']
 
 
 class Document(BaseModel):
