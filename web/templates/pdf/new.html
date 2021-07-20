@@ -189,18 +189,18 @@
                 <td>
                     <table class="tabler">
                         <tr class="header">
+                            <th style="font-weight: bold;">#</th>
                             <th>Gene</th>
                             <th>Transcript</th>
-                            <th>Nucleotide Change</th>
-                            <th>Protein Change</th>
+                            <th>Change</th>
                             <th>Classification</th>
                         </tr>
                         {% for stv in stvs %}
                         <tr class="{% cycle 'even' 'odd' %}">
+                            <td style="width: 5%;font-weight: bold;">{{forloop.counter}}</td>
                             <td>{{stv.gene}}</td>
                             <td>{{stv.transcript}}</td>
-                            <td>{{stv.hgvs_c}}</td>
-                            <td>{{stv.hgvs_p}}</td>
+                            <td style="width: 40%;">{{stv.change}}</td>
                             <td>{{stv.classification}}</td>
                         </tr>
                         {%endfor%}
@@ -225,8 +225,8 @@
         <table style="width: 100%;margin-top: 10px;margin-bottom: 17px;">
             {% for interpretation in interpretations %}
             <tr {%if not forloop.last %}style="padding-bottom: 7px;" {%endif%}>
-                <td style="width: 14%;vertical-align: top;">
-                    <p style="font-weight: bold;">{{interpretation.hgvs_c}}</p>
+                <td style="width: 5%;vertical-align: top;">
+                    <p style="font-weight: bold;">{{interpretation.index}}</p>
                 </td>
                 <td>
                     {{interpretation.comment|linebreaks}}

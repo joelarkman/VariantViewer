@@ -52,22 +52,22 @@
                     data-classification-colour='{{stv.classification_colour}}'
                     data-previous-classification='{{stv.previous_classification}}'
                     data-previous-classification-colour='{{stv.previous_classification_colour}}'
-                    data-hgvs='{{stv.hgvs}}'>
+                    data-hgvs='{{stv.display_name}}'>
                     <div style="display: flex;padding: 0;">
                         <div style="display: flex;flex: 1;flex-direction: column;padding: 10px;gap: 5px;">
 
                             <div style="display: flex;gap: 15px;">
                                 <div style="display: flex;flex-direction: column;justify-content: center;">
                                     <div
-                                        style="font-size: 16px;font-weight: 700;line-height: 1.28571429em;color: black;">
-                                        {{stv.hgvs}}</div>
+                                        style="font-size: 16px;font-weight: 700;line-height: 1.28571429em;color: black;word-break: break-all;">
+                                        {{stv.display_name}}</div>
                                     <div
                                         style="font-size: 14px;margin-top: -.1em;line-height: 1.28571429em;color: black;">
                                         {{stv.gene}} | {{stv.transcript}}</div>
                                 </div>
 
                                 <div class="ui basic {{stv.classification_colour}} label"
-                                    style="display: flex;align-items: center;justify-content: center;margin-left: auto;width: 117px;height:36px;align-self: flex-start;">
+                                    style="display: flex;align-items: center;justify-content: center;margin-left: auto;width: 117px;height:36px;align-self: flex-start;flex-shrink: 0;">
                                     {{stv.classification}}</div>
                             </div>
 

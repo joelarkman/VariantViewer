@@ -35,6 +35,10 @@ def string_to_context(string):
     return context
 
 
+def insert_newlines(string, every=64):
+    return '\n'.join(string[i:i+every] for i in range(0, len(string), every))
+
+
 def create_report_context(run, ss_sample, selected_stvs, report=None, user=None, commit=False):
     if ss_sample.sample.patient:
         patient = ss_sample.sample.patient.first_name + \
@@ -95,23 +99,22 @@ def create_report_context(run, ss_sample, selected_stvs, report=None, user=None,
     stv_context = []
     stv_interpretations = []
 
-    for stv in stvs:
+    for index, stv in enumerate(stvs, start=1):
         comment = None
         if stv.comments.exists():
             classification = stv.comments.last().get_classification_display()
             classification_colour = stv.comments.last().classification_colour
             if stv.comments.last().comment:
                 comment = stv.comments.last().comment
-                stv_interpretations.append({'hgvs_c': stv.get_short_hgvs()[
-                                           'hgvs_c'], 'comment': comment})
+                stv_interpretations.append(
+                    {'index': index, 'comment': comment})
         else:
             classification = 'Unclassified'
 
         stv_dict = {'id': stv.id,
                     'gene': stv.transcript.gene.hgnc_name,
                     'transcript': stv.transcript.refseq_id,
-                    'hgvs_c': stv.get_short_hgvs()['hgvs_c'],
-                    'hgvs_p': stv.get_short_hgvs()['hgvs_p'],
+                    'change': insert_newlines(stv.get_variant_list_title(), 30),
                     'classification': classification,
                     'classification_colour': classification_colour,
                     'comment': comment}
@@ -155,7 +158,7 @@ def get_report_results(run, ss_sample, user, context=None):
                 classification_colour = 'blue'
 
             data = {'id': stv.id,
-                    'hgvs': stv.get_short_hgvs()['hgvs_c'] + ' / ' + stv.get_short_hgvs()['hgvs_p'],
+                    'display_name': stv.get_variant_list_title(),
                     'gene': stv.transcript.gene.hgnc_name,
                     'transcript': stv.transcript.refseq_id,
                     'classification': classification,
@@ -202,7 +205,7 @@ def get_report_results(run, ss_sample, user, context=None):
                 classification_colour = 'blue'
 
             data = {'id': stv.id,
-                    'hgvs': stv.get_short_hgvs()['hgvs_c'] + ' / ' + stv.get_short_hgvs()['hgvs_p'],
+                    'display_name': stv.get_variant_list_title(),
                     'gene': stv.transcript.gene.hgnc_name,
                     'transcript': stv.transcript.refseq_id,
                     'classification': classification,
@@ -233,7 +236,7 @@ def get_report_results(run, ss_sample, user, context=None):
                 classification_colour = 'blue'
 
             data = {'id': stv.id,
-                    'hgvs': stv.get_short_hgvs()['hgvs_c'] + ' / ' + stv.get_short_hgvs()['hgvs_p'],
+                    'display_name': stv.get_variant_list_title(),
                     'gene': stv.transcript.gene.hgnc_name,
                     'transcript': stv.transcript.refseq_id,
                     'classification': classification,
@@ -262,7 +265,7 @@ def get_report_results(run, ss_sample, user, context=None):
                 classification_colour = 'blue'
 
             data = {'id': stv.id,
-                    'hgvs': stv.get_short_hgvs()['hgvs_c'] + ' / ' + stv.get_short_hgvs()['hgvs_p'],
+                    'display_name': stv.get_variant_list_title(),
                     'gene': stv.transcript.gene.hgnc_name,
                     'transcript': stv.transcript.refseq_id,
                     'classification': classification,
