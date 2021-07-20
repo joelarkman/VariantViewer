@@ -227,6 +227,12 @@ def filter_variants(sample, run, filter=None):
             if item.field in variantreport_fields:
                 parsed_item = {
                     f'variant_report__{item.field}{item.filter_type}': item.value}
+            elif item.field == 'impact':
+                parsed_item = {f'variant_report__variant__samplevariant__sampletranscriptvariant__impact{item.filter_type}': item.value,
+                               'variant_report__variant__samplevariant__sample__id': sample.id}
+            elif item.field == 'consequence':
+                parsed_item = {f'variant_report__variant__samplevariant__sampletranscriptvariant__consequence{item.filter_type}': item.value,
+                               'variant_report__variant__samplevariant__sample__id': sample.id}
             else:
                 if item.filter_type in ['__lt', '__gt', '__lte', '__gte']:
                     parsed_item = {'tag': item.field,
@@ -239,6 +245,20 @@ def filter_variants(sample, run, filter=None):
             if not item.or_next:
                 filters_list.append(filter_cache)
                 filter_cache = []
+
+        # test = [
+        #     {'variant_report__variant__samplevariant__sampletranscriptvariant__comments__classification': '1',
+        #      'variant_report__variant__samplevariant__sample__id__ne': sample.id}]
+
+        # test = [
+        #     {'variant_report__variant__samplevariant__sampletranscriptvariant__comments__classification__isnull': False,
+        #      'variant_report__variant__samplevariant__sampletranscriptvariant__comments__classification__ne': '0'}]
+
+        # test = [
+        #     {'variant_report__variant__samplevariant__sampletranscriptvariant__impact': 'HIGH',
+        #      'variant_report__variant__samplevariant__sample__id': sample.id}]
+
+        # filters_list.append(test)
 
         variant_reports = vcf.variantreport_set.all()
 
@@ -257,7 +277,7 @@ def filter_variants(sample, run, filter=None):
             'variant', flat=True)
 
         STVs = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
-                                                      sample_variant__variant__in=variant_ids).distinct().order_by('transcript__gene__hgnc_name')
+                                                      sample_variant__variant__in=variant_ids).order_by('transcript__gene__hgnc_name')
 
         # Retrieve the number of pinned variants for this sample/vcf regardless of filters.
         unfiltered_pinned_count = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
@@ -274,4 +294,6 @@ def filter_variants(sample, run, filter=None):
 
         excluded_pinned_variants_count = None
 
-    return {'pinned': STVs.filter(pinned=True), 'excluded_pinned_variants_count': excluded_pinned_variants_count, 'unpinned': STVs.filter(selected=True, pinned=False)}
+    return {'pinned': STVs.filter(pinned=True),
+            'excluded_pinned_variants_count': excluded_pinned_variants_count,
+            'unpinned': STVs.filter(selected=True, pinned=False)}
