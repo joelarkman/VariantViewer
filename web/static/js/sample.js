@@ -1498,7 +1498,7 @@ function SetupReportForm() {
 
 
 
-            $('#report #report-lightbox .title-text').text('Variant information: ' + hgvs)
+            $('#report #report-lightbox .title-variant').text(hgvs)
 
             $('#report #report-lightbox .report-info-comment').html(comment)
 
@@ -1535,7 +1535,7 @@ function SetupReportForm() {
                 $('#report #report-lightbox .report-info-message').text(report_info_message)
             }
 
-            $('.existing-report,.new-report').addClass('existing-confirm-check disabled')
+            $('.existing-report,.new-report').addClass('disabled')
             $('#report #report-lightbox').dimmer({
                 closable: false
             }).dimmer('show');
@@ -1736,7 +1736,10 @@ $(function () {
 
     $("#report #report-lightbox").on("click", ".report-confirm-discard-close", function () {
         $('#report .new-confirm-check').removeClass('new-confirm-check disabled')
-        $('#report .existing-confirm-check').removeClass('existing-confirm-check disabled')
+        $('#report .existing-report').removeClass('disabled')
+        if (!$("#report .existing-report.active-instance.unsaved-report")[0]) {
+            $('#report .new-report').removeClass('disabled')
+        }
         $('#report .existing-report').removeClass('grey')
         $('#report #report-lightbox').dimmer('hide');
         $('.results-cards .card').removeClass('info-active')
