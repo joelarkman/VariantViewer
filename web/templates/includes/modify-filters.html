@@ -179,12 +179,8 @@
 
                         <div class="or_toggle readonly"
                             style="display: flex;align-items: center;gap: 3px;justify-content: center;margin-top: 7px;margin-bottom: -8px;">
-                            <div class="ui {% if form.or_next.value %}disabled{%endif%} circular grey label">
-                                &
-                            </div>
-                            /
-                            <div class="ui {% if not form.or_next.value %} disabled {%endif%} circular grey label">
-                                or
+                            <div class="ui circular grey label">
+                                {% if form.or_next.value %}or{%else%}&{%endif%}
                             </div>
                         </div>
                     </div>
