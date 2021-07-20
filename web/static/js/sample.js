@@ -416,10 +416,6 @@ function SetupFiltersForm() {
         // Hide the form row.
         $(button).parents('.form-row').hide()
 
-        if ($('.form-row:visible').length = 1) {
-            $('.form-row:visible:last .or_toggle').addClass('hidden')
-        }
-
         $('#form-set .form-row:hidden [id*=value]').prop('required', false)
 
         // If there are no visible form rows left, hide its container.
@@ -429,6 +425,7 @@ function SetupFiltersForm() {
     }
 
     function apply_filter_layout() {
+        $('.form-row').removeClass('or_end or_start')
         $('.form-row:visible').each(function () {
 
             row = $(this)
@@ -454,6 +451,8 @@ function SetupFiltersForm() {
             }
 
             $('.form-row:visible:last .or_toggle').addClass('hidden')
+            $('.form-row:visible:last').find('[id*=or_next]').prop('checked', false)
+            $('.form-row:visible:last .or_toggle .and').removeClass('disabled').siblings().addClass('disabled')
         });
 
         control_match_field_visibility()
@@ -730,6 +729,8 @@ function SetupClassificationsTable() {
                         $('.mini-tabs-content #comment-form').hide()
                         $('.mini-tabs-content #readonly-comment-form').show()
 
+                        UpdateVariantList()
+
                         $('#lightbox').dimmer("hide");
                         $('.mini-tabs-content .details-tabs .item')
                             .tab("change tab", 'evidence');
@@ -744,8 +745,6 @@ function SetupClassificationsTable() {
     });
 
 }
-
-
 
 // ====================
 // LOAD VARIANT DETAILS 
