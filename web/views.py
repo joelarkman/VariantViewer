@@ -205,7 +205,8 @@ def modify_filters(request, run, ss_sample, filter=None):
     VRI_tags = VariantReportInfo.objects.filter(
         variant_report__vcf=vcf).values_list('tag', 'tag').distinct()
 
-    VRI_tags = [('qual', 'qual'), ('depth', 'depth')] + list(VRI_tags)
+    VRI_tags = [('qual', 'qual'), ('depth', 'depth'),
+                ('impact', 'impact'), ('consequence', 'consequence')] + list(VRI_tags)
 
     VRI_tags.sort(key=lambda t: tuple(t[0].lower()))
 
@@ -343,7 +344,7 @@ def refresh_classification_indicators(request):
         for stv in stvs:
             instance = SampleTranscriptVariant.objects.get(id=stv)
             classified_instances = SampleTranscriptVariant.objects.filter(
-                sample_variant__variant=instance.sample_variant.variant).exclude(id=instance.id).exclude(comments__classification__isnull=True)
+                sample_variant__variant=instance.sample_variant.variant, transcript=instance.transcript).exclude(id=instance.id).exclude(comments__classification__isnull=True)
             indicator_list = [
                 stv.comments.last().classification_colour for stv in classified_instances]
             if indicator_list:
