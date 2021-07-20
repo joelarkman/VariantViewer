@@ -26,7 +26,21 @@
                 <h2 class="ui header">
                     <i id="pinned-icon"
                         class="tiny inverted circular pin icon {% if not stv.pinned %}hidden{%endif%}"></i>
-                    <span>{%if stv.get_long_hgvs.hgvs_c == 'nan'%}{{stv.sample_variant.variant|truncatechars:50}}{%else%}{{stv.get_long_hgvs.hgvs_c}}{%endif%}</span>
+                    {%if stv.get_long_hgvs.hgvs_c == 'nan'%}
+
+                    <span {% if stv.sample_variant.variant|make_list|length >= 40 %}
+                        data-tooltip="{{stv.sample_variant.variant}}" {%endif%}
+                        data-position="bottom left">{{stv.sample_variant.variant|truncatechars:40}}
+                    </span>
+
+                    {%else%}
+
+                    <span {% if stv.get_long_hgvs.hgvs_c|make_list|length >= 40 %}
+                        data-tooltip="{{stv.get_long_hgvs.hgvs_c}}" {%endif%}
+                        data-position="bottom left">{{stv.get_long_hgvs.hgvs_c|truncatechars:40}}
+                    </span>
+
+                    {%endif%}
                 </h2>
 
 
@@ -35,18 +49,24 @@
                     {% if stv.get_long_hgvs.hgvs_c == 'nan' %}
                     <div class="info-label">
                         <span class="title">TRANSCRIPT HGVS:</span>
-                        <span class="value">{{stv.get_long_hgvs.hgvs_c|truncatechars:30}}</span>
+                        <span class="value" {% if stv.get_long_hgvs.hgvs_c|make_list|length >= 30 %}
+                            data-tooltip="{{stv.get_long_hgvs.hgvs_c}}" {%endif%}
+                            data-position="bottom left">{{stv.get_long_hgvs.hgvs_c|truncatechars:30}}</span>
                     </div>
                     {%else%}
                     <div class="info-label">
                         <span class="title">GENOMIC DESCRIPTION:</span>
-                        <span class="value">{{stv.sample_variant.variant|truncatechars:30}}</span>
+                        <span class="value" {% if stv.sample_variant.variant|make_list|length >= 30 %}
+                            data-tooltip="{{stv.sample_variant.variant}}" {%endif%}
+                            data-position="bottom left">{{stv.sample_variant.variant|truncatechars:30}}</span>
                     </div>
                     {%endif%}
 
                     <div class="info-label">
                         <span class="title">PROTEIN HGVS:</span>
-                        <span class="value">{{stv.get_long_hgvs.hgvs_p}}</span>
+                        <span class="value" {% if stv.get_long_hgvs.hgvs_p|make_list|length >= 30 %}
+                            data-tooltip="{{stv.get_long_hgvs.hgvs_p}}" {%endif%}
+                            data-position="bottom left">{{stv.get_long_hgvs.hgvs_p|truncatechars:30}}</span>
                     </div>
 
                     <div class="info-label">
@@ -277,7 +297,6 @@
     <div class="ui bottom attached segment"
         style="background-color: #eeeeee;display: flex;align-items: center;justify-content: center;padding-top: 0">
 
-        <!-- placeholder -->
 
     </div>
 
