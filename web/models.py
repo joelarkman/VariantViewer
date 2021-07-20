@@ -16,7 +16,7 @@ class NotEqual(models.Lookup):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params
-        return '%s <> %s' % (lhs, rhs), params
+        return '%s NOT ILIKE %s' % (lhs, rhs), params
 
 
 # Create your models here.
