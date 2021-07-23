@@ -49,7 +49,7 @@ class ExonReportListView(viewsets.ModelViewSet):
     def get_queryset(self):
         run = Run.objects.get(id=self.kwargs['run'])
         ss_sample = SamplesheetSample.objects.get(id=self.kwargs['ss_sample'])
-        return ExcelReport.objects.get(run=run, sample=ss_sample.sample).exonreport_set.all()
+        return ExcelReport.objects.get(run=run, sample=ss_sample.sample).exonreport_set.order_by('exon__number')
 
 
 class PreviousClassificationsListView(viewsets.ModelViewSet):
