@@ -110,6 +110,7 @@ def create_report_context(run, ss_sample, selected_stvs, report=None, user=None,
                     {'index': index, 'comment': comment})
         else:
             classification = 'Unclassified'
+            classification_colour = 'blue'
 
         stv_dict = {'id': stv.id,
                     'gene': stv.transcript.gene.hgnc_name,
