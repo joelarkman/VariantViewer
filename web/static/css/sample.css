@@ -258,6 +258,14 @@
     word-break: break-all;
 }
 
+.variant-details-header .col-container .header .name::after{
+    white-space: normal;
+    word-break: break-all;
+    min-width: min-content;
+    max-width: 17cm;
+    width: 30vw;
+}
+
 .variant-details-header .col-container .header #pinned-icon{
     margin: 0;
     margin-right: 5px;
@@ -291,6 +299,14 @@
 .variant-details-header .col-container .info-labels-container .info-label .value{
     font-weight: bold;
     margin-top: -2px;
+}
+
+.variant-details-header .col-container .info-labels-container .info-label .value::after{
+    white-space: normal;
+    word-break: break-all;
+    min-width: min-content;
+    max-width: 17cm;
+    width: 30vw;
 }
 
 .ui.secondary.menu.details-tabs {
