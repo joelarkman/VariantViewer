@@ -28,14 +28,14 @@
                         class="tiny inverted circular pin icon {% if not stv.pinned %}hidden{%endif%}"></i>
                     {%if stv.get_long_hgvs.hgvs_c == 'nan'%}
 
-                    <span {% if stv.sample_variant.variant|make_list|length >= 40 %}
+                    <span class="name" {% if stv.sample_variant.variant|make_list|length >= 40 %}
                         data-tooltip="{{stv.sample_variant.variant}}" {%endif%}
                         data-position="bottom left">{{stv.sample_variant.variant|truncatechars:40}}
                     </span>
 
                     {%else%}
 
-                    <span {% if stv.get_long_hgvs.hgvs_c|make_list|length >= 40 %}
+                    <span class="name" {% if stv.get_long_hgvs.hgvs_c|make_list|length >= 40 %}
                         data-tooltip="{{stv.get_long_hgvs.hgvs_c}}" {%endif%}
                         data-position="bottom left">{{stv.get_long_hgvs.hgvs_c|truncatechars:40}}
                     </span>
