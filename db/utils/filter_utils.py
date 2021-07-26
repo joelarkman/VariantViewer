@@ -85,28 +85,37 @@ class ExtractValueInteger(Func):
 
 def filter_variants(sample, run, filter=None):
 
+    # Load vcf associated with current sample + run
     vcf = sample.vcfs.get(run=run)
 
     if filter:
+        # If filter has been provided...
+
         # Retrieve names of all fields of VariantReport model
         variantreport_fields = [
             f.name for f in VariantReport._meta.fields + VariantReport._meta.many_to_many]
 
+        # Define blank containers.
         filters_list = []
         filter_cache = []
+
+        # For each filter item, format field, filter_type and value information into a query dictionary containing relevent fk lookups.
         for item in filter.items.all().order_by('id'):
             if item.field in variantreport_fields:
                 parsed_item = {
                     f'variant_report__{item.field}{item.filter_type}': item.value}
             elif item.field == 'impact':
+                # This lookup finds variants with a particular impact value that have occured for this sample within a particular transcript.
                 parsed_item = {f'variant_report__variant__samplevariant__sampletranscriptvariant__impact{item.filter_type}': item.value,
                                'variant_report__variant__samplevariant__sample__id': sample.id,
                                'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id': F('transcript')}
             elif item.field == 'consequence':
+                # This lookup finds variants with a particular consequence value that have occured for this sample within a particular transcript.
                 parsed_item = {f'variant_report__variant__samplevariant__sampletranscriptvariant__consequence{item.filter_type}': item.value,
                                'variant_report__variant__samplevariant__sample__id': sample.id,
                                'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id': F('transcript')}
             else:
+                # If numerical info field use number_value instead of value.
                 if item.filter_type in ['__lt', '__gt', '__lte', '__gte']:
                     parsed_item = {'tag': item.field,
                                    f'number_value{item.filter_type}': item.value}
@@ -114,7 +123,10 @@ def filter_variants(sample, run, filter=None):
                     parsed_item = {'tag': item.field,
                                    f'value{item.filter_type}': item.value}
 
+            # Add latest item to cache list.
             filter_cache.append(parsed_item)
+
+            # If current item does not mark the start or middle of an OR group, add filter cache to filter list and wipe it clean.
             if not item.or_next:
                 filters_list.append(filter_cache)
                 filter_cache = []
@@ -134,23 +146,35 @@ def filter_variants(sample, run, filter=None):
 
         # filters_list.append(test)
 
+        # Retrieve all STVs associated with current sample.
         STVs = SampleTranscriptVariant.objects.filter(
             sample_variant__sample=sample)
 
+        # Retrieve all VRIs associated with current VCF file.
+        # Use annotate to coerce 'field' value into an integer field.
+        # Use annotate to append a transcript to each VRI, where a given variant appears in multiple
+        # transcripts the rest of the VRI row will be duplicated.
         VRI_queryset = VariantReportInfo.objects.filter(
             variant_report__vcf=vcf).annotate(number_value=ExtractValueInteger(),
                                               transcript=F('variant_report__variant__samplevariant__sampletranscriptvariant__transcript'))
 
+        # Each item in filters_list contains a set of filers that should be OR'd together.
         for filter in filters_list:
+            # Create a set of Q objects for each item in current OR group.
             k_v_pairs = (Q(**tag_value_pairs) for tag_value_pairs in filter)
+            # Use reduce to place an OR between q objects and retrieve combinations of variant
+            # and transcript IDs that satisfy current or group.
             variant_report_ids = VRI_queryset.filter(
                 reduce(operator.or_, k_v_pairs)).distinct().values_list(
                 'variant_report__variant', 'transcript')
 
+            # Parse values_list output into list of filter dictionaries
             variants_transcripts = [
                 {'sample_variant__variant': value[0], 'transcript':value[1]} for value in variant_report_ids]
 
             if variants_transcripts:
+                # Create set of Q objects and use reduce to OR deliminate them and recursively filter STVs queryset
+                # for objects with the correct variant transcript combinations.
                 variants_transcripts = (Q(**v_t_pair)
                                         for v_t_pair in variants_transcripts)
                 STVs = STVs.filter(
@@ -158,6 +182,7 @@ def filter_variants(sample, run, filter=None):
             else:
                 STVs = STVs.none()
 
+        # Apply ordering to STV list.
         STVs = STVs.order_by('transcript__gene__hgnc_name')
 
         # Retrieve the number of pinned variants for this sample/vcf regardless of filters.
@@ -175,6 +200,7 @@ def filter_variants(sample, run, filter=None):
 
         excluded_pinned_variants_count = None
 
+    # Return pinned and unpinned variants.
     return {'pinned': STVs.filter(pinned=True),
             'excluded_pinned_variants_count': excluded_pinned_variants_count,
             'unpinned': STVs.filter(selected=True, pinned=False)}
