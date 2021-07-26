@@ -61,13 +61,14 @@ function UpdateVariantList(scroll = false) {
     $.ajax(
         {
             type: 'get',
-            url: $('#variant-menu').attr('data-url'), //get url from toggle attribute
+            url: $('#variant-menu').attr('data-url') + $('#variant-menu').attr('data-variant-cache'), //get url from toggle attribute
             beforeSend: function () {
                 ajaxLoadTimeout = setTimeout(function () {
                     $("#variant-list-content-loader").addClass('active');
                 }, 500);
             },
             success: function (data) {
+                $('#variant-menu').attr('data-variant-cache', data.variant_cache)
 
                 if (!$('#variant-menu #unpinned-list')[0]) {
                     // If this is the first time variant list is loaded, append data to container.
@@ -318,7 +319,7 @@ $(function () {
             dataType: 'json',
             success: function (data) {
                 if (data.form_is_valid) {
-
+                    $('#variant-menu').attr('data-variant-cache', data.variant_cache)
                     UpdateVariantList()
 
                     $("#mod_filter").addClass("selectable");

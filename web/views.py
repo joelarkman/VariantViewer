@@ -10,12 +10,12 @@ from django.db.models import Q
 from django.db import transaction
 
 
-from db.utils.filter_utils import filter_variants, get_filters
+from db.utils.filter_utils import filter_variants, get_filters, apply_variant_cache, context_to_string, string_to_context
 from db.utils.model_utils import mode
 
 from .models import Comment, Document, Filter, FilterItem, Report
 from .utils.model_utils import LastUpdated
-from .utils.report_utils import context_to_string, get_report_results, render_to_pdf, create_report_context, string_to_context, update_selected_results
+from .utils.report_utils import get_report_results, render_to_pdf, create_report_context, update_selected_results
 
 from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm, ReportForm
 
@@ -277,6 +277,8 @@ def modify_filters(request, run, ss_sample, filter=None):
                         ss_sample.sample, run, filter=filters.get('active_filter'))
 
                     data['form_is_valid'] = True
+                    data['variant_cache'] = filtered_variants.get(
+                        'variant_cache')
 
             except:
                 data['form_is_valid'] = False
@@ -306,14 +308,21 @@ def load_variant_list(request, run, ss_sample):
     """
 
     data = dict()
+    variant_cache = request.GET.get('variant_cache')
+
     run = Run.objects.get(id=run)
     ss_sample = SamplesheetSample.objects.get(
         id=ss_sample)
 
     filters = get_filters(ss_sample.sample, run, user=request.user)
 
-    filtered_variants = filter_variants(
-        ss_sample.sample, run, filter=filters.get('active_filter'))
+    if variant_cache:
+        filtered_variants = apply_variant_cache(
+            ss_sample.sample, run, variant_cache)
+    else:
+        filtered_variants = filter_variants(
+            ss_sample.sample, run, filter=filters.get('active_filter'))
+        data['variant_cache'] = filtered_variants.get('variant_cache')
 
     data['variant_list'] = render_to_string('includes/variant-list.html',
                                             {'run': run,

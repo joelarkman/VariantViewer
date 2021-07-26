@@ -4,10 +4,7 @@ from io import BytesIO
 from django.http import HttpResponse
 from django.template.loader import get_template
 import datetime
-import urllib.parse
-import json
-
-from db.utils.filter_utils import filter_variants, get_filters
+from db.utils.filter_utils import filter_variants, get_filters, context_to_string, string_to_context
 from web.models import Report
 
 from xhtml2pdf import pisa
@@ -21,18 +18,6 @@ def render_to_pdf(template_src, context_dict={}):
     if not pdf.err:
         return HttpResponse(result.getvalue(), content_type='application/pdf')
     return None
-
-
-def context_to_string(context):
-    context_json = json.dumps(context)
-    context_json_urlparse = urllib.parse.quote_plus(context_json)
-    return context_json_urlparse
-
-
-def string_to_context(string):
-    context_json = urllib.parse.unquote_plus(string)
-    context = json.loads(context_json)
-    return context
 
 
 def insert_newlines(string, every=64):

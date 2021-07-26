@@ -4,6 +4,20 @@ import operator
 from functools import reduce
 from django.db.models import Q, Count, F, Func, IntegerField
 from db.models import SampleTranscriptVariant
+import urllib.parse
+import json
+
+
+def context_to_string(context):
+    context_json = json.dumps(context)
+    context_json_urlparse = urllib.parse.quote_plus(context_json)
+    return context_json_urlparse
+
+
+def string_to_context(string):
+    context_json = urllib.parse.unquote_plus(string)
+    context = json.loads(context_json)
+    return context
 
 
 def get_filters(sample, run, user):
@@ -201,6 +215,28 @@ def filter_variants(sample, run, filter=None):
         excluded_pinned_variants_count = None
 
     # Return pinned and unpinned variants.
+    return {'pinned': STVs.filter(pinned=True),
+            'excluded_pinned_variants_count': excluded_pinned_variants_count,
+            'unpinned': STVs.filter(selected=True, pinned=False),
+            'variant_cache': context_to_string(list(STVs.values_list('id', flat=True)))}
+
+
+def apply_variant_cache(sample, run, variant_cache):
+    vcf = sample.vcfs.get(run=run)
+
+    stv_ids = string_to_context(variant_cache)
+
+    STVs = SampleTranscriptVariant.objects.filter(
+        id__in=stv_ids).order_by('transcript__gene__hgnc_name')
+
+    unfiltered_pinned_count = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
+                                                                     sample_variant__variant__variantreport__vcf=vcf,
+                                                                     pinned=True).count()
+
+    # Retrieve count of how many pinned variants have been excluded by the active filter.
+    excluded_pinned_variants_count = unfiltered_pinned_count - \
+        STVs.filter(pinned=True).count()
+
     return {'pinned': STVs.filter(pinned=True),
             'excluded_pinned_variants_count': excluded_pinned_variants_count,
             'unpinned': STVs.filter(selected=True, pinned=False)}
