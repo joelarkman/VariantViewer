@@ -164,27 +164,47 @@ def filter_variants(sample, run, filter=None):
         STVs = SampleTranscriptVariant.objects.filter(
             sample_variant__sample=sample)
 
-        # Retrieve all VRIs associated with current VCF file.
-        # Use annotate to coerce 'field' value into an integer field.
-        # Use annotate to append a transcript to each VRI, where a given variant appears in multiple
-        # transcripts the rest of the VRI row will be duplicated.
-        VRI_queryset = VariantReportInfo.objects.filter(
-            variant_report__vcf=vcf).annotate(number_value=ExtractValueInteger(),
-                                              transcript=F('variant_report__variant__samplevariant__sampletranscriptvariant__transcript'))
+        transcript_key = 'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id'
 
         # Each item in filters_list contains a set of filers that should be OR'd together.
         for filter in filters_list:
             # Create a set of Q objects for each item in current OR group.
             k_v_pairs = (Q(**tag_value_pairs) for tag_value_pairs in filter)
-            # Use reduce to place an OR between q objects and retrieve combinations of variant
-            # and transcript IDs that satisfy current or group.
-            variant_report_ids = VRI_queryset.filter(
-                reduce(operator.or_, k_v_pairs)).distinct().values_list(
-                'variant_report__variant', 'transcript')
 
-            # Parse values_list output into list of filter dictionaries
-            variants_transcripts = [
-                {'sample_variant__variant': value[0], 'transcript':value[1]} for value in variant_report_ids]
+            # If any filters are transcript specific
+            if any(transcript_key in or_items for or_items in filter):
+                # Retrieve all VRIs associated with current VCF file.
+                # Use annotate to coerce 'field' value into an integer field.
+                # Use annotate to append a transcript to each VRI, where a given variant appears in multiple
+                # transcripts the rest of the VRI row will be duplicated.
+                VRI_queryset = VariantReportInfo.objects.filter(
+                    variant_report__vcf=vcf).annotate(number_value=ExtractValueInteger(), transcript=F(transcript_key))
+
+                # Use reduce to place an OR between q objects and retrieve combinations of variant
+                # and transcript IDs that satisfy current or group.
+                variant_report_ids = VRI_queryset.filter(
+                    reduce(operator.or_, k_v_pairs)).distinct().values_list(
+                    'variant_report__variant', 'transcript')
+
+                # Parse values_list output into list of filter dictionaries
+                variants_transcripts = [
+                    {'sample_variant__variant': value[0], 'transcript':value[1]} for value in variant_report_ids]
+
+            else:
+                # Retrieve all VRIs associated with current VCF file.
+                # Use annotate to coerce 'field' value into an integer field.
+                VRI_queryset = VariantReportInfo.objects.filter(
+                    variant_report__vcf=vcf).annotate(number_value=ExtractValueInteger())
+
+                # Use reduce to place an OR between q objects and retrieve combinations of variant
+                # and transcript IDs that satisfy current or group.
+                variant_report_ids = VRI_queryset.filter(
+                    reduce(operator.or_, k_v_pairs)).distinct().values_list(
+                    'variant_report__variant')
+
+                # Parse values_list output into list of filter dictionaries
+                variants_transcripts = [
+                    {'sample_variant__variant': value[0]} for value in variant_report_ids]
 
             if variants_transcripts:
                 # Create set of Q objects and use reduce to OR deliminate them and recursively filter STVs queryset
