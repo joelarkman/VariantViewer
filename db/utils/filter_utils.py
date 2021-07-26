@@ -1,11 +1,9 @@
-from django.db import connection
-from accounts.models import UserFilter
 from db.models import SampleTranscriptVariant, VariantReport, VariantReportInfo
 from web.models import Filter
 import operator
 from functools import reduce
 from django.db.models import Q, Count, F, Func, IntegerField
-from db.models import Sample, SampleTranscriptVariant
+from db.models import SampleTranscriptVariant
 
 
 def get_filters(sample, run, user):
@@ -85,133 +83,6 @@ class ExtractValueInteger(Func):
     output_field = IntegerField()
 
 
-# def filter_variants(sample, run, filter=None):
-#     # initial = len(connection.queries)
-
-#     vcf = sample.vcfs.get(run=run)
-
-#     # print(len(connection.queries)-initial)
-
-#     match = 'all'
-
-#     if filter:
-#         # Retrieve names of all fields of VariantReport model
-#         variantreport_fields = [
-#             f.name for f in VariantReport._meta.fields + VariantReport._meta.many_to_many]
-
-#         variant_report_filters_list = []
-#         variant_report_info_filters_list = []
-#         for item in filter.items.all():
-#             if item.field in variantreport_fields:
-#                 variant_report_filters_list.append(
-#                     {f'{item.field}{item.filter_type}': item.value})
-#             else:
-#                 if item.filter_type in ['__lt', '__gt', '__lte', '__gte']:
-#                     variant_report_info_filters_list.append({'tag': item.field,
-#                                                              f'number_value{item.filter_type}': item.value})
-#                 else:
-#                     variant_report_info_filters_list.append({'tag': item.field,
-#                                                              f'value{item.filter_type}': item.value})
-
-#         # print(len(connection.queries)-initial)
-
-#         print(variant_report_info_filters_list)
-#         print(variant_report_filters_list)
-
-#         filtered_VRs = []
-#         for filter_item in variant_report_filters_list:
-#             filtered_VRs.append(vcf.variantreport_set.filter(**filter_item).values_list(
-#                 'id', flat=True))
-
-#         # Create an extra field that converts the 'value' field into an integer at the database level. This new field is saved as 'number_value'
-#         VRI_queryset = VariantReportInfo.objects.filter(
-#             variant_report__vcf=vcf).annotate(number_value=ExtractValueInteger())
-
-#         VRI_filtered_VRs = []
-#         for info_filter_item in variant_report_info_filters_list:
-#             VRI_filtered_VRs.append(VRI_queryset.filter(**info_filter_item).values_list(
-#                 'variant_report', flat=True))
-
-#         if filter.match == 'all':
-#             if filtered_VRs:
-#                 # Find the VRs that appear in all sub queries - match all filters.
-#                 filtered_VRs_all = set(
-#                     filtered_VRs[0]).intersection(*filtered_VRs)
-
-#                 queryset = vcf.variantreport_set.filter(
-#                     id__in=filtered_VRs_all)
-
-#                 # print(len(connection.queries)-initial)
-
-#             else:
-#                 queryset = vcf.variantreport_set.all()
-
-#             if VRI_filtered_VRs:
-#                 # Find the VRs that appear in all sub queries - match all filters.
-#                 VRI_filtered_VRs_all = set(
-#                     VRI_filtered_VRs[0]).intersection(*VRI_filtered_VRs)
-
-#                 queryset = queryset.filter(id__in=VRI_filtered_VRs_all)
-
-#                 # print(len(connection.queries)-initial)
-
-#             # print(len(connection.queries)-initial)
-
-#         elif match == 'any':
-#             # If filter set to match any of the provided filter items.....
-#             if filtered_VRs:
-#                 # Find the VRs that appear in any sub query - match any filter.
-#                 filtered_VRs_any = set().union(*filtered_VRs)
-
-#                 VR_queryset = vcf.variantreport_set.filter(
-#                     id__in=filtered_VRs_any)
-
-#             else:
-#                 VR_queryset = vcf.variantreport_set.none()
-
-#             if VRI_filtered_VRs:
-#                 # Find the VRs that appear in any sub query - match any filter.
-#                 VRI_filtered_VRs_any = set().union(*VRI_filtered_VRs)
-
-#                 VRI_queryset = vcf.variantreport_set.filter(
-#                     id__in=VRI_filtered_VRs_any)
-#             else:
-#                 VRI_queryset = vcf.variantreport_set.none()
-
-#             # Find VRs that match any of VR or VRI filters.
-#             queryset = VR_queryset | VRI_queryset
-
-#         # Extract the variant IDs that pass all variant report and variant report info filters.
-#         variant_ids = queryset.values_list('variant', flat=True)
-
-#         # Return set of STVs from the correct sample and where the variant has passed filters.
-#         # As the variant filtering starts with a VCF linked to a particular run, all STVs are also linked to the run.
-#         STVs = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
-#                                                       sample_variant__variant__in=variant_ids).order_by('transcript__gene__hgnc_name')
-
-#         # print(STVs.filter(selected=True).values_list('id', flat=True))
-
-#         # Retrieve the number of pinned variants for this sample/vcf regardless of filters.
-#         unfiltered_pinned_count = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
-#                                                                          sample_variant__variant__variantreport__vcf=vcf,
-#                                                                          pinned=True).count()
-
-#         # print(len(connection.queries)-initial)
-
-#         # Retrieve count of how many pinned variants have been excluded by the active filter.
-#         excluded_pinned_variants_count = unfiltered_pinned_count - \
-#             STVs.filter(pinned=True).count()
-
-#     else:
-#         # If no filter provided, return all variants.
-#         STVs = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
-#                                                       sample_variant__variant__variantreport__vcf=vcf).order_by('transcript__gene__hgnc_name')
-
-#         excluded_pinned_variants_count = None
-
-#     return {'pinned': STVs.filter(pinned=True), 'excluded_pinned_variants_count': excluded_pinned_variants_count, 'unpinned': STVs.filter(selected=True, pinned=False)}
-
-
 def filter_variants(sample, run, filter=None):
 
     vcf = sample.vcfs.get(run=run)
@@ -229,10 +100,12 @@ def filter_variants(sample, run, filter=None):
                     f'variant_report__{item.field}{item.filter_type}': item.value}
             elif item.field == 'impact':
                 parsed_item = {f'variant_report__variant__samplevariant__sampletranscriptvariant__impact{item.filter_type}': item.value,
-                               'variant_report__variant__samplevariant__sample__id': sample.id}
+                               'variant_report__variant__samplevariant__sample__id': sample.id,
+                               'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id': F('transcript')}
             elif item.field == 'consequence':
                 parsed_item = {f'variant_report__variant__samplevariant__sampletranscriptvariant__consequence{item.filter_type}': item.value,
-                               'variant_report__variant__samplevariant__sample__id': sample.id}
+                               'variant_report__variant__samplevariant__sample__id': sample.id,
+                               'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id': F('transcript')}
             else:
                 if item.filter_type in ['__lt', '__gt', '__lte', '__gte']:
                     parsed_item = {'tag': item.field,
@@ -254,30 +127,38 @@ def filter_variants(sample, run, filter=None):
         #     {'variant_report__variant__samplevariant__sampletranscriptvariant__comments__classification__isnull': False,
         #      'variant_report__variant__samplevariant__sampletranscriptvariant__comments__classification__ne': '0'}]
 
-        # test = [
+        # filters_list = [[
         #     {'variant_report__variant__samplevariant__sampletranscriptvariant__impact': 'HIGH',
-        #      'variant_report__variant__samplevariant__sample__id': sample.id}]
+        #      'variant_report__variant__samplevariant__sample__id': sample.id,
+        #      'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id': F('transcript')}]]
 
         # filters_list.append(test)
 
-        variant_reports = vcf.variantreport_set.all()
+        STVs = SampleTranscriptVariant.objects.filter(
+            sample_variant__sample=sample)
 
         VRI_queryset = VariantReportInfo.objects.filter(
-            variant_report__vcf=vcf).annotate(number_value=ExtractValueInteger())
+            variant_report__vcf=vcf).annotate(number_value=ExtractValueInteger(),
+                                              transcript=F('variant_report__variant__samplevariant__sampletranscriptvariant__transcript'))
 
         for filter in filters_list:
             k_v_pairs = (Q(**tag_value_pairs) for tag_value_pairs in filter)
             variant_report_ids = VRI_queryset.filter(
                 reduce(operator.or_, k_v_pairs)).distinct().values_list(
-                'variant_report', flat=True)
+                'variant_report__variant', 'transcript')
 
-            variant_reports = variant_reports.filter(id__in=variant_report_ids)
+            variants_transcripts = [
+                {'sample_variant__variant': value[0], 'transcript':value[1]} for value in variant_report_ids]
 
-        variant_ids = variant_reports.values_list(
-            'variant', flat=True)
+            if variants_transcripts:
+                variants_transcripts = (Q(**v_t_pair)
+                                        for v_t_pair in variants_transcripts)
+                STVs = STVs.filter(
+                    reduce(operator.or_, variants_transcripts)).distinct()
+            else:
+                STVs = STVs.none()
 
-        STVs = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
-                                                      sample_variant__variant__in=variant_ids).order_by('transcript__gene__hgnc_name')
+        STVs = STVs.order_by('transcript__gene__hgnc_name')
 
         # Retrieve the number of pinned variants for this sample/vcf regardless of filters.
         unfiltered_pinned_count = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
