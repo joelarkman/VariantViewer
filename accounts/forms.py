@@ -40,10 +40,14 @@ class CustomUserCreationForm(UserCreationForm):
         )
 
     def clean(self):
-        # Check that no accounts with this email address (irrespective of case)
         cleaned_data = super(CustomUserCreationForm, self).clean()
         email = cleaned_data.get('email')
-        if email and User.objects.filter(email__iexact=email).exists():
+        # Check that email is @nhs.net domain
+        if email and "@nhs.net" not in email:
+            self.add_error(
+                'email', 'Must be an NHS.net address.')
+        # Check that no accounts with this email address (irrespective of case)
+        elif email and User.objects.filter(email__iexact=email).exists():
             self.add_error(
                 'email', 'A user with that email address already exists.')
         return cleaned_data
