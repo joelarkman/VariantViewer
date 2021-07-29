@@ -4,6 +4,13 @@
 
 {% block javascript %}
 <script>
+
+    $('.message-toast').toast({
+        displayTime: 10000,
+        showProgress: 'bottom',
+        closeIcon: true
+    });
+
     $('.pipeline-choice-popup')
         .popup({
             hoverable: true,
@@ -186,6 +193,19 @@
 {%endblock%}
 
 {% block content %}
+
+{% if messages %}
+{% for message in messages %}
+
+<div class="ui {{message.tags}} toast message-toast">
+    <div class="content">
+        <div class="ui header">{{message.tags|title}}</div>
+        {{message}}
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
 
 <!-- Page Header -->
 <div id="page-header" class="ui inverted vertical masthead left aligned segment">

@@ -82,14 +82,14 @@ class RegisterView(CreateView):
 class ValidateAccountView(UserPassesTestMixin, View):
     def test_func(self):
         user = self.user
-        if user.is_active:
-            messages.error(
-                self.request,
-                "This user is already activated."
-            )
-            return redirect('redirect')
-        else:
-            return True
+        return not user.is_active
+
+    def handle_no_permission(self):
+        messages.error(
+            self.request,
+            "This validation link has expired as the associated user has already been activated."
+        )
+        return redirect('redirect')
 
     @transaction.atomic
     def get(self, request, *args, **kwargs):
