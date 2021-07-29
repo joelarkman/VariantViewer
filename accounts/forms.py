@@ -49,30 +49,14 @@ class CustomUserCreationForm(UserCreationForm):
         return cleaned_data
 
 
-class UpdateProfileForm(CustomUserCreationForm):
-    """Form allowing editing of certain user fields - not username.
-    Since this inherits from a UserCreationForm (grandparent) must not provide
-    password fields either which are included by default.
-    """
+class UpdateProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
-        super(UpdateProfileForm, self).__init__(*args, **kwargs)
-        del self.fields['password1']
-        del self.fields['password2']
-
-    default_section = forms.ModelChoiceField(
-        queryset=Section.objects.all(),
-        widget=forms.Select(
-            attrs={
-                'class': 'ui dropdown'
-            }
-        )
-    )
+        super().__init__(*args, **kwargs)
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required = True
+        self.fields['default_section'].empty_label = 'Ask every time'
 
     class Meta:
         model = User
-        fields = (
-            'first_name',
-            'last_name',
-            'default_section'
-        )
+        fields = ('first_name', 'last_name', 'default_section')

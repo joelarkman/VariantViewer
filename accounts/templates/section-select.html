@@ -49,6 +49,14 @@
 
         <div class="ui raised inverted attached segment form-segment">
 
+            {% if messages %}
+            {% for message in messages %}
+            <div class="ui {{message.tags}} message">
+                {{message}}
+            </div>
+            {% endfor %}
+            {% endif %}
+
             <div class="ui two inverted stretched raised link cards" style="max-height:4.5cm;height: 18vh;flex: 1;">
                 <div class="ui card section-choice" data-section='cancer' style="background-color: #00A9CE;">
                     <div class="content"

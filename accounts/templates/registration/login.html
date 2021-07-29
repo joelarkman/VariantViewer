@@ -16,6 +16,14 @@
 
         <div class="ui raised inverted attached segment form-segment">
 
+            {% if messages %}
+            {% for message in messages %}
+            <div class="ui {{message.tags}} message">
+                {{message}}
+            </div>
+            {% endfor %}
+            {% endif %}
+
             {% if next %}
             {% if user.is_authenticated %}
             <p class="ui error message">Your account doesn't have access to this page. To proceed,
@@ -26,17 +34,35 @@
             {% endif %}
             {% endif %}
 
-            {% if form.errors %}
-            <p class="ui error message">Username and password provided do not match. <br> Please try again.</p>
-            {% endif %}
-
             <form class="ui large form" , method="post" , action="{% url 'login' %}" novalidate>
                 {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="ui negative message" style="margin-top: 0;">
+                    <div class="content">
+                        {% for error in form.non_field_errors %}
+                        <ul class="list">
+                            <li>{{error|escape}}</li>
+                        </ul>
+                        {% endfor %}
+                        {% for field in form %}
+                        {% if field.errors %}
+                        <ul class="list">
+                            {% for error in field.errors %}
+                            <li>{{field.label}}: {{error|escape}}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="field {% if form.errors %} error{% endif %}">
                     <div class="ui left icon input floating-label">
                         <i class="mail icon"></i>
-                        <input type="text" name="{{ form.username.html_name }}" placeholder="NHS email address">
+                        <input type="text" name="{{ form.username.html_name }}" placeholder="NHS email address"
+                            {%if form.errors %}value="{{form.username.value}}" {% endif %}>
                         <label>NHS email address</label>
                     </div>
                 </div>
@@ -61,7 +87,7 @@
                 <a href="{% url 'password_reset' %}" class="ui button">Forgot
                     your password?
                 </a>
-                <a href="{% url 'password_reset' %}" class="ui button">Sign
+                <a href="{% url 'register' %}" class="ui button">Sign
                     up</a>
             </div>
 

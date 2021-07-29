@@ -1,0 +1,7 @@
+
+Hi {{user.first_name}},
+
+Please follow the following link to activate your account for the WMRGL Variant Viewer web application:
+http://10.147.33.228:8005/accounts/validate/{{user.validate_hash}}
+
+Thank you.

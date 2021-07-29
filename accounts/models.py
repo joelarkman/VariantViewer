@@ -1,7 +1,7 @@
+import hashlib
+from datetime import datetime
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models.fields import BooleanField
 from django.utils.translation import ugettext_lazy as _
 
 from easyaudit.models import LoginEvent
@@ -47,11 +47,11 @@ class UserManager(BaseUserManager):
         return self.get(**{case_insensitive_username_field: username})
 
 
-# def get_validate_hash():
-#     datetime_str = str(datetime.now())
-#     m = hashlib.md5()
-#     m.update(datetime_str.encode())
-#     return m.hexdigest()
+def get_validate_hash():
+    datetime_str = str(datetime.now())
+    m = hashlib.md5()
+    m.update(datetime_str.encode())
+    return m.hexdigest()
 
 
 class User(AbstractUser):
@@ -79,10 +79,10 @@ class User(AbstractUser):
         related_name='users'
     )
 
-    # validate_hash = models.CharField(
-    #     max_length=255,
-    #     default=get_validate_hash
-    # )
+    validate_hash = models.CharField(
+        max_length=255,
+        default=get_validate_hash
+    )
 
     objects = UserManager()
 

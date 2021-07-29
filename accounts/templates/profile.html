@@ -22,15 +22,42 @@
 
         <div class="ui raised inverted attached segment form-segment">
 
+            {% if messages %}
+            {% for message in messages %}
+            <div class="ui {{message.tags}} message">
+                {{message}}
+            </div>
+            {% endfor %}
+            {% endif %}
 
-            <!-- {% if form.errors %}
-            <p class="ui error message">Username and password provided do not match. <br> Please try again.</p>
-            {% endif %} -->
-
-            <form class="ui large form" , method="post" , action="{% url 'profile' %}" novalidate>
+            <form class="ui large form" , method="post" , action="{% url 'profile' %}?next={{request.GET.next}}"
+                novalidate>
                 {% csrf_token %}
 
-                <div class="field {% if form.errors %} error{% endif %}">
+                {% if form.errors %}
+                <div class="ui negative message" style="margin-top: 0;">
+                    <div class="content">
+                        {% for error in form.non_field_errors %}
+                        <ul class="list">
+                            <li>{{error|escape}}</li>
+                        </ul>
+                        {% endfor %}
+                        {% for field in form %}
+                        {% if field.errors %}
+                        <ul class="list">
+                            {% for error in field.errors %}
+                            <li>{{field.label}}: {{error|escape}}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <h4 class="ui dividing inverted left aligned header" style="margin-top: 0;">Personal Information</h4>
+
+                <div class="field {% if form.first_name.errors %} error{% endif %}">
                     <div class="ui left icon input floating-label">
                         <i class="user icon"></i>
                         <input type="text" name="{{ form.first_name.html_name }}" placeholder="First name"
@@ -39,7 +66,7 @@
                     </div>
                 </div>
 
-                <div class="field {% if form.errors %} error{% endif %}">
+                <div class="field {% if form.last_name.errors %} error{% endif %}">
                     <div class="ui left icon input floating-label">
                         <i class="user icon"></i>
                         <input type="text" name="{{ form.last_name.html_name }}" placeholder="Last name"
@@ -48,10 +75,12 @@
                     </div>
                 </div>
 
-                <div class="field">
+
+                <h4 class="ui dividing inverted left aligned header">Default Section</h4>
+                <div class="field {% if form.default_section.errors %} error{% endif %}">
                     <div class="ui fluid selection dropdown">
                         <input type="hidden" name="default_section" id="id_default_section"
-                            value="{% if form.initial.default_section %}{{form.initial.default_section}}{%else%}{%endif%}">
+                            value="{{form.default_section.value|default:""}}">
                         <i class="dropdown icon"></i>
                         <div class="default text">Select default_section</div>
                         <div class="menu">
