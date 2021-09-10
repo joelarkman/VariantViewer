@@ -1,4 +1,4 @@
-from db.models import SampleTranscriptVariant, VariantReport, VariantReportInfo
+from db.models import ExcelReport, SampleTranscriptVariant, VariantReport, VariantReportInfo
 from web.models import Filter
 import operator
 from functools import reduce
@@ -102,6 +102,10 @@ def filter_variants(sample, run, filter=None):
     # Load vcf associated with current sample + run
     vcf = sample.vcfs.get(run=run)
 
+    # Apply genekey to variant list by looking at list of genes we have coverage data for (taken from excel document)
+    gene_ids = ExcelReport.objects.get(
+        run=run, sample=sample).genereport_set.all().values_list('gene__id', flat=True)
+
     if filter:
         # If filter has been provided...
 
@@ -162,7 +166,7 @@ def filter_variants(sample, run, filter=None):
 
         # Retrieve all STVs associated with current sample.
         STVs = SampleTranscriptVariant.objects.filter(
-            sample_variant__sample=sample)
+            sample_variant__sample=sample, transcript__gene__id__in=gene_ids)
 
         transcript_key = 'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id'
 
@@ -196,8 +200,8 @@ def filter_variants(sample, run, filter=None):
                 VRI_queryset = VariantReportInfo.objects.filter(
                     variant_report__vcf=vcf).annotate(number_value=ExtractValueInteger())
 
-                # Use reduce to place an OR between q objects and retrieve combinations of variant
-                # and transcript IDs that satisfy current or group.
+                # Use reduce to place an OR between q objects and retrieve variant
+                # IDs that satisfy current or group.
                 variant_report_ids = VRI_queryset.filter(
                     reduce(operator.or_, k_v_pairs)).distinct().values_list(
                     'variant_report__variant')
