@@ -43,6 +43,7 @@ class VariantManager:
         self._transcript_df = pd.DataFrame()
         self._variant_df = pd.DataFrame()
         self._transcript_variant_df = pd.DataFrame()
+        self._sample_transcript_variant_df = pd.DataFrame()
 
     def delete_csv(self):
         os.remove(self.record_csv.name)
@@ -274,3 +275,15 @@ class VariantManager:
                 subset=["Feature", "REF", "ALT"]
             )
         return self._transcript_variant_df
+
+    @property
+    def sample_transcript_variant_df(self):
+        if len(self._sample_transcript_variant_df.index) == 0:
+            df = self.variant_df
+            self._sample_transcript_variant_df = df[
+                (df.Gene.isin(self.gene_df.Gene.unique()))
+                & (df.Feature_type == "Transcript")
+                ].drop_duplicates(
+                subset=["Sample", "Feature", "REF", "ALT"]
+            )
+        return self._sample_transcript_variant_df
