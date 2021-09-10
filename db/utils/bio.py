@@ -272,7 +272,7 @@ class VariantManager:
                 (df.Gene.isin(self.gene_df.Gene.unique()))
                 & (df.Feature_type == "Transcript")
             ].drop_duplicates(
-                subset=["Feature", "REF", "ALT"]
+                subset=["Feature", "CHROM", "POS", "REF", "ALT"]
             )
         return self._transcript_variant_df
 
@@ -284,6 +284,6 @@ class VariantManager:
                 (df.Gene.isin(self.gene_df.Gene.unique()))
                 & (df.Feature_type == "Transcript")
                 ].drop_duplicates(
-                subset=["Sample", "Feature", "REF", "ALT"]
+                subset=["Sample", "Feature", "CHROM", "POS", "REF", "ALT"]
             )
         return self._sample_transcript_variant_df
