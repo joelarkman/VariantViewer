@@ -9,6 +9,7 @@ from django.shortcuts import redirect
 from django.db.models import Q
 from django.db import transaction
 
+import statistics
 
 from db.utils.filter_utils import filter_variants, get_filters, apply_variant_cache, context_to_string, string_to_context
 from db.utils.model_utils import mode
@@ -123,7 +124,7 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         # Load files for jbrowse
         context['vcf'] = ss_sample.sample.vcfs.get(run=run)
         context['bam'] = ss_sample.sample.bams.get(
-            run=run, path__contains="realn")
+            run=run)
         return context
 
 
@@ -360,7 +361,7 @@ def refresh_classification_indicators(request):
                 if len(indicator_list) == 1:
                     css = indicator_list[0]
                 else:
-                    css = mode(
+                    css = statistics.mode(
                         indicator_list)
             else:
                 css = 'blue'
@@ -391,9 +392,13 @@ def load_variant_details(request, run, stv):
 
     form = DocumentForm()
 
+    gnomad_variant = f'{stv.sample_variant.variant.chrom}-{stv.sample_variant.variant.pos}-{stv.sample_variant.variant.ref}-{stv.sample_variant.variant.alt}'
+    gnomad_link = f'https://gnomad.broadinstitute.org/variant/{gnomad_variant}?dataset=gnomad_r3'
+
     context = {'run': run,
                'stv': stv,
                'variant_report': variant_report,
+               'gnomad_link': gnomad_link,
                'form': form,
                'documents': documents,
                'archived_documents': archived_documents}

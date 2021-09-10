@@ -238,16 +238,16 @@
             <div class="ui top attached segment" style="display: flex;justify-content: space-between;">
                 <h4 style="margin: 0;">Filter Flags</h4>
 
-                {%if variant_report.filter_pass%}
+                {% if variant_report.variantreportfilter_set.all %}
+                <div class="ui red small label" style="display: flex;margin: -5px;margin-right: 0;align-items: center;">
+                    <i class="times icon"></i>
+                    Filters Failed
+                </div>
+                {%else%}
                 <div class="ui green small label"
                     style="display: flex;margin: -5px;margin-right: 0;align-items: center;">
                     <i class="checkmark icon"></i>
                     Filters Passed
-                </div>
-                {%else%}
-                <div class="ui red small label" style="display: flex;margin: -5px;margin-right: 0;align-items: center;">
-                    <i class="times icon"></i>
-                    Filters Failed
                 </div>
                 {%endif%}
             </div>
@@ -266,7 +266,7 @@
                     <tr>
                         <td>{{filter.tag}}</td>
                         <td>{{filter.description}}</td>
-                        <td>{{filter.value}}</td>
+                        <td>Failed</td>
                     </tr>
                     {%endfor%}
                     {%else%}
@@ -291,14 +291,47 @@
 <div class="ui tab" data-tab="databases">
 
     <div class="ui top attached segment">
+        <h4>External DB links</h4>
+    </div>
+
+    <div class="ui bottom attached segment"
+        style="background-color: #eeeeee;display: flex;align-items: center;justify-content: center;padding: 0">
+
+
+        <div class="ui four stretched raised link cards" style="padding: 20px;min-height: 20vh;flex: 1">
+            <a href="{{gnomad_link}}" target="_blank" class="ui card" style="background-color: #00B5AD">
+                <div class="content"
+                    style="display: flex;align-items: center;justify-content: center;flex-direction: column;">
+                    <div class="center aligned header" style="color: rgba(255, 255, 255, 0.9);"> <i
+                            class="search icon"></i>Gnomad Search</div>
+                    <div class="center aligned description" style="color: rgba(255, 255, 255, 0.7);max-width: 7cm;">
+                        Search for this variant on the gnomad database.
+                    </div>
+                </div>
+            </a>
+        </div>
+
+
+
+    </div>
+
+    <div class="ui top attached segment">
         <h4>Protein Diagram</h4>
     </div>
 
     <div class="ui bottom attached segment"
         style="background-color: #eeeeee;display: flex;align-items: center;justify-content: center;padding-top: 0">
 
+        <!-- <script type="text/javascript" src="https://unpkg.com/external-svg-loader@1.0.0/svg-loader.min.js"
+            async></script>
+
+        <svg data-src="{% url 'generate_variant_diagram' %}"></svg> -->
+
+
 
     </div>
+
+
 
 </div>
 
@@ -307,12 +340,13 @@
 <div class="ui tab" data-tab="evidence">
 
     <div class="ui top attached segment action-header js-update-create-comment"
-        data-url="{% url 'comment_update_or_create' stv=stv.id %}" style="display: flex;align-items: center;">
+        data-url="{% url 'comment_update_or_create' run=run.id stv=stv.id %}"
+        style="display: flex;align-items: center;">
         <h4 style="margin: 0;">Variant Information</h4>
 
         <div class="ui right icon link label"
             style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">
-            Click here to {% if stv.comments.last %}update{%else%}add{%endif%} variant
+            Click here to {% if stv.comment %}update{%else%}add{%endif%} variant
             information
             <i class="pen icon"></i>
         </div>
@@ -407,8 +441,8 @@
         <h4>Previous classifications of this variant</h4>
     </div>
 
-    <table class="ui selectable bottom attached compact celled table previous-classification-table" data-stv={{stv.id}}
-        style="background-color: #eeeeee;width: calc(100% + 2px);table-layout:auto;">
+    <table class="ui selectable bottom attached compact celled table previous-classification-table" data-run={{run.id}}
+        data-stv={{stv.id}} style="background-color: #eeeeee;width: calc(100% + 2px);table-layout:auto;">
         <thead>
             <tr>
                 <!-- <th style="background-color: white !important;border-radius: 0;">First name</th>
