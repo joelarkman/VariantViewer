@@ -20,7 +20,7 @@
             </div>
         </div>
 
-        <div class="ui raised inverted attached segment form-segment">
+        <div class="ui raised inverted attached segment left aligned form-segment">
 
             {% if messages %}
             {% for message in messages %}
@@ -55,7 +55,7 @@
                 </div>
                 {% endif %}
 
-                <h4 class="ui dividing inverted left aligned header" style="margin-top: 0;">Personal Information</h4>
+                <h4 class="ui dividing inverted header" style="margin-top: 0;">Personal Information</h4>
 
                 <div class="field {% if form.first_name.errors %} error{% endif %}">
                     <div class="ui left icon input floating-label">
@@ -75,8 +75,14 @@
                     </div>
                 </div>
 
+                <h4 class="ui dividing inverted header">Account Information</h4>
+                <a href="{% url 'change_password' %}?next={{request.GET.next}}"
+                    class="ui large left aligned labeled icon button">
+                    <i class="key icon"></i>
+                    Change Password
+                </a>
 
-                <h4 class="ui dividing inverted left aligned header">Default Section</h4>
+                <h4 class="ui dividing inverted header">Default Section</h4>
                 <div class="field {% if form.default_section.errors %} error{% endif %}">
                     <div class="ui fluid selection dropdown">
                         <input type="hidden" name="default_section" id="id_default_section"
@@ -105,7 +111,8 @@
             style="display: flex;align-items: center;">
 
 
-            <a href="{{ request.GET.next }}" class="ui inverted tiny basic button">
+            <a href="{%if request.GET.next%}{{ request.GET.next }}{%else%}{% url 'redirect' %}{%endif%}"
+                class="ui inverted tiny basic button">
                 <i class="arrow circle left icon"></i>
                 Back
             </a>

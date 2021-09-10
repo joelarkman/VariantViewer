@@ -6,12 +6,13 @@ from accounts.forms import UpdateProfileForm
 from django.contrib import messages
 from django.views import View
 from django.views.generic import TemplateView
-from django.contrib.auth import login
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views.generic import DetailView
 from django.views.generic import FormView
 from django.views.generic import CreateView
+from django.views.generic import UpdateView
 from django.views.generic.detail import SingleObjectMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
@@ -19,6 +20,7 @@ from django.urls import reverse, reverse_lazy
 
 from accounts.models import User
 from accounts.forms import CustomUserCreationForm
+from django.contrib.auth.forms import PasswordChangeForm
 from db.tasks import send_email
 
 
@@ -59,7 +61,7 @@ class RegisterView(CreateView):
                         'id': user.id
                     }
                 },
-                subject="Validate your WMRGL Suggest and Change account.",
+                subject="Validate your VariantViewer account.",
                 to=user.email
             )
             messages.info(
@@ -100,7 +102,8 @@ class ValidateAccountView(UserPassesTestMixin, View):
         login(request, user)
         messages.info(
             request,
-            f"{user.first_name}, your account has been activated and you are now logged in. Please select a relevent section of the laboratory."
+            f"{user.first_name}, your account has been activated and you are now logged in."
+            "Please select a relevent section of the laboratory."
         )
         return redirect('redirect')
 
@@ -173,3 +176,35 @@ class ProfileView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         view = ProfileUpdate.as_view()
         return view(request, *args, **kwargs)
+
+
+class PasswordUpdate(LoginRequiredMixin, DetailView):
+    model = User
+    context_object_name = 'user'
+    template_name = 'registration/change_password.html'
+
+    @transaction.atomic
+    def post(self, request):
+
+        params = {
+            'next': self.request.GET.get('next')
+        }
+
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(
+                request, 'Your password was successfully updated!')
+            return redirect_params('profile', params)
+        else:
+            return render(request, self.template_name, {'form': form})
+
+    def get_object(self):
+        return get_object_or_404(User, id=self.request.user.id)
+
+    def get_context_data(self, **kwargs):
+        context = super(PasswordUpdate, self).get_context_data(**kwargs)
+        user = self.get_object()
+        context['form'] = PasswordChangeForm(user)
+        return context
