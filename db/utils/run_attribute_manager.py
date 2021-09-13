@@ -166,7 +166,6 @@ class RunAttributeManager:
         samples: List[Dict[str, Any]] = []
 
         samplesheet_file = self.run.samplesheet
-        samplesheet = IlluminaSampleSheet(samplesheet_file)
 
         ss_temp = tempfile.NamedTemporaryFile(delete=False)
         # fix empty header values
@@ -175,6 +174,7 @@ class RunAttributeManager:
                 for line in f_in:
                     f_out.write(line.replace('Reason,', 'Reason'))
 
+        samplesheet = IlluminaSampleSheet(ss_temp.name)
         samplesheet_samples = tqdm(samplesheet.samples, leave=False)
         for sample in samplesheet_samples:
             # ignore negative controls
