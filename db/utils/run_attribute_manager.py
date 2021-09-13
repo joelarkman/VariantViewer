@@ -584,7 +584,9 @@ class RunAttributeManager:
 
     def get_exon_report(self, exon=True) -> List[Dict[str, Any]]:
         reports = []
+
         db_excel_reports = self.related_instances(ExcelReport)
+        # loop through excel reports and initialise as df
         for db_excel_report in tqdm(db_excel_reports, leave=False):
             wb = load_workbook(
                 filename=db_excel_report.path,
@@ -596,25 +598,14 @@ class RunAttributeManager:
             # set header as first row
             report_df.columns = report_df.iloc[0]
             report_df = report_df[1:]
+
             for index, row in report_df.iterrows():
                 report = {
                     'excel_report': db_excel_report,
-                    'cov_10x': row['10x'],
-                    'cov_20x': row['20x'],
-                    'cov_30x': row['30x'],
-                    'cov_40x': row['40x'],
-                    'cov_50x': row['50x'],
-                    'cov_100x': row['100x'],
                     'cov_min': row['Min'],
                     'cov_max': row['Max'],
                     'cov_mean': row['Mean'],
                     'cov_region': row['region'],
-                    'pct_10x': row['pct>10x'],
-                    'pct_20x': row['pct>20x'],
-                    'pct_30x': row['pct>30x'],
-                    'pct_40x': row['pct>40x'],
-                    'pct_50x': row['pct>50x'],
-                    'pct_100x': row['pct>100x'],
                 }
                 if exon:
                     refseq_id = '_'.join(row['Transcript'].split('_')[:2])
@@ -641,3 +632,60 @@ class RunAttributeManager:
 
     def get_gene_report(self) -> List[Dict[str, Any]]:
         return self.get_exon_report(exon=False)
+
+    def get_exon_coverage_threshold(self, exon=True) -> List[Dict[str, Any]]:
+        coverage_thresholds = []
+
+        if exon:
+            db_reports = self.related_instances(ExonReport)
+            db_report: ExonReport
+        else:
+            db_reports = self.related_instances(GeneReport)
+            db_report: GeneReport
+        # fetch the excel_report
+        for db_report in tqdm(db_reports, leave=False):
+            db_excel_report = db_report.excel_report
+            wb = load_workbook(
+                filename=db_excel_report.path,
+                data_only=True,
+                read_only=True
+            )
+            if exon:
+                sheet = wb['Coverage-exon']
+            else:
+                sheet = wb['Coverage-gene']
+            df = pd.DataFrame(sheet.values)
+            # set header as first row
+            df.columns = df.iloc[0]
+            df = df[1:]
+            thresholds = list(
+                map(
+                    # eg. 10x 20x 100x -> [10, 20, 100]
+                    lambda x: int(x.strip('x')),
+                    df.filter(regex='^\d+x$').columns
+                )
+            )
+            if exon:
+                row = df[
+                    (df['Transcripts']==db_report.exon.transcript.refseq_id) &
+                    (df['Exon']==db_report.exon.number)
+                ]
+            else:
+                row = df[
+                    df['Gene']==db_report.gene.hgnc_name
+                ]
+            assert len(row) == 1, f"Multiple reports for {db_report}"
+            row = row.iloc[0]
+            for threshold in thresholds:
+                coverage_threshold = {
+                    'exon_report': db_report,
+                    'threshold': threshold,
+                    'coverage': row[f'{threshold}x'],
+                    'pct_above_threshold': row[f'pct>{threshold}x']
+                }
+                coverage_thresholds.append(coverage_threshold)
+        return coverage_thresholds
+
+    def get_gene_coverage_thresholds(self) -> List[Dict[str, Any]]:
+        return self.get_exon_coverage_threshold(exon=False)
+
