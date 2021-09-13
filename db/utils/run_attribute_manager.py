@@ -668,7 +668,7 @@ class RunAttributeManager:
             if exon:
                 row = df[
                     (df['Transcript']==db_report.exon.transcript.refseq_id) &
-                    (df['Exon']==db_report.exon.number)
+                    (df['Exon']==str(db_report.exon.number))
                 ]
             else:
                 row = df[

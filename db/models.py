@@ -606,7 +606,8 @@ class ExonReport(CoverageInfo):
     tag = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return f"{self.exon}_{self.tag} report: {self.excel_report}"
+        return f"{self.exon}{'_' if  self.tag else ''}{self.tag} report:" \
+               f" {self.excel_report}"
 
     class Meta:
         unique_together = ['excel_report', 'exon', 'tag']
