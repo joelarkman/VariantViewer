@@ -686,6 +686,6 @@ class RunAttributeManager:
                 coverage_thresholds.append(coverage_threshold)
         return coverage_thresholds
 
-    def get_gene_coverage_thresholds(self) -> List[Dict[str, Any]]:
+    def get_gene_coverage_threshold(self) -> List[Dict[str, Any]]:
         return self.get_exon_coverage_threshold(exon=False)
 
