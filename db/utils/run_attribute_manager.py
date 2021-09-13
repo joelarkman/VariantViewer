@@ -193,8 +193,8 @@ class RunAttributeManager:
 
         db_samplesheet = self.related_instance(Samplesheet)
         db_samples = self.related_instances(Sample)
-
         ss_temp = tempfile.NamedTemporaryFile(delete=False)
+
         # fix empty header values
         with open(self.run.samplesheet, 'rt') as f_in:
             with open(ss_temp, 'wt') as f_out:
