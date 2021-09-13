@@ -1,4 +1,6 @@
+import os
 import re
+import tempfile
 from typing import Any
 from typing import Dict
 from typing import List
@@ -183,8 +185,15 @@ class RunAttributeManager:
 
         db_samplesheet = self.related_instance(Samplesheet)
         db_samples = self.related_instances(Sample)
+        ss_temp = tempfile.NamedTemporaryFile(delete=False)
 
-        samplesheet = IlluminaSampleSheet(self.run.samplesheet)
+        # fix empty header values
+        with open(self.run.samplesheet, 'rt') as f_in:
+            with open(ss_temp, 'wt') as f_out:
+                for line in f_in:
+                    f_out.write(line.replace('Reason,', 'Reason'))
+
+        samplesheet = IlluminaSampleSheet(ss_temp.name)
         samples = samplesheet.samples
 
         db_samples = tqdm(db_samples, leave=False)
@@ -209,6 +218,7 @@ class RunAttributeManager:
                 "gene_key": sample.Sample_Project
             })
         db_samples.close()
+        os.remove(ss_temp.name)
         return samplesheet_samples
 
     def get_bam(self) -> List[Dict[str, Any]]:
