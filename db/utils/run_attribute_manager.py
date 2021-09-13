@@ -1,4 +1,6 @@
+import os
 import re
+import tempfile
 from typing import Any
 from typing import Dict
 from typing import List
@@ -166,6 +168,13 @@ class RunAttributeManager:
         samplesheet_file = self.run.samplesheet
         samplesheet = IlluminaSampleSheet(samplesheet_file)
 
+        ss_temp = tempfile.NamedTemporaryFile(delete=False)
+        # fix empty header values
+        with open(self.run.samplesheet, 'rt') as f_in:
+            with open(ss_temp, 'wt') as f_out:
+                for line in f_in:
+                    f_out.write(line.replace('Reason,', 'Reason'))
+
         samplesheet_samples = tqdm(samplesheet.samples, leave=False)
         for sample in samplesheet_samples:
             # ignore negative controls
@@ -176,6 +185,7 @@ class RunAttributeManager:
                 'lab_no': lab_no,
             })
         samplesheet_samples.close()
+        os.remove(ss_temp.name)
         return samples
 
     def get_samplesheet_sample(self) -> List[Dict[str, Any]]:
@@ -184,7 +194,14 @@ class RunAttributeManager:
         db_samplesheet = self.related_instance(Samplesheet)
         db_samples = self.related_instances(Sample)
 
-        samplesheet = IlluminaSampleSheet(self.run.samplesheet)
+        ss_temp = tempfile.NamedTemporaryFile(delete=False)
+        # fix empty header values
+        with open(self.run.samplesheet, 'rt') as f_in:
+            with open(ss_temp, 'wt') as f_out:
+                for line in f_in:
+                    f_out.write(line.replace('Reason,', 'Reason'))
+
+        samplesheet = IlluminaSampleSheet(ss_temp.name)
         samples = samplesheet.samples
 
         db_samples = tqdm(db_samples, leave=False)
@@ -209,6 +226,7 @@ class RunAttributeManager:
                 "gene_key": sample.Sample_Project
             })
         db_samples.close()
+        os.remove(ss_temp.name)
         return samplesheet_samples
 
     def get_bam(self) -> List[Dict[str, Any]]:
