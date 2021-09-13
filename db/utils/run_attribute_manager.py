@@ -171,7 +171,7 @@ class RunAttributeManager:
         ss_temp = tempfile.NamedTemporaryFile(delete=False)
         # fix empty header values
         with open(self.run.samplesheet, 'rt') as f_in:
-            with open(ss_temp, 'wt') as f_out:
+            with open(ss_temp.name, 'wt') as f_out:
                 for line in f_in:
                     f_out.write(line.replace('Reason,', 'Reason'))
 
@@ -197,7 +197,7 @@ class RunAttributeManager:
 
         # fix empty header values
         with open(self.run.samplesheet, 'rt') as f_in:
-            with open(ss_temp, 'wt') as f_out:
+            with open(ss_temp.name, 'wt') as f_out:
                 for line in f_in:
                     f_out.write(line.replace('Reason,', 'Reason'))
 
