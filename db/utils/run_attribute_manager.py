@@ -652,6 +652,9 @@ class RunAttributeManager:
             )
             if exon:
                 sheet = wb['Coverage-exon']
+                if db_report.tag:
+                    # skip promoters, etc etc
+                    continue
             else:
                 sheet = wb['Coverage-gene']
             df = pd.DataFrame(sheet.values)
