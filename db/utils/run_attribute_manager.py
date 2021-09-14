@@ -600,7 +600,7 @@ class RunAttributeManager:
             report_df = report_df[1:]
 
             # get the custom threshold values in this excelreport
-            thresholds = list(
+            thresholds = tuple(
                 map(
                     # eg. 10x 20x 100x -> [10, 20, 100]
                     lambda x: int(x.strip('x')),
@@ -609,13 +609,13 @@ class RunAttributeManager:
             )
             for index, row in report_df.iterrows():
                 # fetch the counts and pcts for this entry
-                threshold_counts = list(
+                threshold_counts = tuple(
                     map(
                         lambda threshold: row[f'{threshold}x'],
                         thresholds
                     )
                 )
-                threshold_pcts = list(
+                threshold_pcts = tuple(
                     map(
                         lambda threshold: row[f'pct>{threshold}x'],
                         thresholds
