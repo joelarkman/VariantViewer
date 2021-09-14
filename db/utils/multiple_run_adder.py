@@ -190,9 +190,7 @@ class MultipleRunAdder:
             (Exon, True),
             # coverage info
             (ExonReport, True),
-            (ExonCoverageThreshold, True),
             (GeneReport, True),
-            (GeneCoverageThreshold, True),
             # variant info
             (Variant, True),
             (SampleVariant, True),
