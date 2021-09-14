@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import pre_save, post_save
@@ -574,21 +575,15 @@ class CoverageInfo(BaseModel):
     cov_max = models.IntegerField(null=True)
     cov_mean = models.FloatField(null=True)
     cov_region = models.IntegerField(null=True)
+    cov_thresholds = ArrayField(models.IntegerField())
+    cov_count_at_threshold = ArrayField(models.IntegerField())
+    cov_pct_above_threshold = ArrayField(models.IntegerField())
 
     def get_percentages(self):
         raise NotImplementedError('use CoverageInfoThreshold')
         pct_attributes = [attr for attr in dir(self) if attr.startswith('pct')]
         pct_attribute_values = map(lambda x: getattr(self, x), pct_attributes)
         return list(pct_attribute_values)
-
-    class Meta:
-        abstract = True
-
-
-class CoverageInfoThreshold(BaseModel):
-    threshold = models.IntegerField()
-    coverage = models.IntegerField()
-    pct_above_threshold = models.IntegerField()
 
     class Meta:
         abstract = True
@@ -613,16 +608,6 @@ class ExonReport(CoverageInfo):
         unique_together = ['excel_report', 'exon', 'tag']
 
 
-class ExonCoverageThreshold(CoverageInfoThreshold):
-    exon_report = models.ForeignKey(ExonReport, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.exon_report} ({self.threshold}x)"
-
-    class Meta:
-        unique_together = ['exon_report', 'threshold']
-
-
 class GeneReport(CoverageInfo):
     excel_report = models.ForeignKey(
         ExcelReport,
@@ -644,13 +629,3 @@ class GeneReport(CoverageInfo):
 
     class Meta:
         unique_together = ['excel_report', 'gene', 'transcript', 'tag']
-
-
-class GeneCoverageThreshold(CoverageInfoThreshold):
-    gene_report = models.ForeignKey(GeneReport, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.gene_report} ({self.threshold}x)"
-
-    class Meta:
-        unique_together = ['gene_report', 'threshold']
