@@ -299,7 +299,10 @@ class RunAttributeManager:
         db_samples = tqdm(self.related_instances(Sample), leave=False)
         for db_sample in db_samples:
             lab_no = db_sample.lab_no.replace('.', '-')
-            for excel_file in self.run.excel_dir.glob(f'*{lab_no}*.xlsx'):
+            excel_files = self.run.excel_dir.glob(f'*{lab_no}*results.xlsx')
+            for excel_file in tqdm(excel_files, leave=False):
+                # skip recovery files
+                if excel_file[0] == '~': continue
                 excel_report = {
                     "path": str(excel_file.resolve()),
                     "run": self.related_instance(Run),
