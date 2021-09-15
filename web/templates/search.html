@@ -94,7 +94,7 @@
                 {
                     "data": null,
                     "render": function (data, type, row, meta) {
-                        data = "<a href='/results/" + row.runs[0].worksheet + "/" + row.lab_no + "' class='ui small icon button' style='margin:0px;'><i class='external alternate icon'></i></a>"
+                        data = "<a href='/results/" + row.runs[0].pipeline_name.replace(/\s+/g, '-').toLowerCase() + "/" + row.runs[0].worksheet + "/" + row.lab_no + "' class='ui small icon button' style='margin:0px;'><i class='external alternate icon'></i></a>"
                         return data;
                     },
                     "orderable": false,
@@ -167,7 +167,7 @@
                 // var sample = $(this).find("td").eq(1).text();
 
                 var row = sample_table.row(this);
-                window.location.href = "/results/" + row.data().runs[0].worksheet + "/" + row.data().lab_no;
+                window.location.href = "/results/" + row.data().runs[0].pipeline_name.replace(/\s+/g, '-').toLowerCase() + "/" + row.data().runs[0].worksheet + "/" + row.data().lab_no;
             }
         });
 
@@ -315,7 +315,7 @@
                 <button class="ui active button pipeline-choice">All</button>
 
                 {% for pipeline in pipelines%}
-                <button class="ui button pipeline-choice">{{ pipeline.pipeline.name }}</button>
+                <button class="ui button pipeline-choice">{{ pipeline.name }}</button>
                 {% endfor %}
 
             </div>

@@ -15,7 +15,7 @@ urlpatterns = [
 
     path('<slug:section>/search', views.SearchView.as_view(), name='search'),
 
-    path('results/<worksheet>/<sample>',
+    path('results/<pipeline_version>/<worksheet>/<sample>',
          views.SampleDetailsView.as_view(), name='sample_details'),
 
 

@@ -20,7 +20,7 @@ from .utils.report_utils import get_report_results, render_to_pdf, create_report
 
 from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm, ReportForm
 
-from db.models import ExcelReport, Gene, Run, PipelineVersion, SamplesheetSample, SampleTranscriptVariant, Section, Transcript, VCFFilter, VariantReportInfo
+from db.models import Pipeline, Gene, Run, SamplesheetSample, SampleTranscriptVariant, Section, Transcript, VCFFilter, VariantReportInfo
 
 
 class RedirectView(TemplateView):
@@ -72,8 +72,8 @@ class HomeView(LoginRequiredMixin, TemplateView):
         section = Section.objects.get(slug=self.kwargs['section'])
         context['page_title'] = 'Home'
         context['section'] = section
-        context['pipelines'] = PipelineVersion.objects.filter(
-            pipeline__pipelinesection__section=section, pipeline__pipelinesection__default=True)
+        context['pipelines'] = Pipeline.objects.filter(
+            pipelinesection__section=section, pipelinesection__default=True)
 
         return context
 
@@ -91,8 +91,8 @@ class SearchView(LoginRequiredMixin, TemplateView):
         section = Section.objects.get(slug=self.kwargs['section'])
         context['page_title'] = 'Search'
         context['section'] = section
-        context['pipelines'] = PipelineVersion.objects.filter(
-            pipeline__pipelinesection__section=section, pipeline__pipelinesection__default=True)
+        context['pipelines'] = Pipeline.objects.filter(
+            pipelinesection__section=section, pipelinesection__default=True)
         return context
 
 
@@ -114,7 +114,10 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
 
         section = ss_sample.sample.section
 
-        run = Run.objects.get(worksheet=self.kwargs['worksheet'])
+        pipeline_version = self.kwargs['pipeline_version'].split('-')
+
+        run = Run.objects.get(
+            worksheet=self.kwargs['worksheet'], pipeline_version__pipeline__name__iexact=pipeline_version[0], pipeline_version__version=pipeline_version[1])
 
         context['page_title'] = f"{ss_sample.sample.lab_no} ({run.worksheet})"
         context['section'] = section
@@ -124,7 +127,7 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         # Load files for jbrowse
         context['vcf'] = ss_sample.sample.vcfs.get(run=run)
         context['bam'] = ss_sample.sample.bams.get(
-            run=run)
+            run=run, path__contains="realn")
         return context
 
 
