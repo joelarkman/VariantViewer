@@ -302,7 +302,7 @@ class RunAttributeManager:
             excel_files = self.run.excel_dir.glob(f'*{lab_no}*results.xlsx')
             for excel_file in tqdm(excel_files, leave=False):
                 # skip recovery files
-                if excel_file[0] == '~': continue
+                if excel_file.name[0] == '~': continue
                 excel_report = {
                     "path": str(excel_file.resolve()),
                     "run": self.related_instance(Run),
