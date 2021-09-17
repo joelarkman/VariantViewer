@@ -40,7 +40,7 @@ class BaseSingletonModel(BaseModel):
 
 class PipelineOutputFileModel(BaseModel):
     path = models.TextField()
-    file = models.FileField(null=True, default=None)
+    file = models.FileField(null=True, default=None, max_length=255)
     run = models.ForeignKey(
         "Run",
         on_delete=models.PROTECT
