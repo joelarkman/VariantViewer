@@ -65,7 +65,10 @@ class PipelineOutputFileModel(BaseModel):
             if '.xlsx' not in file_path.suffixes:
                 index_file_path = [x for x in file_path.parent.glob(
                     file_path.name + '.*i') if x.is_file()][0]
-                index_target = settings.MEDIA_ROOT / 'symlinks' / index_file_path.name
+                index_target = settings.MEDIA_ROOT / 'symlinks' / \
+                    index_file_path.relative_to(
+                        index_file_path.parent.parent.parent)
+                # index_target = settings.MEDIA_ROOT / 'symlinks' / index_file_path.name
                 index_target.symlink_to(index_file_path)
 
             self.save()
