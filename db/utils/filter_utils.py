@@ -153,6 +153,13 @@ def filter_variants(sample, run, filter=None):
                 filters_list.append(filter_cache)
                 filter_cache = []
 
+        # Retrieve all VRIs associated with current VCF file.
+        # Use annotate to coerce 'field' value into an integer field.
+        VRI_template = VariantReportInfo.objects.filter(
+            variant_report__vcf=vcf,
+            variant_report__variant__transcriptvariant__transcript__gene__in=gene_ids) \
+            .annotate(number_value=ExtractValueInteger())
+
         transcript_key = 'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id'
 
         # Each item in filters_list contains a set of filers that should be OR'd together.
@@ -166,10 +173,8 @@ def filter_variants(sample, run, filter=None):
                 # Use annotate to coerce 'field' value into an integer field.
                 # Use annotate to append a transcript to each VRI, where a given variant appears in multiple
                 # transcripts the rest of the VRI row will be duplicated.
-                VRI_queryset = VariantReportInfo.objects.filter(
-                    variant_report__vcf=vcf) \
-                    .annotate(number_value=ExtractValueInteger(), transcript=F(transcript_key)) \
-                    .filter(variant_report__variant__transcriptvariant__transcript__gene__in=gene_ids)
+                VRI_queryset = VRI_template.annotate(
+                    transcript=F(transcript_key))
 
                 # Use reduce to place an OR between q objects and retrieve combinations of variant
                 # and transcript IDs that satisfy current or group.
@@ -182,16 +187,9 @@ def filter_variants(sample, run, filter=None):
                     {'sample_variant__variant': value[0], 'transcript':value[1]} for value in variant_report_ids]
 
             else:
-                # Retrieve all VRIs associated with current VCF file.
-                # Use annotate to coerce 'field' value into an integer field.
-                VRI_queryset = VariantReportInfo.objects.filter(
-                    variant_report__vcf=vcf,
-                    variant_report__variant__transcriptvariant__transcript__gene__in=gene_ids) \
-                    .annotate(number_value=ExtractValueInteger())
-
                 # Use reduce to place an OR between q objects and retrieve variant
                 # IDs that satisfy current or group.
-                variant_report_ids = VRI_queryset.filter(
+                variant_report_ids = VRI_template.filter(
                     reduce(operator.or_, k_v_pairs)).distinct().values_list(
                     'variant_report__variant')
 
