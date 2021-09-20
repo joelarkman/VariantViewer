@@ -5,15 +5,11 @@ from db.models import CoverageInfo, SampleTranscriptVariant, Run, SamplesheetSam
 
 class RunSerializer(serializers.ModelSerializer):
     pipeline_name = serializers.SerializerMethodField()
-    pipeline_version = serializers.SerializerMethodField()
     qc_status_display = serializers.SerializerMethodField()
     completed_at = serializers.SerializerMethodField()
 
     def get_pipeline_name(self, run):
         return str(run.pipeline_version)
-
-    def get_pipeline_version(self, run):
-        return run.pipeline_version.version
 
     def get_qc_status_display(self, run):
         return run.get_qc_status_display()
