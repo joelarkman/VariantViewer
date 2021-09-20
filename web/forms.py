@@ -14,6 +14,17 @@ class CommentForm(forms.ModelForm):
         model = Comment
         fields = ('comment', 'classification')
 
+    def __init__(self, *args, **kwargs):
+        pipeline_version = kwargs.pop('pipeline_version', None)
+
+        super(CommentForm, self).__init__(*args, **kwargs)
+
+        classification_options = ((index, values['classification']) for index, values in enumerate(
+            pipeline_version.classification_options))
+
+        self.fields['classification'] = forms.ChoiceField(
+            choices=classification_options)
+
 
 class FilterForm(forms.ModelForm):
     class Meta:

@@ -78,22 +78,24 @@ def create_report_context(run, ss_sample, selected_stvs, report=None, user=None,
 
     stvs = SampleTranscriptVariant.objects.filter(
         id__in=selected_stvs) \
-        .annotate(num_comments=Count('comments')) \
-        .order_by('-num_comments', '-comments__classification')
+        .annotate(num_comment=Count('comment')) \
+        .order_by('-num_comment', '-comment__classification')
 
     stv_context = []
     stv_interpretations = []
 
     for index, stv in enumerate(stvs, start=1):
         comment = None
-        if stv.comments.exists():
-            classification = stv.comments.last().get_classification_display()
-            classification_colour = stv.comments.last().classification_colour
-            if stv.comments.last().comment:
-                comment = stv.comments.last().comment
+        try:
+            classification = stv.comment.get_classification(run)[
+                'classification']
+            classification_colour = stv.comment.get_classification(run)[
+                'colour']
+            if stv.comment.comment:
+                comment = stv.comment.comment
                 stv_interpretations.append(
                     {'index': index, 'comment': comment})
-        else:
+        except:
             classification = 'Unclassified'
             classification_colour = 'blue'
 
@@ -134,12 +136,14 @@ def get_report_results(run, ss_sample, user, context=None):
             stv = SampleTranscriptVariant.objects.get(id=reported_unpinned_stv)
 
             comment = None
-            if stv.comments.exists():
-                classification = stv.comments.last().get_classification_display()
-                classification_colour = stv.comments.last().classification_colour
-                if stv.comments.last().comment:
-                    comment = stv.comments.last().comment
-            else:
+            try:
+                classification = stv.comment.get_classification(run)[
+                    'classification']
+                classification_colour = stv.comment.get_classification(run)[
+                    'colour']
+                if stv.comment.comment:
+                    comment = stv.comment.comment
+            except:
                 classification = 'Unclassified'
                 classification_colour = 'blue'
 
@@ -157,8 +161,8 @@ def get_report_results(run, ss_sample, user, context=None):
             results.append(data)
 
         for reported_pinned_stv in filtered_variants['pinned'].filter(id__in=stvs_in_report) \
-            .annotate(num_comments=Count('comments')) \
-                .order_by('-num_comments', '-comments__classification'):
+            .annotate(num_comment=Count('comment')) \
+                .order_by('-num_comment', '-comment__classification'):
             stv = reported_pinned_stv
             stv_report_version = next(
                 (item for item in context['stvs'] if item["id"] == stv.id))
@@ -168,9 +172,11 @@ def get_report_results(run, ss_sample, user, context=None):
             previous_classification = None
             previous_classification_colour = None
             previous_comment = None
-            if stv.comments.exists():
-                classification = stv.comments.last().get_classification_display()
-                classification_colour = stv.comments.last().classification_colour
+            try:
+                classification = stv.comment.get_classification(run)[
+                    'classification']
+                classification_colour = stv.comment.get_classification(run)[
+                    'colour']
                 if stv_report_version.get('classification') != classification:
                     updated = 'classification'
                     previous_classification = stv_report_version.get(
@@ -178,15 +184,15 @@ def get_report_results(run, ss_sample, user, context=None):
                     previous_classification_colour = stv_report_version.get(
                         'classification_colour')
 
-                if stv.comments.last().comment:
-                    comment = stv.comments.last().comment
+                if stv.comment.comment:
+                    comment = stv.comment.comment
                     if stv_report_version.get('comment') != comment:
                         if updated:
                             updated = 'both'
                         else:
                             updated = 'comment'
                         previous_comment = stv_report_version.get('comment')
-            else:
+            except:
                 classification = 'Unclassified'
                 classification_colour = 'blue'
 
@@ -207,17 +213,19 @@ def get_report_results(run, ss_sample, user, context=None):
             results.append(data)
 
         for unreported_pinned_stv in filtered_variants['pinned'].exclude(id__in=stvs_in_report) \
-            .annotate(num_comments=Count('comments')) \
-                .order_by('-num_comments', '-comments__classification'):
+            .annotate(num_comment=Count('comment')) \
+                .order_by('-num_comment', '-comment__classification'):
             stv = unreported_pinned_stv
 
             comment = None
-            if stv.comments.exists():
-                classification = stv.comments.last().get_classification_display()
-                classification_colour = stv.comments.last().classification_colour
-                if stv.comments.last().comment:
-                    comment = stv.comments.last().comment
-            else:
+            try:
+                classification = stv.comment.get_classification(run)[
+                    'classification']
+                classification_colour = stv.comment.get_classification(run)[
+                    'colour']
+                if stv.comment.comment:
+                    comment = stv.comment.comment
+            except:
                 classification = 'Unclassified'
                 classification_colour = 'blue'
 
@@ -235,18 +243,20 @@ def get_report_results(run, ss_sample, user, context=None):
             results.append(data)
     else:
         for stv in filtered_variants['pinned'] \
-            .annotate(num_comments=Count('comments')) \
-                .order_by('-num_comments', '-comments__classification'):
+            .annotate(num_comment=Count('comment')) \
+                .order_by('-num_comment', '-comment__classification'):
             comment = None
             selected = False
-            if stv.comments.exists():
-                classification = stv.comments.last().get_classification_display()
-                classification_colour = stv.comments.last().classification_colour
+            try:
+                classification = stv.comment.get_classification(run)[
+                    'classification']
+                classification_colour = stv.comment.get_classification(run)[
+                    'colour']
                 if classification != 'Unclassified':
                     selected = True
-                if stv.comments.last().comment:
-                    comment = stv.comments.last().comment
-            else:
+                if stv.comment.comment:
+                    comment = stv.comment.comment
+            except:
                 classification = 'Unclassified'
                 classification_colour = 'blue'
 

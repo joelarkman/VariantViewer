@@ -2,6 +2,7 @@ from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import pre_save, post_save
 from django.template.defaultfilters import slugify
+from django.core.exceptions import ValidationError
 
 from db.utils.model_utils import BaseModel
 from db.utils.model_utils import PipelineOutputFileModel
@@ -75,8 +76,28 @@ class PipelineVersion(BaseModel):
         blank=True
     )
 
+    def default_classification_options():
+        return [{'classification': 'Unclassified', 'colour': 'blue'},
+                {'classification': 'Benign', 'colour': 'green'},
+                {'classification': 'Likely Benign', 'colour': 'olive'},
+                {'classification': 'VUS', 'colour': 'yellow'},
+                {'classification': 'Likely Pathogenic', 'colour': 'orange'},
+                {'classification': 'Pathogenic', 'colour': 'red'}]
+
+    classification_options = models.JSONField(
+        default=default_classification_options)
+
     def __str__(self):
         return f"{self.pipeline} {self.version}"
+
+    def clean(self):
+        stvs = SampleTranscriptVariant.objects.filter(sample_variant__sample__samplesheets__runs__pipeline_version=self).exclude(
+            comment__classification__isnull=True).exclude(comment__classification=0)
+
+        if stvs:
+            raise ValidationError(
+                "Variants have already been classified using this pipeline version, it cannot be modified. "
+                "Please create a new pipeline version to make any changes.")
 
     class Meta:
         unique_together = ['version', 'pipeline']
@@ -533,13 +554,6 @@ class SampleTranscriptVariant(BaseModel):
             title = str(self.sample_variant.variant)
 
         return title
-
-    def get_variant_list_indicator_class(self):
-        if self.comments.exists() and self.comments.last().classification != 0:
-            css = self.comments.last().classification_colour
-        else:
-            css = 'blue outline'
-        return css
 
     def __str__(self):
         return f"{self.sample_variant} {self.transcript}"

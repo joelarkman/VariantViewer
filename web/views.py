@@ -20,7 +20,7 @@ from .utils.report_utils import get_report_results, render_to_pdf, create_report
 
 from .forms import CommentForm, DocumentForm, FilterForm, FilterItemForm, ReportForm
 
-from db.models import Pipeline, Gene, Run, SamplesheetSample, SampleTranscriptVariant, Section, Transcript, VCFFilter, VariantReportInfo
+from db.models import ExcelReport, Gene, Pipeline, Run, PipelineVersion, SamplesheetSample, SampleTranscriptVariant, Section, Transcript, VCFFilter, VariantReportInfo
 
 
 class RedirectView(TemplateView):
@@ -74,7 +74,6 @@ class HomeView(LoginRequiredMixin, TemplateView):
         context['section'] = section
         context['pipelines'] = Pipeline.objects.filter(
             pipelinesection__section=section, pipelinesection__default=True)
-
         return context
 
 
@@ -127,7 +126,7 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         # Load files for jbrowse
         context['vcf'] = ss_sample.sample.vcfs.get(run=run)
         context['bam'] = ss_sample.sample.bams.get(
-            run=run, path__contains="realn")
+            run=run)
         return context
 
 
@@ -343,12 +342,13 @@ def load_variant_list(request, run, ss_sample):
     return JsonResponse(data)
 
 
-def refresh_classification_indicators(request):
+def refresh_classification_indicators(request, run):
     """
     AJAX view to update variant list classification indicators.
     """
 
     data = dict()
+    run = Run.objects.get(id=run)
 
     if request.method == 'POST':
         stvs = request.POST.getlist('elements[]')
@@ -356,18 +356,28 @@ def refresh_classification_indicators(request):
         values = {}
         for stv in stvs:
             instance = SampleTranscriptVariant.objects.get(id=stv)
-            classified_instances = SampleTranscriptVariant.objects.filter(
-                sample_variant__variant=instance.sample_variant.variant, transcript=instance.transcript).exclude(id=instance.id).exclude(comments__classification__isnull=True)
-            indicator_list = [
-                stv.comments.last().classification_colour for stv in classified_instances]
-            if indicator_list:
-                if len(indicator_list) == 1:
-                    css = indicator_list[0]
+
+            try:
+                classification = instance.comment.get_classification(run)
+                if classification['classification'] == 'Unclassified':
+                    css = 'blue outline'
                 else:
-                    css = statistics.mode(
-                        indicator_list)
-            else:
-                css = 'blue'
+                    css = classification['colour']
+
+            except:
+                classified_instances = SampleTranscriptVariant.objects.filter(
+                    sample_variant__variant=instance.sample_variant.variant, transcript=instance.transcript).exclude(id=instance.id).exclude(comment__classification__isnull=True)
+                indicator_list = [
+                    stv.comment.get_classification(run)['colour'] for stv in classified_instances]
+
+                if indicator_list:
+                    if len(indicator_list) == 1:
+                        css = indicator_list[0] + ' outline'
+                    else:
+                        css = statistics.mode(
+                            indicator_list) + ' outline'
+                else:
+                    css = 'blue outline'
 
             values.update({stv: css})
 
@@ -393,6 +403,11 @@ def load_variant_details(request, run, stv):
     archived_documents = stv.evidence_files.filter(
         archived=True).order_by('-date_modified')
 
+    try:
+        stv_classification = stv.comment.get_classification(run)
+    except:
+        stv_classification = None
+
     form = DocumentForm()
 
     gnomad_variant = f'{stv.sample_variant.variant.chrom}-{stv.sample_variant.variant.pos}-{stv.sample_variant.variant.ref}-{stv.sample_variant.variant.alt}'
@@ -400,6 +415,7 @@ def load_variant_details(request, run, stv):
 
     context = {'run': run,
                'stv': stv,
+               'stv_classification': stv_classification,
                'variant_report': variant_report,
                'gnomad_link': gnomad_link,
                'form': form,
@@ -476,20 +492,22 @@ def update_selected_transcript(request, run, ss_sample, transcript):
     return JsonResponse(data)
 
 
-def comment_update_or_create(request, stv):
+def comment_update_or_create(request, run, stv):
     """
     AJAX view to facilitate the creation or update of a single comment object for each STV.
     """
     data = dict()
+    run = Run.objects.get(id=run)
     stv = SampleTranscriptVariant.objects.get(id=stv)
 
     try:
-        comment = stv.comments.last()
+        comment = stv.comment
     except:
         comment = None
 
     if request.method == 'POST':
-        form = CommentForm(request.POST, instance=comment)
+        form = CommentForm(request.POST, instance=comment,
+                           pipeline_version=run.pipeline_version)
         if form.is_valid():
             comment = form.save(commit=False)
             comment.sample_transcript_variant = stv
@@ -500,15 +518,18 @@ def comment_update_or_create(request, stv):
                 'stv': stv
             })
             data['html_classification'] = render_to_string('includes/classification.html', {
-                'stv': stv
+                'stv': stv,
+                'stv_classification': stv.comment.get_classification(run)
             })
         else:
             data['form_is_valid'] = False
     else:
-        form = CommentForm(instance=comment)
+        form = CommentForm(
+            instance=comment, pipeline_version=run.pipeline_version)
 
     context = {'form': form,
-               'stv': stv}
+               'stv': stv,
+               'run': run}
     data['html_form'] = render_to_string('includes/comment-form.html',
                                          context,
                                          request=request
@@ -579,16 +600,23 @@ def archive_evidence(request, document):
     return JsonResponse(data)
 
 
-def load_previous_evidence(request, current_stv, previous_stv):
+def load_previous_evidence(request, run, current_stv, previous_stv):
     """
     AJAX view to facilitate the view of previous evidence
     """
 
     data = dict()
+    run = Run.objects.get(id=run)
     current_stv = SampleTranscriptVariant.objects.get(id=current_stv)
     previous_stv = SampleTranscriptVariant.objects.get(id=previous_stv)
     previous_documents = previous_stv.evidence_files.filter(
         archived=False).order_by('-date_created')
+
+    if previous_stv.comment:
+        previous_stv_classification = previous_stv.comment.get_classification(
+            run)
+    else:
+        previous_stv_classification = None
 
     if request.method == 'POST':
 
@@ -622,11 +650,14 @@ def load_previous_evidence(request, current_stv, previous_stv):
             'stv': current_stv
         })
         data['html_classification'] = render_to_string('includes/classification.html', {
-            'stv': current_stv
+            'stv': current_stv,
+            'stv_classification': current_stv.comment.get_classification(run)
         })
     else:
-        context = {'current_stv': current_stv,
+        context = {'run': run,
+                   'current_stv': current_stv,
                    'previous_stv': previous_stv,
+                   'previous_stv_classification': previous_stv_classification,
                    'previous_documents': previous_documents}
         data['html_form'] = render_to_string('includes/previous-evidence.html',
                                              context,
@@ -672,7 +703,7 @@ def GenerateReport(request):
     if pdf:
         response = HttpResponse(pdf, content_type='application/pdf')
         filename = "%s.pdf" % (context['title'])
-        content = "inline; filename=%s" % (filename)
+        content = "inline; filename=%s;" % (filename)
         download = request.GET.get("download")
         if download:
             content = "attachment; filename=%s" % (filename)

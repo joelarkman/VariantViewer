@@ -84,29 +84,39 @@ class SampleTranscriptVariantSerializer(serializers.ModelSerializer):
     date_classified = serializers.SerializerMethodField()
     comment = serializers.SerializerMethodField()
     evidence_file_count = serializers.SerializerMethodField()
+    ss_samples = serializers.SerializerMethodField()
     classification = serializers.SerializerMethodField()
     classification_colour = serializers.SerializerMethodField()
-    ss_samples = serializers.SerializerMethodField()
 
     def get_date_classified(self, stv):
-        return stv.comments.last().get_last_modified()['classification'].datetime.strftime("%Y-%m-%d")
+        return stv.comment.get_last_modified()['classification'].datetime.strftime("%Y-%m-%d")
 
     def get_comment(self, stv):
-        return stv.comments.last().comment
+        return stv.comment.comment
 
     def get_evidence_file_count(self, stv):
         return stv.evidence_files.exclude(archived=True).count()
-
-    def get_classification(self, stv):
-        return stv.comments.last().get_classification_display()
-
-    def get_classification_colour(self, stv):
-        return stv.comments.last().classification_colour
 
     def get_ss_samples(self, stv):
         vcfs = stv.sample_variant.variant.variantreport_set.filter(
             vcf__sample=stv.sample_variant.sample).values_list('vcf', flat=True)
         return SampleListSerializer(SamplesheetSample.objects.filter(samplesheet__runs__vcf__in=vcfs, sample=stv.sample_variant.sample), many=True).data
+
+    def get_classification(self, stv):
+        runs = [i['id'] for i in self.get_ss_samples(stv)[0]['runs']]
+
+        # run = self.context.get("run")
+        # return stv.comment.get_classification(run)['classification']
+        return ', '.join(set([stv.comment.get_classification(i)['classification']
+                              for i in Run.objects.filter(id__in=runs)]))
+
+    def get_classification_colour(self, stv):
+        # run = self.context.get("run")
+        # stv.comment.get_classification(run)['colour']
+
+        runs = [i['id'] for i in self.get_ss_samples(stv)[0]['runs']]
+        return ', '.join(set([stv.comment.get_classification(i)['colour']
+                              for i in Run.objects.filter(id__in=runs)]))
 
     class Meta:
         model = SampleTranscriptVariant

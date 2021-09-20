@@ -88,37 +88,27 @@ class Document(BaseModel):
 
 
 class Comment(BaseModel):
-    sample_transcript_variant = models.ForeignKey(
+    sample_transcript_variant = models.OneToOneField(
         SampleTranscriptVariant,
         on_delete=models.CASCADE,
-        related_name='comments'
+        related_name='comment'
     )
+
+    # Make it possible to see which run an STV was classified in - clarifies situation where sample sequenced multiple times and the same variant is detected.
+    # run = models.ForeignKey(Run,
+    #                         on_delete=models.CASCADE,
+    #                         related_name='comments'
+    #                         )
 
     comment = models.CharField(max_length=2000, blank=True)
 
-    # Choice field for run QC status
-    class Classification(models.IntegerChoices):
-        UNCLASSIFIED = 0
-        BENIGN = 1
-        LIKELY_BENIGN = 2
-        VUS = 3
-        LIKELY_PATHOGENIC = 4
-        PATHOGENIC = 5
-
     classification = models.IntegerField(
-        choices=Classification.choices,
         default=0,
     )
 
-    @property
-    def classification_colour(self):
-        colours = {0: 'blue',
-                   1: 'green',
-                   2: 'olive',
-                   3: 'yellow',
-                   4: 'orange',
-                   5: 'red'}
-        return colours[self.classification]
+    def get_classification(self, run):
+        values = run.pipeline_version.classification_options[self.classification]
+        return {'classification': values['classification'], 'colour': values['colour']}
 
     def get_last_modified(self):
         cruds = CRUDEvent.objects.filter(object_repr=self)

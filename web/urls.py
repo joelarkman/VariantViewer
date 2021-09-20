@@ -38,7 +38,7 @@ urlpatterns = [
     path('ajax/load_variant_list/<int:run>/<int:ss_sample>',
          views.load_variant_list, name='load_variant_list'),
 
-    path('ajax/refresh_classification_indicators/', views.refresh_classification_indicators,
+    path('ajax/refresh_classification_indicators/<int:run>', views.refresh_classification_indicators,
          name='refresh_classification_indicators'),
 
     path('ajax/load_variant_details/<int:run>/<int:stv>',
@@ -47,7 +47,7 @@ urlpatterns = [
     path('ajax/pin_variant/<int:run>/<int:stv>',
          views.pin_variant, name='pin_variant'),
 
-    path('ajax/comment_update_or_create/<int:stv>',
+    path('ajax/comment_update_or_create/<int:run>/<int:stv>',
          views.comment_update_or_create, name='comment_update_or_create'),
 
     path('ajax/save_evidence/<int:stv>',
@@ -56,7 +56,7 @@ urlpatterns = [
     path('ajax/archive_evidence/<int:document>',
          views.archive_evidence, name='archive_evidence'),
 
-    path('ajax/load_previous_evidence/<int:current_stv>/<int:previous_stv>',
+    path('ajax/load_previous_evidence/<int:run>/<int:current_stv>/<int:previous_stv>',
          views.load_previous_evidence, name='load_previous_evidence'),
 
     path('ajax/report_update_or_create/<int:run>/<int:ss_sample>/<report>',

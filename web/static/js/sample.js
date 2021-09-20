@@ -147,8 +147,10 @@ function RefreshClassificationIndicators() {
         return $(this).data('id')
     }).get();
 
+    run = $('#variant-menu').attr('data-run')
+
     $.ajax({
-        url: '/ajax/refresh_classification_indicators/',
+        url: '/ajax/refresh_classification_indicators/' + run,
         type: 'POST',
         data: {
             "elements": datasArray,
@@ -158,7 +160,7 @@ function RefreshClassificationIndicators() {
         success: function (data) {
 
             $.map(data.values, function (value, key) {
-                $('#variant-menu').find(`[data-id='${key}']`).find('.classification-indicator').removeClass('blue').addClass(value)
+                $('#variant-menu').find(`[data-id='${key}']`).find('.classification-indicator').removeClass('hidden grey outline').addClass(value)
             })
 
         },
@@ -672,11 +674,11 @@ function SetupClassificationsTable() {
     $(function () {
         $('.mini-tabs-content .previous-classification-table tbody').on('click', 'tr', function (event) {
             var row = $('.mini-tabs-content .previous-classification-table').DataTable().row(this);
-
+            var run = $('.mini-tabs-content .previous-classification-table').attr('data-run')
             var previous_stv = row.data().id
             var current_stv = $('.mini-tabs-content .previous-classification-table').attr('data-stv')
             $.ajax({
-                url: '/ajax/load_previous_evidence/' + current_stv + '/' + previous_stv,
+                url: '/ajax/load_previous_evidence/' + run + '/' + current_stv + '/' + previous_stv,
                 type: 'get',
                 dataType: 'json',
                 beforeSend: function () {

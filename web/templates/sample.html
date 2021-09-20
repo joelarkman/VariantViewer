@@ -120,7 +120,7 @@
 
         <div class="ui dimmable vertical menu" id="variant-menu"
             data-url="{% url 'load_variant_list' run=run.id ss_sample=ss_sample.id %}?variant_cache="
-            data-csrf="{{csrf_token}}" data-variant-cache="">
+            data-csrf="{{csrf_token}}" data-variant-cache="" data-run={{run.id}}>
             <div id="variant-list-content-loader" class="ui inverted dimmer">
                 <div class="ui large fast loader"></div>
             </div>

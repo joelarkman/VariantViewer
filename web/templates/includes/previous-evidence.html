@@ -13,7 +13,7 @@
         <div class="ui left aligned segment" style="flex: 1;overflow: auto;">
 
             <div id="copy-classification" class="ui top attached segment action-header"
-                data-id="{{previous_stv.comments.last.id}}" style="display: flex;">
+                data-id="{{previous_stv.comment.id}}" style="display: flex;">
                 <h4 style="margin: 0;">Variant Information</h4>
                 <div class="ui right icon label"
                     style="margin-top: -3px;margin-bottom: -3px;margin-left: auto;user-select: none;">
@@ -29,20 +29,20 @@
                         <label>Comment</label>
                         <textarea readonly rows="8" maxlength="2000" type="text" name="comment"
                             placeholder="No comment provided"
-                            style="resize: none;margin-bottom: 5px;">{{previous_stv.comments.last.comment}}</textarea>
+                            style="resize: none;margin-bottom: 5px;">{{previous_stv.comment.comment}}</textarea>
                         <span style="font-size:smaller;">Classified
-                            {{previous_stv.comments.last.get_last_modified.classification.datetime|naturaltime}} by
-                            {{previous_stv.comments.last.get_last_modified.classification.user.get_full_name}}
+                            {{previous_stv.comment.get_last_modified.classification.datetime|naturaltime}} by
+                            {{previous_stv.comment.get_last_modified.classification.user.get_full_name}}
                         </span>
                     </div>
 
 
                     <div class="field" style="flex: 0 0 30%;margin-left: 15px;">
                         <label>Pathogenicity Classification</label>
-                        <div class="ui raised inverted {{previous_stv.comments.last.classification_colour}} segment variant-classification"
+                        <div class="ui raised inverted {{previous_stv_classification.colour}} segment variant-classification"
                             style="display: flex;flex-direction: column;margin: 0px;padding: 5px;min-width: 120px;min-height: 40px;align-items: center;justify-content: center;">
                             <span
-                                style="font-weight: bold;font-size:larger;margin-top: -2px;margin-left: 5px;margin-right: 5px;">{{previous_stv.comments.last.get_classification_display}}</span>
+                                style="font-weight: bold;font-size:larger;margin-top: -2px;margin-left: 5px;margin-right: 5px;">{{previous_stv_classification.classification}}</span>
                         </div>
                     </div>
 
@@ -131,7 +131,7 @@
                 </div>
 
                 <form id='copy-evidence-form' method="post"
-                    action="{% url 'load_previous_evidence' current_stv=current_stv.id previous_stv=previous_stv.id %}"
+                    action="{% url 'load_previous_evidence' run=run.id current_stv=current_stv.id previous_stv=previous_stv.id %}"
                     class="copy-evidence-form">
 
                     {% csrf_token %}

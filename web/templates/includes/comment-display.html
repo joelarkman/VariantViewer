@@ -1,9 +1,9 @@
 {% load humanize %}
 
-{% if stv.comments.last.comment %}
+{% if stv.comment.comment %}
 <div class="ui form">
     <div class="field" style="margin-bottom: 5px;">
-        <textarea rows="8" readonly style="resize: none;" placeholder="">{{stv.comments.last.comment}}</textarea>
+        <textarea rows="8" readonly style="resize: none;" placeholder="">{{stv.comment.comment}}</textarea>
         <div id="comment-history" class="ui circular icon button" data-tooltip="View history"
             data-position="bottom right">
             <i class="history icon"></i>
@@ -13,8 +13,8 @@
 
 
     <span style="font-size:smaller;">Last modified
-        {{stv.comments.last.get_last_modified.comment.datetime|naturaltime}} by
-        {{stv.comments.last.get_last_modified.comment.user.get_full_name}}
+        {{stv.comment.get_last_modified.comment.datetime|naturaltime}} by
+        {{stv.comment.get_last_modified.comment.user.get_full_name}}
     </span>
 </div>
 {% else %}
@@ -33,7 +33,7 @@
                 Current Version
             </div>
 
-            {% for event in stv.comments.last.get_comment_history %}
+            {% for event in stv.comment.get_comment_history %}
 
             <div class="ui raised segment previous-comment">
                 <div class="ui attached segment inner__left">
