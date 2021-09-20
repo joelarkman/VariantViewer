@@ -58,8 +58,10 @@ class PipelineOutputFileModel(BaseModel):
             target = settings.MEDIA_ROOT / 'symlinks' / file_path.name
             # target = settings.MEDIA_ROOT / 'symlinks' / \
             #     file_path.relative_to(file_path.parent.parent.parent)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.symlink_to(file_path)
+
+            if not os.path.islink(target):
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.symlink_to(file_path)
             self.file.name = str(target.relative_to(
                 target.parent.parent))
 
@@ -70,7 +72,8 @@ class PipelineOutputFileModel(BaseModel):
                 #     index_file_path.relative_to(
                 #         index_file_path.parent.parent.parent)
                 index_target = settings.MEDIA_ROOT / 'symlinks' / index_file_path.name
-                index_target.symlink_to(index_file_path)
+                if not os.path.islink(index_target):
+                    index_target.symlink_to(index_file_path)
 
             self.save()
         except:
