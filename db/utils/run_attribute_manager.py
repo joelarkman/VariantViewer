@@ -1,4 +1,6 @@
+import os
 import re
+import tempfile
 from typing import Any
 from typing import Dict
 from typing import List
@@ -164,8 +166,15 @@ class RunAttributeManager:
         samples: List[Dict[str, Any]] = []
 
         samplesheet_file = self.run.samplesheet
-        samplesheet = IlluminaSampleSheet(samplesheet_file)
 
+        ss_temp = tempfile.NamedTemporaryFile(delete=False)
+        # fix empty header values
+        with open(self.run.samplesheet, 'rt') as f_in:
+            with open(ss_temp.name, 'wt') as f_out:
+                for line in f_in:
+                    f_out.write(line.replace('Reason,', 'Reason'))
+
+        samplesheet = IlluminaSampleSheet(ss_temp.name)
         samplesheet_samples = tqdm(samplesheet.samples, leave=False)
         for sample in samplesheet_samples:
             # ignore negative controls
@@ -176,6 +185,7 @@ class RunAttributeManager:
                 'lab_no': lab_no,
             })
         samplesheet_samples.close()
+        os.remove(ss_temp.name)
         return samples
 
     def get_samplesheet_sample(self) -> List[Dict[str, Any]]:
@@ -183,8 +193,15 @@ class RunAttributeManager:
 
         db_samplesheet = self.related_instance(Samplesheet)
         db_samples = self.related_instances(Sample)
+        ss_temp = tempfile.NamedTemporaryFile(delete=False)
 
-        samplesheet = IlluminaSampleSheet(self.run.samplesheet)
+        # fix empty header values
+        with open(self.run.samplesheet, 'rt') as f_in:
+            with open(ss_temp.name, 'wt') as f_out:
+                for line in f_in:
+                    f_out.write(line.replace('Reason,', 'Reason'))
+
+        samplesheet = IlluminaSampleSheet(ss_temp.name)
         samples = samplesheet.samples
 
         db_samples = tqdm(db_samples, leave=False)
@@ -209,6 +226,7 @@ class RunAttributeManager:
                 "gene_key": sample.Sample_Project
             })
         db_samples.close()
+        os.remove(ss_temp.name)
         return samplesheet_samples
 
     def get_bam(self) -> List[Dict[str, Any]]:
@@ -281,7 +299,10 @@ class RunAttributeManager:
         db_samples = tqdm(self.related_instances(Sample), leave=False)
         for db_sample in db_samples:
             lab_no = db_sample.lab_no.replace('.', '-')
-            for excel_file in self.run.excel_dir.glob(f'*{lab_no}*.xlsx'):
+            excel_files = self.run.excel_dir.glob(f'*{lab_no}*results.xlsx')
+            for excel_file in tqdm(excel_files, leave=False):
+                # skip recovery files
+                if excel_file.name[0] == '~': continue
                 excel_report = {
                     "path": str(excel_file.resolve()),
                     "run": self.related_instance(Run),
@@ -444,7 +465,7 @@ class RunAttributeManager:
         # TODO: remember to talk about setting selected
         sample_transcript_variants = []
         variant_manager = self.run.multiple_run_adder.variant_manager
-        tv_df = variant_manager.transcript_variant_df
+        tv_df = variant_manager.sample_transcript_variant_df
         lab_nos = list(map(lambda x: x.lab_no, self.related_instances(Sample)))
         stv_df = tv_df[tv_df.Sample.isin(lab_nos)]
 
@@ -566,7 +587,9 @@ class RunAttributeManager:
 
     def get_exon_report(self, exon=True) -> List[Dict[str, Any]]:
         reports = []
+
         db_excel_reports = self.related_instances(ExcelReport)
+        # loop through excel reports and initialise as df
         for db_excel_report in tqdm(db_excel_reports, leave=False):
             wb = load_workbook(
                 filename=db_excel_report.path,
@@ -578,25 +601,38 @@ class RunAttributeManager:
             # set header as first row
             report_df.columns = report_df.iloc[0]
             report_df = report_df[1:]
+
+            # get the custom threshold values in this excelreport
+            thresholds = tuple(
+                map(
+                    # eg. 10x 20x 100x -> [10, 20, 100]
+                    lambda x: int(x.strip('x')),
+                    report_df.filter(regex='^\d+x$').columns
+                )
+            )
             for index, row in report_df.iterrows():
+                # fetch the counts and pcts for this entry
+                threshold_counts = tuple(
+                    map(
+                        lambda threshold: row[f'{threshold}x'],
+                        thresholds
+                    )
+                )
+                threshold_pcts = tuple(
+                    map(
+                        lambda threshold: row[f'pct>{threshold}x'],
+                        thresholds
+                    )
+                )
                 report = {
                     'excel_report': db_excel_report,
-                    'cov_10x': row['10x'],
-                    'cov_20x': row['20x'],
-                    'cov_30x': row['30x'],
-                    'cov_40x': row['40x'],
-                    'cov_50x': row['50x'],
-                    'cov_100x': row['100x'],
                     'cov_min': row['Min'],
                     'cov_max': row['Max'],
                     'cov_mean': row['Mean'],
                     'cov_region': row['region'],
-                    'pct_10x': row['pct>10x'],
-                    'pct_20x': row['pct>20x'],
-                    'pct_30x': row['pct>30x'],
-                    'pct_40x': row['pct>40x'],
-                    'pct_50x': row['pct>50x'],
-                    'pct_100x': row['pct>100x'],
+                    'cov_thresholds': thresholds,
+                    'cov_count_at_threshold': threshold_counts,
+                    'cov_pct_above_threshold': threshold_pcts
                 }
                 if exon:
                     refseq_id = '_'.join(row['Transcript'].split('_')[:2])

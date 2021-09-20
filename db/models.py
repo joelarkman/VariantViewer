@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import pre_save, post_save
@@ -602,24 +603,16 @@ class Exon(BaseModel):
 
 class CoverageInfo(BaseModel):
     """Coverage report for a gene or exon."""
-    cov_10x = models.IntegerField(null=True)
-    cov_20x = models.IntegerField(null=True)
-    cov_30x = models.IntegerField(null=True)
-    cov_40x = models.IntegerField(null=True)
-    cov_50x = models.IntegerField(null=True)
-    cov_100x = models.IntegerField(null=True)
     cov_min = models.IntegerField(null=True)
     cov_max = models.IntegerField(null=True)
     cov_mean = models.FloatField(null=True)
     cov_region = models.IntegerField(null=True)
-    pct_10x = models.IntegerField(null=True)
-    pct_20x = models.IntegerField(null=True)
-    pct_30x = models.IntegerField(null=True)
-    pct_40x = models.IntegerField(null=True)
-    pct_50x = models.IntegerField(null=True)
-    pct_100x = models.IntegerField(null=True)
+    cov_thresholds = ArrayField(models.IntegerField())
+    cov_count_at_threshold = ArrayField(models.IntegerField())
+    cov_pct_above_threshold = ArrayField(models.IntegerField())
 
     def get_percentages(self):
+        raise NotImplementedError('use CoverageInfoThreshold')
         pct_attributes = [attr for attr in dir(self) if attr.startswith('pct')]
         pct_attribute_values = map(lambda x: getattr(self, x), pct_attributes)
         return list(pct_attribute_values)
@@ -640,7 +633,8 @@ class ExonReport(CoverageInfo):
     tag = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return f"{self.exon}_{self.tag} report: {self.excel_report}"
+        return f"{self.exon}{'_' if  self.tag else ''}{self.tag} report:" \
+               f" {self.excel_report}"
 
     class Meta:
         unique_together = ['excel_report', 'exon', 'tag']
