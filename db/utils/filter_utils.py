@@ -153,12 +153,16 @@ def filter_variants(sample, run, filter=None):
                 filters_list.append(filter_cache)
                 filter_cache = []
 
+        print('test1')
+
         # Retrieve all VRIs associated with current VCF file.
         # Use annotate to coerce 'field' value into an integer field.
         VRI_template = VariantReportInfo.objects.filter(
             variant_report__vcf=vcf,
             variant_report__variant__transcriptvariant__transcript__gene__id__in=gene_ids) \
             .annotate(number_value=ExtractValueInteger())
+
+        print('test2')
 
         transcript_key = 'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id'
 
@@ -176,15 +180,21 @@ def filter_variants(sample, run, filter=None):
                 VRI_queryset = VRI_template.annotate(
                     transcript=F(transcript_key)).distinct()
 
+                print('test3' + VRI_queryset.count())
+
                 # Use reduce to place an OR between q objects and retrieve combinations of variant
                 # and transcript IDs that satisfy current or group.
                 variant_report_ids = VRI_queryset.filter(
                     reduce(operator.or_, k_v_pairs)).values_list(
                     'variant_report__variant', 'transcript')
 
+                print('test4')
+
                 # Parse values_list output into list of filter dictionaries
                 variants_transcripts = [
                     {'sample_variant__variant': value[0], 'transcript':value[1]} for value in variant_report_ids]
+
+                print(variants_transcripts)
 
             else:
                 # Use reduce to place an OR between q objects and retrieve variant
@@ -204,6 +214,8 @@ def filter_variants(sample, run, filter=None):
                                         for v_t_pair in variants_transcripts)
                 STVs = STVs.filter(
                     reduce(operator.or_, variants_transcripts)).distinct()
+
+                print(STVs)
             else:
                 STVs = STVs.none()
 
