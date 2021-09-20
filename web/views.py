@@ -126,7 +126,7 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         # Load files for jbrowse
         context['vcf'] = ss_sample.sample.vcfs.get(run=run)
         context['bam'] = ss_sample.sample.bams.get(
-            run=run)
+            run=run, path__contains="realn")
         return context
 
 
