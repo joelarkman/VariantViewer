@@ -127,6 +127,10 @@ class SampleDetailsView(LoginRequiredMixin, TemplateView):
         context['vcf'] = ss_sample.sample.vcfs.get(run=run)
         context['bam'] = ss_sample.sample.bams.get(
             run=run, path__contains="realn")
+
+        context['cov_thresholds'] = ExcelReport.objects.get(
+            run=run, sample=ss_sample.sample).genereport_set.first().cov_thresholds
+
         return context
 
 

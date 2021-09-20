@@ -1236,64 +1236,49 @@ $(document).ready(function () {
         }
     }
 
+    // Iterate through columns twice to extract values at particular indexes
+    var thresh_cols = []
+    $("#gene-table .toggle-cols").each(function (index) {
+        thresh_cols.push(
+            { 'data': 'cov_count_at_threshold.' + index }
+        )
+    });
+    thresh_cols.push(
+        { 'data': 'cov_min' },
+        { 'data': 'cov_max' },
+        {
+            'data': 'cov_mean',
+            'render': function (data, type, full) {
+                return parseFloat(data).toFixed(0);
+            }
+        }
+    )
+    $("#gene-table .toggle-cols").each(function (index) {
+        thresh_cols.push(
+            {
+                'data': 'cov_pct_above_threshold.' + index,
+                createdCell: function (td, cellData, rowData, row, col) {
+                    ColourCells(td, cellData)
+                }
+            }
+        )
+    });
+
+    var gene_cols = [{ 'data': 'gene_name', 'name': 'gene__hgnc_name' }]
+    var exon_cols = [{ 'data': 'gene_name', 'name': 'gene__hgnc_name' },
+    { 'data': 'exon_number', 'name': 'exon__number' }]
+
+    gene_cols.push(...thresh_cols)
+    exon_cols.push(...thresh_cols)
+    console.log(exon_cols)
+
+
     var gene_table = $('#gene-table').DataTable({
         'serverSide': false,
         'ajax': '/api/' + $('#gene-table').attr('data-run') + '/' + $('#gene-table').attr('data-ss_sample') + '/gene_report_list?format=datatables',
         "deferRender": true,
         'processing': true,
-        'columns': [
-            { 'data': 'gene_name', 'name': 'gene__hgnc_name' },
-            { 'data': 'cov_10x' },
-            { 'data': 'cov_20x' },
-            { 'data': 'cov_30x' },
-            { 'data': 'cov_40x' },
-            { 'data': 'cov_50x' },
-            { 'data': 'cov_100x' },
-            { 'data': 'cov_min' },
-            { 'data': 'cov_max' },
-            {
-                'data': 'cov_mean',
-                'render': function (data, type, full) {
-                    return parseFloat(data).toFixed(0);
-                }
-            },
-            {
-                'data': 'pct_10x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-            {
-                'data': 'pct_20x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-            {
-                'data': 'pct_30x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-            {
-                'data': 'pct_40x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-            {
-                'data': 'pct_50x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-            {
-                'data': 'pct_100x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-        ],
+        'columns': gene_cols,
         "scrollCollapse": true,
         "ordering": true,
         "scrollCollapse": true,
@@ -1316,60 +1301,7 @@ $(document).ready(function () {
         'ajax': '/api/' + $('#exon-table').attr('data-run') + '/' + $('#gene-table').attr('data-ss_sample') + '/exon_report_list?format=datatables',
         "deferRender": true,
         'processing': true,
-        'columns': [
-            { 'data': 'gene_name', 'name': 'exon__transcript__gene__hgnc_name' },
-            { 'data': 'exon_number', 'name': 'exon__number' },
-            { 'data': 'cov_10x' },
-            { 'data': 'cov_20x' },
-            { 'data': 'cov_30x' },
-            { 'data': 'cov_40x' },
-            { 'data': 'cov_50x' },
-            { 'data': 'cov_100x' },
-            { 'data': 'cov_min' },
-            { 'data': 'cov_max' },
-            {
-                'data': 'cov_mean',
-                'render': function (data, type, full) {
-                    return parseFloat(data).toFixed(0);
-                }
-            },
-            {
-                'data': 'pct_10x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-            {
-                'data': 'pct_20x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-            {
-                'data': 'pct_30x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-            {
-                'data': 'pct_40x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-            {
-                'data': 'pct_50x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-            {
-                'data': 'pct_100x',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    ColourCells(td, cellData)
-                }
-            },
-        ],
+        'columns': exon_cols,
         "scrollCollapse": true,
         "ordering": true,
         "scrollCollapse": true,
@@ -1383,7 +1315,7 @@ $(document).ready(function () {
             'processing': 'Loading...',
             "zeroRecords": "No genes matching query",
         },
-        "order": [[0, 'asc']]
+        "order": [[0, 1, 'asc']]
     });
 
     // Toggle visibility of raw values columns

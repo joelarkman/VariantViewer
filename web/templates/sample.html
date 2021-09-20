@@ -279,40 +279,29 @@
                     <col style="width: auto;">
                     <col style="width: auto;">
                     <col style="width: auto;">
+
+                    {% for threshold in cov_thresholds %}
                     <col style="width: auto;">
                     <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
+                    {% endfor %}
                 </colgroup>
                 <thead>
 
                     <tr>
                         <th> Gene </th>
 
-                        <th class="toggle-cols"> 10x </th>
-                        <th class="toggle-cols"> 20x </th>
-                        <th class="toggle-cols"> 30x </th>
-                        <th class="toggle-cols"> 40x </th>
-                        <th class="toggle-cols"> 50x </th>
-                        <th class="toggle-cols"> 100x </th>
+                        {% for threshold in cov_thresholds %}
+                        <th class="toggle-cols"> {{threshold}}x </th>
+                        {% endfor %}
 
 
                         <th> Min </th>
                         <th> Max </th>
                         <th> Mean </th>
 
-                        <th> pct > 10x </th>
-                        <th> pct > 20x </th>
-                        <th> pct > 30x </th>
-                        <th> pct > 40x </th>
-                        <th> pct > 50x </th>
-                        <th> pct > 100x </th>
+                        {% for threshold in cov_thresholds %}
+                        <th> pct > {{threshold}}x </th>
+                        {% endfor %}
                     </tr>
 
                 </thead>
@@ -352,21 +341,15 @@
                 <colgroup>
                     <col style="width: 110px;">
                     <col style="width: 110px;">
+
                     <col style="width: auto;">
                     <col style="width: auto;">
                     <col style="width: auto;">
+
+                    {% for threshold in cov_thresholds %}
                     <col style="width: auto;">
                     <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
-                    <col style="width: auto;">
+                    {% endfor %}
                 </colgroup>
                 <thead>
 
@@ -374,24 +357,18 @@
                         <th> Gene </th>
                         <th> Exon </th>
 
-                        <th class="toggle-cols"> 10x </th>
-                        <th class="toggle-cols"> 20x </th>
-                        <th class="toggle-cols"> 30x </th>
-                        <th class="toggle-cols"> 40x </th>
-                        <th class="toggle-cols"> 50x </th>
-                        <th class="toggle-cols"> 100x </th>
+                        {% for threshold in cov_thresholds %}
+                        <th class="toggle-cols"> {{threshold}}x </th>
+                        {% endfor %}
 
 
                         <th> Min </th>
                         <th> Max </th>
                         <th> Mean </th>
 
-                        <th> pct > 10x </th>
-                        <th> pct > 20x </th>
-                        <th> pct > 30x </th>
-                        <th> pct > 40x </th>
-                        <th> pct > 50x </th>
-                        <th> pct > 100x </th>
+                        {% for threshold in cov_thresholds %}
+                        <th> pct > {{threshold}}x </th>
+                        {% endfor %}
                     </tr>
 
                 </thead>
