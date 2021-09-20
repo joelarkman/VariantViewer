@@ -40,7 +40,7 @@ class BaseSingletonModel(BaseModel):
 
 class PipelineOutputFileModel(BaseModel):
     path = models.TextField()
-    file = models.FileField(null=True, default=None)
+    file = models.FileField(null=True, default=None, max_length=255)
     run = models.ForeignKey(
         "Run",
         on_delete=models.PROTECT
@@ -60,12 +60,16 @@ class PipelineOutputFileModel(BaseModel):
                 file_path.relative_to(file_path.parent.parent.parent)
             target.parent.mkdir(parents=True, exist_ok=True)
             target.symlink_to(file_path)
-            self.file.name = str(target.relative_to(target.parent.parent))
+            self.file.name = str(target.relative_to(
+                target.parent.parent.parent.parent))
 
             if '.xlsx' not in file_path.suffixes:
                 index_file_path = [x for x in file_path.parent.glob(
                     file_path.name + '.*i') if x.is_file()][0]
-                index_target = settings.MEDIA_ROOT / 'symlinks' / index_file_path.name
+                index_target = settings.MEDIA_ROOT / 'symlinks' / \
+                    index_file_path.relative_to(
+                        index_file_path.parent.parent.parent)
+                # index_target = settings.MEDIA_ROOT / 'symlinks' / index_file_path.name
                 index_target.symlink_to(index_file_path)
 
             self.save()

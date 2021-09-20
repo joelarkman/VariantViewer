@@ -106,6 +106,10 @@ def filter_variants(sample, run, filter=None):
     gene_ids = ExcelReport.objects.get(
         run=run, sample=sample).genereport_set.all().values_list('gene__id', flat=True)
 
+    # Retrieve all STVs associated with current sample.
+    STVs = SampleTranscriptVariant.objects.filter(
+        sample_variant__sample=sample, transcript__gene__id__in=gene_ids)
+
     if filter:
         # If filter has been provided...
 
@@ -149,24 +153,12 @@ def filter_variants(sample, run, filter=None):
                 filters_list.append(filter_cache)
                 filter_cache = []
 
-        # test = [
-        #     {'variant_report__variant__samplevariant__sampletranscriptvariant__comments__classification': '1',
-        #      'variant_report__variant__samplevariant__sample__id__ne': sample.id}]
-
-        # test = [
-        #     {'variant_report__variant__samplevariant__sampletranscriptvariant__comments__classification__isnull': False,
-        #      'variant_report__variant__samplevariant__sampletranscriptvariant__comments__classification__ne': '0'}]
-
-        # filters_list = [[
-        #     {'variant_report__variant__samplevariant__sampletranscriptvariant__impact': 'HIGH',
-        #      'variant_report__variant__samplevariant__sample__id': sample.id,
-        #      'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id': F('transcript')}]]
-
-        # filters_list.append(test)
-
-        # Retrieve all STVs associated with current sample.
-        STVs = SampleTranscriptVariant.objects.filter(
-            sample_variant__sample=sample, transcript__gene__id__in=gene_ids)
+        # Retrieve all VRIs associated with current VCF file.
+        # Use annotate to coerce 'field' value into an integer field.
+        VRI_template = VariantReportInfo.objects.filter(
+            variant_report__vcf=vcf,
+            variant_report__variant__transcriptvariant__transcript__gene__in=gene_ids) \
+            .annotate(number_value=ExtractValueInteger())
 
         transcript_key = 'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id'
 
@@ -181,8 +173,8 @@ def filter_variants(sample, run, filter=None):
                 # Use annotate to coerce 'field' value into an integer field.
                 # Use annotate to append a transcript to each VRI, where a given variant appears in multiple
                 # transcripts the rest of the VRI row will be duplicated.
-                VRI_queryset = VariantReportInfo.objects.filter(
-                    variant_report__vcf=vcf).annotate(number_value=ExtractValueInteger(), transcript=F(transcript_key))
+                VRI_queryset = VRI_template.annotate(
+                    transcript=F(transcript_key))
 
                 # Use reduce to place an OR between q objects and retrieve combinations of variant
                 # and transcript IDs that satisfy current or group.
@@ -195,14 +187,9 @@ def filter_variants(sample, run, filter=None):
                     {'sample_variant__variant': value[0], 'transcript':value[1]} for value in variant_report_ids]
 
             else:
-                # Retrieve all VRIs associated with current VCF file.
-                # Use annotate to coerce 'field' value into an integer field.
-                VRI_queryset = VariantReportInfo.objects.filter(
-                    variant_report__vcf=vcf).annotate(number_value=ExtractValueInteger())
-
                 # Use reduce to place an OR between q objects and retrieve variant
                 # IDs that satisfy current or group.
-                variant_report_ids = VRI_queryset.filter(
+                variant_report_ids = VRI_template.filter(
                     reduce(operator.or_, k_v_pairs)).distinct().values_list(
                     'variant_report__variant')
 
@@ -232,10 +219,6 @@ def filter_variants(sample, run, filter=None):
         excluded_pinned_variants_count = unfiltered_pinned_count - \
             STVs.filter(pinned=True).count()
     else:
-        # If no filter provided, return all variants.
-        STVs = SampleTranscriptVariant.objects.filter(sample_variant__sample=sample,
-                                                      sample_variant__variant__variantreport__vcf=vcf).order_by('transcript__gene__hgnc_name')
-
         excluded_pinned_variants_count = None
 
     # Return pinned and unpinned variants.
