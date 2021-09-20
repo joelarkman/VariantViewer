@@ -157,7 +157,7 @@ def filter_variants(sample, run, filter=None):
         # Use annotate to coerce 'field' value into an integer field.
         VRI_template = VariantReportInfo.objects.filter(
             variant_report__vcf=vcf,
-            variant_report__variant__transcriptvariant__transcript__gene__in=gene_ids) \
+            variant_report__variant__transcriptvariant__transcript__gene__id__in=gene_ids) \
             .annotate(number_value=ExtractValueInteger())
 
         transcript_key = 'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id'
@@ -174,12 +174,12 @@ def filter_variants(sample, run, filter=None):
                 # Use annotate to append a transcript to each VRI, where a given variant appears in multiple
                 # transcripts the rest of the VRI row will be duplicated.
                 VRI_queryset = VRI_template.annotate(
-                    transcript=F(transcript_key))
+                    transcript=F(transcript_key)).distinct()
 
                 # Use reduce to place an OR between q objects and retrieve combinations of variant
                 # and transcript IDs that satisfy current or group.
                 variant_report_ids = VRI_queryset.filter(
-                    reduce(operator.or_, k_v_pairs)).distinct().values_list(
+                    reduce(operator.or_, k_v_pairs)).values_list(
                     'variant_report__variant', 'transcript')
 
                 # Parse values_list output into list of filter dictionaries
