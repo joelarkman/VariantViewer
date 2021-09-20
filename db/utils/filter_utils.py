@@ -180,7 +180,7 @@ def filter_variants(sample, run, filter=None):
                 VRI_queryset = VRI_template.annotate(
                     transcript=F(transcript_key)).distinct()
 
-                print('test3' + VRI_queryset.count())
+                print('test3 - ' + str(VRI_queryset.count()))
 
                 # Use reduce to place an OR between q objects and retrieve combinations of variant
                 # and transcript IDs that satisfy current or group.
@@ -192,9 +192,9 @@ def filter_variants(sample, run, filter=None):
 
                 # Parse values_list output into list of filter dictionaries
                 variants_transcripts = [
-                    {'sample_variant__variant': value[0], 'transcript':value[1]} for value in variant_report_ids]
+                    {'sample_variant__variant': value[0], 'transcript__id':value[1]} for value in variant_report_ids]
 
-                print(variants_transcripts)
+                print('test5 - ' + str(len(variants_transcripts)))
 
             else:
                 # Use reduce to place an OR between q objects and retrieve variant
@@ -215,7 +215,7 @@ def filter_variants(sample, run, filter=None):
                 STVs = STVs.filter(
                     reduce(operator.or_, variants_transcripts)).distinct()
 
-                print(STVs)
+                print('test6 - ' + str(STVs.filter(selected=True).count()))
             else:
                 STVs = STVs.none()
 
