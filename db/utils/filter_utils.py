@@ -1,8 +1,9 @@
+from django.db.models.expressions import Exists, OuterRef
 from db.models import ExcelReport, SampleTranscriptVariant, VariantReport, VariantReportInfo
 from web.models import Filter
 import operator
 from functools import reduce
-from django.db.models import Q, Count, F, Func, IntegerField
+from django.db.models import Q, Count, F, Func, FloatField
 from db.models import SampleTranscriptVariant
 import urllib.parse
 import json
@@ -86,15 +87,15 @@ def get_filters(sample, run, user):
             'blank_filter': blank_filter}
 
 
-class ExtractValueInteger(Func):
-    """ Returns the first int value from the string. Note that this
-    requires the string to have an integer value inside.
+class ExtractValueFloat(Func):
+    """ Returns the first float value from the string. Note that this
+    requires the string to have an float value inside.
     """
     function = 'REGEXP_MATCH'
-    template = "CAST( (REGEXP_MATCH(value, '\d+'))[1] as INTEGER )"
+    template = "CAST( (REGEXP_MATCH(value, '[+-]?((\d+\.?\d*)|(\.\d+))'))[1] as FLOAT )"
     # If version of postgres is before v10 use below.
     # template = "CAST((SELECT REGEXP_MATCHES(value, '\d+')) as INTEGER)"
-    output_field = IntegerField()
+    output_field = FloatField()
 
 
 def filter_variants(sample, run, filter=None):
@@ -124,8 +125,13 @@ def filter_variants(sample, run, filter=None):
         # For each filter item, format field, filter_type and value information into a query dictionary containing relevent fk lookups.
         for item in filter.items.all().order_by('id'):
             if item.field in variantreport_fields:
-                parsed_item = {
-                    f'variant_report__{item.field}{item.filter_type}': item.value}
+                if item.filter_type in ['__lt', '__gt', '__lte', '__gte']:
+                    parsed_item = {
+                        f'variant_report__{item.field}{item.filter_type}': float(item.value)}
+                else:
+                    parsed_item = {
+                        f'variant_report__{item.field}{item.filter_type}': item.value}
+
             elif item.field == 'impact':
                 # This lookup finds variants with a particular impact value that have occured for this sample within a particular transcript.
                 parsed_item = {f'variant_report__variant__samplevariant__sampletranscriptvariant__impact{item.filter_type}': item.value,
@@ -140,7 +146,7 @@ def filter_variants(sample, run, filter=None):
                 # If numerical info field use number_value instead of value.
                 if item.filter_type in ['__lt', '__gt', '__lte', '__gte']:
                     parsed_item = {'tag': item.field,
-                                   f'number_value{item.filter_type}': item.value}
+                                   f'number_value{item.filter_type}': float(item.value)}
                 else:
                     parsed_item = {'tag': item.field,
                                    f'value{item.filter_type}': item.value}
@@ -148,31 +154,34 @@ def filter_variants(sample, run, filter=None):
             # Add latest item to cache list.
             filter_cache.append(parsed_item)
 
+            # For 'is not' filters add filter to include variants that dont have any value for this tag.
+            if item.filter_type == '__ne':
+                filter_cache.append(~Exists(VariantReport.objects.filter(id=OuterRef(
+                    'variant_report__id'), variantreportinfo__tag=f'{item.field}')))
+
             # If current item does not mark the start or middle of an OR group, add filter cache to filter list and wipe it clean.
             if not item.or_next:
                 filters_list.append(filter_cache)
                 filter_cache = []
-
-        print('test1')
 
         # Retrieve all VRIs associated with current VCF file.
         # Use annotate to coerce 'field' value into an integer field.
         VRI_template = VariantReportInfo.objects.filter(
             variant_report__vcf=vcf,
             variant_report__variant__transcriptvariant__transcript__gene__id__in=gene_ids) \
-            .annotate(number_value=ExtractValueInteger())
-
-        print('test2')
+            .annotate(number_value=ExtractValueFloat())
 
         transcript_key = 'variant_report__variant__samplevariant__sampletranscriptvariant__transcript__id'
 
         # Each item in filters_list contains a set of filers that should be OR'd together.
         for filter in filters_list:
             # Create a set of Q objects for each item in current OR group.
-            k_v_pairs = (Q(**tag_value_pairs) for tag_value_pairs in filter)
+            # k_v_pairs = (Q(**tag_value_pairs) for tag_value_pairs in filter)
+            k_v_pairs = (Q(**item) if isinstance(item, dict)
+                         else Q(item) for item in filter)
 
             # If any filters are transcript specific
-            if any(transcript_key in or_items for or_items in filter):
+            if any(transcript_key in or_items for or_items in filter if isinstance(or_items, dict)):
                 # Retrieve all VRIs associated with current VCF file.
                 # Use annotate to coerce 'field' value into an integer field.
                 # Use annotate to append a transcript to each VRI, where a given variant appears in multiple
@@ -180,21 +189,15 @@ def filter_variants(sample, run, filter=None):
                 VRI_queryset = VRI_template.annotate(
                     transcript=F(transcript_key)).distinct()
 
-                print('test3 - ' + str(VRI_queryset.count()))
-
                 # Use reduce to place an OR between q objects and retrieve combinations of variant
                 # and transcript IDs that satisfy current or group.
                 variant_report_ids = VRI_queryset.filter(
                     reduce(operator.or_, k_v_pairs)).values_list(
                     'variant_report__variant', 'transcript')
 
-                print('test4')
-
                 # Parse values_list output into list of filter dictionaries
                 variants_transcripts = [
                     {'sample_variant__variant': value[0], 'transcript__id':value[1]} for value in variant_report_ids]
-
-                print('test5 - ' + str(len(variants_transcripts)))
 
             else:
                 # Use reduce to place an OR between q objects and retrieve variant
@@ -215,7 +218,6 @@ def filter_variants(sample, run, filter=None):
                 STVs = STVs.filter(
                     reduce(operator.or_, variants_transcripts)).distinct()
 
-                print('test6 - ' + str(STVs.filter(selected=True).count()))
             else:
                 STVs = STVs.none()
 
