@@ -422,6 +422,9 @@ class VariantReportInfo(BaseModel):
     description = models.TextField()
     value = models.CharField(max_length=255)
 
+    class Meta:
+        ordering = ['tag']
+
     def __str__(self):
         return f"{self.variant_report} INFO: {self.tag}={self.value}"
 
