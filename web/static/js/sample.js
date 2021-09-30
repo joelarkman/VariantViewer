@@ -1292,7 +1292,7 @@ $(document).ready(function () {
             'processing': 'Loading...',
             "zeroRecords": "No genes matching query",
         },
-        "order": [[0, 'asc']]
+        "order": [[0, 'asc'], [1, 'asc']]
     });
 
 
@@ -1315,7 +1315,7 @@ $(document).ready(function () {
             'processing': 'Loading...',
             "zeroRecords": "No genes matching query",
         },
-        "order": [[0, 1, 'asc']]
+        "order": [[0, 'asc'], [1, 'asc']]
     });
 
     // Toggle visibility of raw values columns
